@@ -45,26 +45,26 @@ class AuthController extends Controller
 
             $token = $user->createToken('api-token', ['post:read', 'post:create'])->plainTextToken;
 
-            return response()->json(['ok' => true, 'token' => $token]);
+            return response()->json(['success' => true, 'user' => $user,'token' => $token], 201);
         }
 
-        return response()->json(['ok' => false, 'message' => 'Credenciais inválidas'], 401);
+        return response()->json(['success' => false, 'message' => 'Credenciais inválidas'], 401);
     }
 
     function logout(Request $request)
     {;
         $token = $request->bearerToken();
         if (!$token) {
-            return response()->json(['ok' => false, 'message' => 'Token não informado'], 400);
+            return response()->json(['success' => false, 'message' => 'Token não informado'], 400);
         }
 
         $access_token = PersonalAccessToken::findToken($token);
         if (!$access_token) {
-            return response()->json(['ok' => false, 'message' => 'Token fornecido é inválido'], 400);
+            return response()->json(['success' => false, 'message' => 'Token fornecido é inválido'], 400);
         }
 
         $access_token->delete();
 
-        return response()->json(['ok' => true, 'message' => 'Logout realizado com sucesso']);
+        return response()->json(['success' => true, 'message' => 'Logout realizado com sucesso']);
     }
 }
