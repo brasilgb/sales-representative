@@ -5,15 +5,26 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class OrderController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $search = $request->get('q');
+
+        $query = Order::orderBy('id', 'DESC');
+        $query->where('id', $search);
+        // if ($search) {
+        //     $query->where('name', 'like', '%' . $search . '%')
+        //         ->orWhere('reference', 'like', '%' . $search . '%');
+        // }
+
+        $orders = $query->paginate(12);
+        return Inertia::render('app/orders/index', ["orders" => $orders]);
     }
 
     /**

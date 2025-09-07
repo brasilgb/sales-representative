@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
 {
@@ -11,10 +12,9 @@ class Customer extends Model
     protected $fillable = [
         'user_id',
         'name',
-        'cpfcnpj',
-        'state_registration',
+        'cnpj',
         'email',
-        'cep',
+        'zip_code',
         'state',
         'city',
         'district',
@@ -31,5 +31,10 @@ class Customer extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
     }
 }

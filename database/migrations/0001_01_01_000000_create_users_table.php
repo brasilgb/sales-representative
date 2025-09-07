@@ -15,12 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('telephone')->nullable();
+            $table->string('whatsapp')->nullable();
             $table->string('password');
-            $table->string('cpf_cnpj');
-            $table->string('telephone');
-            $table->string('plan');
-            $table->boolean('payment')->default(true);
-            $table->boolean('status')->default(true);
+            $table->boolean('roles')->nullable();
+            $table->boolean('status')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();

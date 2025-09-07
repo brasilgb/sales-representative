@@ -3,21 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function teste()
+    public function index()
     {
-        return response()->json(['ok' => true]);
+        $users = User::all();
+        return Inertia::render('app/users/index', ['users' => $users]);
     }
-
-    public function envio(Request $request) {
-        $validated = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|min:6'
-        ]);
-        return response()->json(['ok' => true, 'email' => $validated['email']]);
-    }
-    
 }

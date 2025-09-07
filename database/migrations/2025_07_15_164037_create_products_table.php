@@ -17,9 +17,13 @@ return new class extends Migration
             $table->string('name', 50)->nullable();
             $table->string('reference', 50)->nullable();
             $table->string('description', 50)->nullable();
-            $table->string('unidade', 20)->nullable();
-            $table->integer('medida')->nullable();
+            $table->string('unity', 20)->nullable();
+            $table->integer('measure')->nullable();
             $table->decimal('price', 10,2)->nullable();
+            $table->integer('quantity');
+            $table->integer('min_quantity');
+            $table->boolean('enabled');
+            $table->text('observations')->nullable();
             $table->timestamps();
         });
     }
