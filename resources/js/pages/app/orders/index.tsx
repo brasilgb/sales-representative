@@ -3,7 +3,7 @@ import { Icon } from '@/components/icon';
 import AppLayout from '@/layouts/app-layout'
 import { BreadcrumbItem } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react'
-import { BoxIcon, Calendar, Edit, Plus, Users, Wrench } from 'lucide-react';
+import { BoxIcon, Calendar, Edit, Plus, ShoppingCartIcon, Users, Wrench } from 'lucide-react';
 import moment from 'moment'
 import {
   Table,
@@ -41,7 +41,7 @@ export default function Products({ orders }: any) {
       <Head title="Pedidos" />
       <div className='flex items-center justify-between h-16 px-4'>
         <div className='flex items-center gap-2'>
-          <Icon iconNode={BoxIcon} className='w-8 h-8' />
+          <Icon iconNode={ShoppingCartIcon} className='w-8 h-8' />
           <h2 className="text-xl font-semibold tracking-tight">Pedidos</h2>
         </div>
         <div>

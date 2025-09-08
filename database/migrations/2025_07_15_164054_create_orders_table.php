@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained();
             $table->foreignId('customer_id')->nullable()->constrained();
-            $table->decimal('price')->nullable();
             $table->decimal('flex')->nullable();
             $table->decimal('discount')->nullable();
             $table->decimal('total')->nullable();

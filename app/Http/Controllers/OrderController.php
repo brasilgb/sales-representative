@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -32,7 +34,9 @@ class OrderController extends Controller
      */
     public function create()
     {
-        //
+        $products = Product::all();
+        $customers = Customer::all();
+        return Inertia::render('app/orders/create-order', ['products' => $products, 'customers' => $customers]);
     }
 
     /**
@@ -40,7 +44,7 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        dd($request->all());
     }
 
     /**
