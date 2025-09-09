@@ -7,31 +7,36 @@ import { Link } from '@inertiajs/react';
 import { BookOpen, BoxIcon, CogIcon, Folder, LayoutGrid, ShoppingCartIcon, User2Icon, UserIcon, UsersIcon } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
+const appNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: route('app.dashboard'),
         icon: LayoutGrid,
+        active: 'app.dashboard',
     },
     {
         title: 'Pedidos',
-        href: '/orders',
+        href: route('app.orders.index'),
         icon: ShoppingCartIcon,
+        active: 'app.orders.*',
     },
     {
         title: 'Produtos',
-        href: '/products',
+        href: route('app.products.index'),
         icon: BoxIcon,
+        active: 'app.products.*',
     },
     {
         title: 'Clientes',
-        href: '/customers',
+        href: route('app.customers.index'),
         icon: UsersIcon,
+        active: 'app.customers.*',
     },
     {
         title: 'Configurações',
-        href: '/settings',
+        href: route('app.settings.index'),
         icon: CogIcon,
+        active: 'admin.settings.*',
     },
 ];
 
@@ -55,7 +60,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
+                            <Link href={route('app.dashboard')} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -64,11 +69,11 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={appNavItems} />
             </SidebarContent>
 
             <SidebarFooter>
-                {/* <NavFooter items={footerNavItems} className="mt-auto" /> */}
+                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

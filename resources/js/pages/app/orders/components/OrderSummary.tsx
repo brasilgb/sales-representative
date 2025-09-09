@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { maskMoney } from '@/Utils/mask';
+import { ShoppingCartIcon } from 'lucide-react';
 
 interface OrderItem {
   product_id: number;
@@ -21,8 +22,8 @@ export function OrderSummary({ items, onRemoveItem }: Props) {
   const total = items.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
   return (
-    <Card className="mb-4 p-2">
-      <CardTitle className="font-semibold mb-2">Resumo do Pedido</CardTitle>
+<Card className="mb-4 p-2">
+            <CardTitle className="flex items-center gap-2 font-bold mb-2"><ShoppingCartIcon className="w-6 h-6" /> Resumo do Pedido</CardTitle>
       <Table className="w-full table-auto">
         <TableHeader>
           <TableRow className="text-left">
@@ -55,7 +56,7 @@ export function OrderSummary({ items, onRemoveItem }: Props) {
         <TableFooter>
           <TableRow>
             <TableCell colSpan={3} className="text-right font-bold p-2">Total:</TableCell>
-            <TableCell colSpan={2} className="font-bold p-2">R$ {total.toFixed(2)}</TableCell>
+            <TableCell colSpan={2} className="font-bold p-2">R$ {maskMoney(total.toFixed(2))}</TableCell>
           </TableRow>
         </TableFooter>
       </Table>

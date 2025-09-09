@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import AppLayout from "@/layouts/app-layout";
 import { BreadcrumbItem } from "@/types";
 import { Head, Link, useForm } from "@inertiajs/react";
-import { ArrowLeft, ShoppingCartIcon } from "lucide-react";
+import { ArrowLeft, ShoppingCartIcon, UserIcon } from "lucide-react";
 import { maskMoneyDot } from "@/Utils/mask";
 import { useEffect, useState } from "react";
 import { ProductSelector } from "./components/ProductSelector";
@@ -44,7 +44,7 @@ export default function CreateProduct({ customers, products }: any) {
     flex: '',
     discount: '',
     total: '',
-    items: []
+    items: ''
   });
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function CreateProduct({ customers, products }: any) {
           item.product_id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      return [...prevItems, { product_id: product.id, quantity, price: product.price, name: product.name }];
+      return [...prevItems, { product_id: product.id, quantity, price: product.price, name: product.name, total: (parseFloat(product.price) * quantity).toFixed(2) }];
     });
   };
 
@@ -108,11 +108,13 @@ export default function CreateProduct({ customers, products }: any) {
       </div>
 
       <div className='p-4'>
-        {/* <div className='border rounded-lg p-2'> */}
+        <pre>
+          {JSON.stringify(data)}
+        </pre>
         <form onSubmit={handleSubmit}>
           {/* Seletor de Cliente */}
           <Card className="mb-4 p-2">
-            <CardTitle className="block text-gray-700 font-bold mb-2">Cliente</CardTitle>
+            <CardTitle className="flex items-center gap-2 font-bold mb-2"><UserIcon className="w-6 h-6" /> Cliente</CardTitle>
             <Select
               options={optionsCustomer}
               onChange={changeCustomer}
@@ -147,7 +149,7 @@ export default function CreateProduct({ customers, products }: any) {
           <OrderSummary items={items} onRemoveItem={handleProductRemove} />
 
           <Card className="mb-4 p-2">
-            <div className="flex">
+            <div className="flex items-center justify-start gap-6">
 
               <div className="gap-2">
                 <Label htmlFor="flex">Flex</Label>
@@ -183,9 +185,7 @@ export default function CreateProduct({ customers, products }: any) {
               Finalizar Pedido
             </Button>
           </div>
-
         </form>
-        {/* </div> */}
       </div>
     </AppLayout>
   )

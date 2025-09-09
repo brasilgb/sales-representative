@@ -34,6 +34,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Products({ orders }: any) {
   const { flash } = usePage().props as any;
+console.log(orders);
 
   return (
     <AppLayout> 

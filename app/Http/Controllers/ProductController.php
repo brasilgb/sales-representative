@@ -46,7 +46,7 @@ class ProductController extends Controller
         $data = $request->all();
         $request->validated();
         Product::create($data);
-        return redirect()->route('products.index')->with('success', 'Produto cadastrado com sucesso!');
+        return redirect()->route('app.products.index')->with('success', 'Produto cadastrado com sucesso!');
     }
 
     /**
@@ -62,7 +62,7 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        return Redirect::route('products.show', ['product' => $product->id]);
+        return Redirect::route('app.products.show', ['product' => $product->id]);
     }
 
     /**
@@ -73,7 +73,7 @@ class ProductController extends Controller
         $data = $request->all();
         $request->validated();
         $product->update($data);
-        return redirect()->route('products.show', ['product' => $product->id])->with('success', 'Produto alterado com sucesso!');
+        return redirect()->route('app.products.show', ['product' => $product->id])->with('success', 'Produto alterado com sucesso!');
     }
 
     /**
@@ -82,6 +82,6 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
-        return redirect()->route('products.index')->with('success', 'Produto excluido com sucesso!');
+        return redirect()->route('app.products.index')->with('success', 'Produto excluido com sucesso!');
     }
 }

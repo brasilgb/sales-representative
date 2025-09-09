@@ -47,7 +47,7 @@ class CustomerController extends Controller
         $data = $request->all();
         $request->validated();
         Customer::create($data);
-        return redirect()->route('customers.index')->with('success', 'Cliente cadastrado com sucesso!');
+        return redirect()->route('app.customers.index')->with('success', 'Cliente cadastrado com sucesso!');
     }
 
     /**
@@ -63,7 +63,7 @@ class CustomerController extends Controller
      */
     public function edit(Customer $customer)
     {
-        return Redirect::route('customers.show', ['customer' => $customer->id]);
+        return Redirect::route('app.customers.show', ['customer' => $customer->id]);
     }
 
     /**
@@ -74,7 +74,7 @@ class CustomerController extends Controller
         $data = $request->all();
         $request->validated();
         $customer->update($data);
-        return redirect()->route('customers.show', ['customer' => $customer->id])->with('success', 'Cliente alterado com sucesso!');
+        return redirect()->route('app.customers.show', ['customer' => $customer->id])->with('success', 'Cliente alterado com sucesso!');
     }
 
     /**
@@ -83,6 +83,6 @@ class CustomerController extends Controller
     public function destroy(Customer $customer)
     {
         $customer->delete();
-        return redirect()->route('customers.index')->with('success', 'Cliente excluido com sucesso!');
+        return redirect()->route('app.customers.index')->with('success', 'Cliente excluido com sucesso!');
     }
 }

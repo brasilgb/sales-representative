@@ -11,7 +11,7 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'customer_id',
-        'price',
+        'order_number',
         'flex',
         'discount',
         'total'
@@ -22,8 +22,19 @@ class Order extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function orderItem(): HasMany
+    public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    // Este é o método `boot` que define o evento de modelo
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Quando um Order for deletado, delete todos os OrderItems relacionados
+        static::deleting(function ($order) {
+            $order->orderItems()->delete();
+        });
     }
 }
