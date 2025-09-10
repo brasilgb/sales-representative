@@ -1,4 +1,3 @@
-import AdminLayout from '@/layouts/admin/admin-layout'
 import { Head, Link } from '@inertiajs/react'
 import { BreadcrumbItem } from '@/types';
 import { Building, Building2, Edit, Plus } from 'lucide-react'
@@ -12,6 +11,7 @@ import moment from 'moment';
 import ActionDelete from '@/components/action-delete';
 import AppPagination from '@/components/app-pagination';
 import { statusSaasByValue } from '@/Utils/functions';
+import AdminSidebarLayout from '@/layouts/admin/admin-sidebar-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -27,7 +27,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function TenantsIndex({  tenants }: any) {
 
   return (
-    <AdminLayout>
+    <AdminSidebarLayout>
       <Head title="Empresas" />
       <div className='flex items-center justify-between h-16 px-4'>
         <div className='flex items-center gap-2'>
@@ -119,6 +119,6 @@ export default function TenantsIndex({  tenants }: any) {
         </div>
       </div>
 
-    </AdminLayout>
+    </AdminSidebarLayout>
   )
 }

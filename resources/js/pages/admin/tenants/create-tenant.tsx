@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { maskCep, maskCpfCnpj, maskPhone, unMask } from "@/Utils/mask";
-import AdminLayout from "@/layouts/admin/admin-layout";
 import InputError from "@/components/input-error";
 import Select from 'react-select';
 import { statusSaas } from "@/Utils/dataSelect";
+import AdminSidebarLayout from "@/layouts/admin/admin-sidebar-layout";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -85,7 +85,7 @@ export default function CreateTenant({ plans }: any) {
     };
 
     return (
-        <AdminLayout>
+        <AdminSidebarLayout>
             <Head title="Empresas" />
             <div className='flex items-center justify-between h-16 px-4'>
                 <div className='flex items-center gap-2'>
@@ -358,6 +358,6 @@ export default function CreateTenant({ plans }: any) {
                     </form>
                 </div>
             </div>
-        </AdminLayout>
+        </AdminSidebarLayout>
     )
 }
