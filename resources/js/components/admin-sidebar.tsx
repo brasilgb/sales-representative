@@ -4,8 +4,9 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Building, Cog, Folder, LayoutGrid, UserCog } from 'lucide-react';
+import { BookOpen, Building, Cog, Copyright, Folder, HandCoins, LayoutGrid, Sparkles, UserCog } from 'lucide-react';
 import AppLogo from './app-logo';
+import NavMainCollapsible from './nav-main-collapsible';
 const mainAdminItems = [
     {
         title: 'Dashboard',
@@ -32,6 +33,33 @@ const mainAdminItems = [
         active: 'admin.settings.*',
     },
 ];
+const mainPlansItems = [
+    {
+        title: "Planos",
+        url: "#",
+        icon: HandCoins,
+        items: [
+            {
+                title: 'Cadastrar plano',
+                url: route('admin.plans.index'),
+                icon: Copyright,
+                active: 'admin.plans.*',
+            },
+            {
+                title: 'Cadastrar períodos',
+                url: route('admin.periods.index'),
+                icon: Sparkles,
+                active: 'admin.periods.*',
+            },
+            {
+                title: 'Cadastrar característica',
+                url: route('admin.features.index'),
+                icon: Sparkles,
+                active: 'admin.features.*',
+            },
+        ]
+    }
+];
 
 export function AdminSidebar() {
     return (
@@ -50,6 +78,7 @@ export function AdminSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainAdminItems} />
+                <NavMainCollapsible items={mainPlansItems} />
             </SidebarContent>
 
             <SidebarFooter>

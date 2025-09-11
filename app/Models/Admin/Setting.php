@@ -4,12 +4,11 @@ namespace App\Models\Admin;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Plan extends Model
+class Setting extends Model
 {
-    protected $fillable = [
+    protected $guarded = [
+        'tenant_id',
         'name',
-        'slug',
-        'description'
+        'logo'
     ];
-
 }

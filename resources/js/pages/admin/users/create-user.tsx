@@ -13,6 +13,7 @@ import { rolesUser } from "@/Utils/dataSelect";
 import { useState } from "react";
 import { maskPhone } from "@/Utils/mask";
 import AdminLayout from "@/layouts/admin/admin-layout";
+import AdminSidebarLayout from "@/layouts/admin/admin-sidebar-layout";
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -66,7 +67,7 @@ export default function CreateUser({ tenants }: any) {
   };
 
   return (
-    <AdminLayout>
+    <AdminSidebarLayout>
       <Head title="Usuários" />
       <div className='flex items-center justify-between h-16 px-4'>
         <div className='flex items-center gap-2'>
@@ -273,6 +274,6 @@ export default function CreateUser({ tenants }: any) {
 
         </div>
       </div >
-    </AdminLayout >
+    </AdminSidebarLayout >
   )
 }

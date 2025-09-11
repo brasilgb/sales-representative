@@ -4,13 +4,13 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import HeadingSmall from '@/components/heading-small';
 import { Icon } from '@/components/icon'
 import { Button } from '@/components/ui/button';
-import AdminLayout from '@/layouts/admin/admin-layout'
 import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react'
 import { Building, Save } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useForm } from '@inertiajs/react';
+import AdminSidebarLayout from '@/layouts/admin/admin-sidebar-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -42,7 +42,7 @@ export default function SettingsIndex({ settings }: any) {
   }
 
   return (
-    <AdminLayout>
+    <AdminSidebarLayout>
       {flash.message && <AlertSuccess message={flash.message} />}
       <Head title="Configurações" />
       <div className='flex items-center justify-between h-16 px-4'>
@@ -106,6 +106,6 @@ export default function SettingsIndex({ settings }: any) {
         </form>
       </div>
 
-    </AdminLayout>
+    </AdminSidebarLayout>
   )
 }

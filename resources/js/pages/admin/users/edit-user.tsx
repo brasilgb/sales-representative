@@ -15,7 +15,7 @@ import { rolesUser } from "@/Utils/dataSelect";
 import { useState } from "react";
 import { maskPhone } from "@/Utils/mask";
 import AlertSuccess from "@/components/app-alert-success";
-import AdminLayout from "@/layouts/admin/admin-layout";
+import AdminSidebarLayout from "@/layouts/admin/admin-sidebar-layout";
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -69,7 +69,7 @@ export default function CreateUser({ user, tenants }: any) {
     setData('tenant_id', selected?.value);
   };
   return (
-    <AdminLayout>
+    <AdminSidebarLayout>
       <Head title="Usuários" />
       {flash.message && <AlertSuccess message={flash.message} />}
       <div className='flex items-center justify-between h-16 px-4'>
@@ -279,6 +279,6 @@ export default function CreateUser({ user, tenants }: any) {
 
         </div>
       </div >
-    </AdminLayout >
+    </AdminSidebarLayout >
   )
 }
