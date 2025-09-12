@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin/admin-layout'
+import AdminSidebarLayout from '@/layouts/admin/admin-sidebar-layout'
 import { Head, Link, usePage } from '@inertiajs/react'
 import { BreadcrumbItem } from '@/types';
 import { Edit, HandCoins, Palette } from 'lucide-react'
@@ -28,7 +28,7 @@ export default function PlansIndex({ features, periods }: any) {
     const { flash } = usePage().props as any;
 
     return (
-        <AdminLayout>
+        <AdminSidebarLayout>
             <Head title="Características" />
             {flash.message && <AlertSuccess message={flash.message} />}
             <div className='flex items-center justify-between h-16 px-4'>
@@ -96,6 +96,6 @@ export default function PlansIndex({ features, periods }: any) {
                     </Table>
                 </div>
             </div>
-        </AdminLayout>
+        </AdminSidebarLayout>
     )
 }
