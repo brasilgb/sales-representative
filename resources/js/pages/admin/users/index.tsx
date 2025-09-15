@@ -88,12 +88,12 @@ export default function Users({ users }: any) {
                 users?.data?.map((user: any) => (
                   <TableRow key={user.id}>
                     <TableCell>{user.id}</TableCell>
-                    <TableCell className="font-medium">{user?.tenant?.company_name}</TableCell>
+                    <TableCell className="font-medium">{user?.tenant?.name}</TableCell>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell className="font-medium">{user.telephone}</TableCell>
                     <TableCell className="font-medium">{user.email}</TableCell>
                     <TableCell>{roleUserByValue(user.roles)}</TableCell>
-                    <TableCell>{user.is_active ? <Badge variant={'default'}>Ativo</Badge> : <Badge variant={'destructive'}>Inativo</Badge>}</TableCell>
+                    <TableCell>{user.status ? <Badge variant={'default'}>Ativo</Badge> : <Badge variant={'destructive'}>Inativo</Badge>}</TableCell>
                     <TableCell>{moment(user.created_at).format("DD/MM/YYYY")}</TableCell>
                     <TableCell className='flex justify-end gap-2'>
 

@@ -1,7 +1,7 @@
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/ui/button";
-import { BreadcrumbItem } from "@/types";
+import { BreadcrumbItem, Tenant } from "@/types";
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import { ArrowLeft, Building, Save, Users } from "lucide-react";
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,7 @@ import InputError from "@/components/input-error";
 import Select from 'react-select';
 import { statusSaas } from "@/Utils/dataSelect";
 import AdminSidebarLayout from "@/layouts/admin/admin-sidebar-layout";
+import { useEffect } from "react";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -32,31 +33,31 @@ export default function CreateTenant({ plans }: any) {
 
     const allPlans = plans.map((plan: any) => ({
         value: plan.id,
-        label: plan.company_name,
+        label: plan.name,
     }));
 
     const { data, setData, post, progress, processing, reset, errors } = useForm({
-        company_cnpj: '',
-        company_name: '',
-        fantasy_name: '',
-        contact_name: '',
-        contact_email: '',
-        contact_phone: '',
-        contact_whatsapp: '',
-        cep: '',
+        company: '',
+        cnpj: '',
+        phone: '',
+        whatsapp: '',
+        email: '',
+        zip_code: '',
         state: '',
         city: '',
         district: '',
         street: '',
         complement: '',
         number: '',
-        plan_id: '',
+        plan: '',
         status: '',
+        payment: '',
         observations: '',
     });
 
     const handleSubmit = async (e: any) => {
         e.preventDefault();
+
         post(route('admin.tenants.store'), {
             onSuccess: () => reset(),
         });
@@ -77,12 +78,16 @@ export default function CreateTenant({ plans }: any) {
     };
 
     const changePlan = (selected: any) => {
-        setData('plan_id', selected?.value);
+        setData('plan', selected?.value);
     };
 
     const changeStatus = (selected: any) => {
         setData('status', selected?.value);
     };
+
+    useEffect(() => {
+
+    }, [])
 
     return (
         <AdminSidebarLayout>
@@ -119,81 +124,62 @@ export default function CreateTenant({ plans }: any) {
                         <div className="grid md:grid-cols-3 gap-4 mt-4">
 
                             <div className="grid gap-2">
-                                <Label htmlFor="company_name">Razão social</Label>
+                                <Label htmlFor="company">Razão social</Label>
                                 <Input
                                     type="text"
-                                    id="company_name"
-                                    value={data.company_name}
-                                    onChange={(e) => setData('company_name', e.target.value)}
+                                    id="company"
+                                    value={data.company}
+                                    onChange={(e) => setData('company', e.target.value)}
                                 />
-                                {errors.company_name && <div className="text-red-500 text-sm">{errors.company_name}</div>}
+                                {errors.company && <div className="text-red-500 text-sm">{errors.company}</div>}
                             </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="company_cnpj">CPF/CNPJ</Label>
+                            <div className="col-span-2 grid gap-2">
+                                <Label htmlFor="cnpj">CPF/CNPJ</Label>
                                 <Input
                                     type="text"
-                                    id="company_cnpj"
-                                    value={maskCpfCnpj(data.company_cnpj)}
-                                    onChange={(e) => setData('company_cnpj', e.target.value)}
+                                    id="cnpj"
+                                    value={maskCpfCnpj(data.cnpj)}
+                                    onChange={(e) => setData('cnpj', e.target.value)}
                                     maxLength={18}
                                 />
-                                {errors.company_cnpj && <div className="text-red-500 text-sm">{errors.company_cnpj}</div>}
+                                {errors.cnpj && <div className="text-red-500 text-sm">{errors.cnpj}</div>}
                             </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="fantasy_name">Nome fantasia</Label>
-                                <Input
-                                    type="text"
-                                    id="fantasy_name"
-                                    value={data.fantasy_name}
-                                    onChange={(e) => setData('fantasy_name', e.target.value)}
-                                />
-                            </div>
                         </div>
 
-                        <div className="grid md:grid-cols-6 gap-4 mt-4">
-                            <div className="md:col-span-2 grid gap-2">
-                                <Label htmlFor="contact_name">Nome do contato</Label>
-                                <Input
-                                    type="text"
-                                    id="contact_name"
-                                    value={data.contact_name}
-                                    onChange={(e) => setData('contact_name', e.target.value)}
-                                />
-                                {errors.contact_name && <div className="text-red-500 text-sm">{errors.contact_name}</div>}
-                            </div>
+                        <div className="grid md:grid-cols-4 gap-4 mt-4">
 
                             <div className="md:col-span-2 grid gap-2">
-                                <Label htmlFor="contact_email">E-mail</Label>
+                                <Label htmlFor="email">E-mail</Label>
                                 <Input
                                     type="text"
-                                    id="contact_email"
-                                    value={data.contact_email}
-                                    onChange={(e) => setData('contact_email', e.target.value)}
+                                    id="email"
+                                    value={data.email}
+                                    onChange={(e) => setData('email', e.target.value)}
                                 />
-                                {errors.contact_email && <div className="text-red-500 text-sm">{errors.contact_email}</div>}
+                                {errors.email && <div className="text-red-500 text-sm">{errors.email}</div>}
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="contact_phone">Telefone</Label>
+                                <Label htmlFor="phone">Telefone</Label>
                                 <Input
                                     type="text"
-                                    id="contact_phone"
-                                    value={maskPhone(data.contact_phone)}
-                                    onChange={(e) => setData('contact_phone', e.target.value)}
+                                    id="phone"
+                                    value={maskPhone(data.phone)}
+                                    onChange={(e) => setData('phone', e.target.value)}
                                     maxLength={15}
                                 />
-                                {errors.contact_phone && <div className="text-red-500 text-sm">{errors.contact_phone}</div>}
+                                {errors.phone && <div className="text-red-500 text-sm">{errors.phone}</div>}
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="contact_whatsapp">Whatsapp</Label>
+                                <Label htmlFor="whatsapp">Whatsapp</Label>
                                 <Input
                                     type="text"
-                                    id="contact_whatsapp"
-                                    value={data.contact_whatsapp}
-                                    onChange={(e) => setData('contact_whatsapp', e.target.value)}
+                                    id="whatsapp"
+                                    value={data.whatsapp}
+                                    onChange={(e) => setData('whatsapp', e.target.value)}
                                     maxLength={13}
                                 />
                             </div>
@@ -202,12 +188,12 @@ export default function CreateTenant({ plans }: any) {
                         <div className="grid md:grid-cols-6 gap-4 mt-4">
 
                             <div className="grid gap-2">
-                                <Label htmlFor="cep">CEP</Label>
+                                <Label htmlFor="zip_code">CEP</Label>
                                 <Input
                                     type="text"
-                                    id="cep"
-                                    value={maskCep(data.cep)}
-                                    onChange={(e) => setData('cep', e.target.value)}
+                                    id="zip_code"
+                                    value={maskCep(data.zip_code)}
+                                    onChange={(e) => setData('zip_code', e.target.value)}
                                     onBlur={(e) => getCep(e.target.value)}
                                     maxLength={9}
                                 />
@@ -306,7 +292,7 @@ export default function CreateTenant({ plans }: any) {
                                         }),
                                     }}
                                 />
-                                <InputError className="mt-2" message={errors.plan_id} />
+                                <InputError className="mt-2" message={errors.plan} />
                             </div>
 
                             <div className="md:col-span-2 grid gap-2">

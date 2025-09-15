@@ -58,7 +58,7 @@ export default function TenantsIndex({  tenants }: any) {
             <TableHeader>
               <TableRow>
                 <TableHead>#</TableHead>
-                <TableHead>Nome</TableHead>
+                <TableHead>Empresa</TableHead>
                 <TableHead>CNPJ</TableHead>
                 <TableHead>E-mail</TableHead>
                 <TableHead>Telefone</TableHead>
@@ -73,10 +73,10 @@ export default function TenantsIndex({  tenants }: any) {
                 tenants?.data?.map((tenant: any) => (
                   <TableRow key={tenant.id}>
                     <TableCell>{tenant.id}</TableCell>
-                    <TableCell>{tenant.company_name}</TableCell>
-                    <TableCell>{tenant.company_cnpj}</TableCell>
-                    <TableCell>{tenant.contact_email}</TableCell>
-                    <TableCell>{maskPhone(tenant.contact_phone)}</TableCell>
+                    <TableCell>{tenant.company}</TableCell>
+                    <TableCell>{tenant.cnpj}</TableCell>
+                    <TableCell>{tenant.email}</TableCell>
+                    <TableCell>{maskPhone(tenant.phone)}</TableCell>
                     <TableCell>{statusSaasByValue(tenant.status)}</TableCell>
                     <TableCell>{moment(tenant.created_at).format("DD/MM/YYYY")}</TableCell>
                     <TableCell>{moment(tenant.expiration_date).format("DD/MM/YYYY")}</TableCell>

@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('telephone')->nullable();
             $table->string('whatsapp')->nullable();
             $table->string('password');
-            $table->boolean('roles')->nullable();
-            $table->boolean('status')->nullable();
+            $table->tinyInteger('roles')->nullable();
+            $table->tinyInteger('status')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();

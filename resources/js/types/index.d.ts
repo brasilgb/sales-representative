@@ -42,3 +42,23 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Tenant {
+    company: string;
+    cnpj: string;
+    phone: string;
+    whatsapp: string;
+    email: string;
+    zip_code: string;
+    state: string;
+    city: string;
+    district: string;
+    street: string;
+    complement: string;
+    number: string;
+    plan: string;
+    status: string;
+    payment: boolean;
+    observations: string;
+    expiration_date: Date;
+} 

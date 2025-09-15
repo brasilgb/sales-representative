@@ -45,19 +45,13 @@ export default function SettingsIndex({ settings }: any) {
     <AdminSidebarLayout>
       {flash.message && <AlertSuccess message={flash.message} />}
       <Head title="Configurações" />
-      <div className='flex items-center justify-between h-16 px-4'>
+      <div className='flex items-center justify-between h-16 px-4 w-full'>
         <div className='flex items-center gap-2'>
           <Icon iconNode={Building} className='w-8 h-8' />
           <h2 className="text-xl font-semibold tracking-tight">Configurações</h2>
         </div>
         <div>
           <Breadcrumbs breadcrumbs={breadcrumbs} />
-        </div>
-
-        <div className='p-4'>
-          <div className='border rounded-lg'>
-
-          </div>
         </div>
       </div>
 
@@ -73,10 +67,9 @@ export default function SettingsIndex({ settings }: any) {
             alt="Imagem de logo"
           />
         </div>
-
+ 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="flex flex-col md:w-2xl gap-4 mt-4">
-
             <div className="grid gap-2">
               <Label htmlFor="logo">Logotipo</Label>
               <Input

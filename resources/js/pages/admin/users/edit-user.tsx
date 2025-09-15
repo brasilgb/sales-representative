@@ -38,7 +38,7 @@ export default function CreateUser({ user, tenants }: any) {
 
   const newTenant = tenants?.map((tenant: any) => ({
     value: tenant.id,
-    label: tenant.company_name,
+    label: tenant.name,
   }));
 
   const { data, setData, patch, progress, processing, reset, errors } = useForm({
@@ -48,7 +48,7 @@ export default function CreateUser({ user, tenants }: any) {
     telephone: user?.telephone,
     whatsapp: user?.whatsapp,
     roles: user?.roles,
-    is_active: user?.is_active,
+    status: user?.status,
     password: '',
     password_confirmation: '',
   });
@@ -262,11 +262,11 @@ export default function CreateUser({ user, tenants }: any) {
 
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="is_active">Status do usuário</Label>
+              <Label htmlFor="status">Status do usuário</Label>
               <Switch
-                id="is_active"
-                checked={data.is_active}
-                onCheckedChange={(checked: any) => setData('is_active', checked)}
+                id="status"
+                checked={data.status}
+                onCheckedChange={(checked: any) => setData('status', checked)}
               />
             </div>
             <div className="flex justify-end">

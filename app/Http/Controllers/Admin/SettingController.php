@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Admin\Setting;
 use App\Http\Controllers\Controller;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -70,9 +69,12 @@ class SettingController extends Controller
                 unlink($storePath . DIRECTORY_SEPARATOR . $setting->logo);
             }
         }
-        $data = $request->except(['_method']);
-        $data['logo'] = $request->hasfile('logo') ? $fileName : $setting->logo;
-        $setting->update($data);
+        // $data['logo'] = $request->hasfile('logo') ? $fileName : $setting->logo;
+        Setting::where('id', $setting->id)->update([
+            'name' =>  $data['name'],
+            'logo' => $request->hasfile('logo') ? $fileName : $setting->logo
+        ]);
+
         return redirect()->route('admin.settings.index')->with('success', 'Dados das configurções alterados com sucesso!');
     }
 
