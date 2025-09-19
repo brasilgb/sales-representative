@@ -22,8 +22,8 @@ export function OrderSummary({ items, onRemoveItem }: Props) {
   const total = items.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
   return (
-<Card className="mb-4 p-2">
-            <CardTitle className="flex items-center gap-2 font-bold mb-2"><ShoppingCartIcon className="w-6 h-6" /> Resumo do Pedido</CardTitle>
+    <Card className="mb-4 p-2">
+      <CardTitle className="flex items-center gap-2 font-bold mb-2"><ShoppingCartIcon className="w-6 h-6" /> Resumo do Pedido</CardTitle>
       <Table className="w-full table-auto">
         <TableHeader>
           <TableRow className="text-left">

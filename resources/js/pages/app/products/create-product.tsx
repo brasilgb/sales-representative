@@ -15,11 +15,11 @@ import { useEffect } from "react";
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Dashboard',
-    href: route('dashboard'),
+    href: route('app.dashboard'),
   },
   {
     title: 'Produtos',
-    href: route('products.index'),
+    href: route('app.products.index'),
   },
   {
     title: 'Adicionar',
@@ -44,7 +44,7 @@ export default function CreateProduct() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    post(route('products.store'), {
+    post(route('app.products.store'), {
       onSuccess: () => reset(),
     });
   }
@@ -70,7 +70,7 @@ export default function CreateProduct() {
         <div>
           <Button variant={'default'} asChild>
             <Link
-              href={route('products.index')}
+              href={route('app.products.index')}
             >
               <ArrowLeft h-4 w-4 />
               <span>Voltar</span>

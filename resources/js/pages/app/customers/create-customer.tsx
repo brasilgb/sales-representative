@@ -13,11 +13,11 @@ import { maskCep, maskCpfCnpj, maskPhone, unMask } from "@/Utils/mask";
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Dashboard',
-    href: route('dashboard'),
+    href: route('app.dashboard'),
   },
   {
     title: 'Clientes',
-    href: route('customers.index'),
+    href: route('app.customers.index'),
   },
   {
     title: 'Adicionar',
@@ -47,7 +47,7 @@ export default function CreateCustomer() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    post(route('customers.store'), {
+    post(route('app.customers.store'), {
       onSuccess: () => reset(),
     });
   }
@@ -83,7 +83,7 @@ export default function CreateCustomer() {
         <div>
           <Button variant={'default'} asChild>
             <Link
-              href={route('customers.index')}
+              href={route('app.customers.index')}
             >
               <ArrowLeft h-4 w-4 />
               <span>Voltar</span>

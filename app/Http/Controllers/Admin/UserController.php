@@ -46,9 +46,7 @@ class UserController extends Controller
         $data = $request->all();
         $request->validated();
         $data['password'] = Hash::make($request->password);
-        Model::reguard();
         User::create($data);
-        Model::unguard();
         return redirect()->route('admin.users.index')->with('success', 'Usuário cadastrado com sucesso');
     }
 
@@ -77,9 +75,7 @@ class UserController extends Controller
         $data = $request->all();
         $request->validated();
         $data['password'] = $request->password ? Hash::make($request->password) : $user->password;
-        Model::reguard();
         $user->update($data);
-        Model::unguard();
         return redirect()->route('admin.users.show', ['user' => $user->id])->with('success', 'Usuário editado com sucesso');
     }
 

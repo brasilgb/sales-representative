@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('flexes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tenant_id')->nullable()->constrained();
             $table->decimal('value', 10,2);
             $table->timestamps();
         });

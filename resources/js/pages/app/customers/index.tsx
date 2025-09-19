@@ -24,7 +24,7 @@ import AppPagination from '@/components/app-pagination';
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Dashboard',
-    href: route('dashboard'),
+    href: route('app.dashboard'),
   },
   {
     title: 'Clientes',
@@ -51,12 +51,12 @@ export default function Customers({ customers }: any) {
 
       <div className='flex items-center justify-between p-4'>
         <div className='w-full'>
-          <InputSearch placeholder="Buscar cliente por nome/cnpj" url="customers.index" />
+          <InputSearch placeholder="Buscar cliente por nome/cnpj" url="app.customers.index" />
         </div>
         <div className='w-full flex justify-end'>
           <Button variant={'default'} asChild>
             <Link
-              href={route('customers.create')}
+              href={route('app.customers.create')}
             >
               <Plus className='h-4 w-4' />
               <span>Cliente</span>
@@ -92,12 +92,12 @@ export default function Customers({ customers }: any) {
                     <TableCell className='flex justify-end gap-2'>
 
                       <Button asChild size="icon" className="bg-orange-500 hover:bg-orange-600 text-white">
-                        <Link href={route('customers.edit', customer.id)}>
+                        <Link href={route('app.customers.edit', customer.id)}>
                           <Edit />
                         </Link>
                       </Button>
 
-                      <ActionDelete title={'este cliente'} url={'customers.destroy'} param={customer.id} />
+                      <ActionDelete title={'este cliente'} url={'app.customers.destroy'} param={customer.id} />
 
                     </TableCell>
                   </TableRow>

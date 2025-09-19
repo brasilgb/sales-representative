@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\Flex;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,7 @@ class OrderController extends Controller
         //         ->orWhere('reference', 'like', '%' . $search . '%');
         // }
 
-        $orders = $query->paginate(12);
+        $orders = $query->with('customers')->paginate(12);
         return Inertia::render('app/orders/index', ["orders" => $orders]);
     }
 
@@ -34,10 +35,11 @@ class OrderController extends Controller
      * Show the form for creating a new resource.
      */
     public function create()
-    {
+    { 
         $products = Product::all();
         $customers = Customer::all();
-        return Inertia::render('app/orders/create-order', ['products' => $products, 'customers' => $customers]);
+        $flex = Flex::first();
+        return Inertia::render('app/orders/create-order', ['products' => $products, 'customers' => $customers, 'flex' => $flex]);
     }
 
     /**
@@ -46,11 +48,6 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $otherData = $request->all();
-
-// 1. Validação dos dados
-        // 'client_id' é obrigatório e deve existir na tabela de 'clients'
-        // 'items' é obrigatório e deve ser um array
-        // Cada item no array de 'items' deve ter 'product_id', 'quantity' e 'price'
         $validatedData = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
             'items' => ['required', 'array', 'min:1'],
@@ -60,13 +57,10 @@ class OrderController extends Controller
             'items.*.name' => ['required', 'string', 'min:0'],
             'items.*.total' => ['required', 'numeric', 'min:0'],
         ]);
-// dd($validatedData);
-        // 2. Transação de banco de dados
-        // Garante que todas as operações (criar pedido e itens) sejam atômicas.
-        // Se qualquer parte falhar, tudo é desfeito.
+
         try {
             DB::beginTransaction();
-            
+
             // 3. Criação do Pedido principal
             // `status` é um campo que você pode definir como 'pendente' por padrão
             $order = Order::create([
@@ -77,7 +71,7 @@ class OrderController extends Controller
                 'total' => $otherData['total'],
                 'status' => 'pendente',
             ]);
-            
+
             // 4. Preparar os dados dos itens para gravação em massa
             $orderItemsData = collect($validatedData['items'])->map(function ($item) {
                 return [
@@ -88,21 +82,30 @@ class OrderController extends Controller
                     'total' => $item['total'],
                 ];
             })->toArray();
-            // dd($order);
-            // dd($orderItemsData);
-            // 5. Salvar os itens do pedido
-            // O método `createMany` do Eloquent é a forma mais eficiente de
-            // salvar múltiplos registros relacionados de uma vez.
+
             $order->orderItems()->createMany($orderItemsData);
 
-            // Se tudo deu certo, comita a transação
+            $flexBalance = Flex::firstOrCreate(
+                ['id' => 1],
+                ['value' => 0]
+            );
+
+            // 2. Converte os valores
+            $flexAmount = (float) ($otherData['flex'] ?? 0);
+            $discountAmount = (float) ($otherData['discount'] ?? 0);
+
+            // 3. Opera no registro
+            if ($flexAmount > 0) {
+                $flexBalance->increment('value', $flexAmount);
+            }
+
+            if ($discountAmount > 0) {
+                $flexBalance->decrement('value', $discountAmount);
+            }
+
             DB::commit();
 
-            // 6. Redirecionar para a tela de listagem de pedidos
-            // A função `back()` é útil para retornar para a página anterior, mas para este caso,
-            // é melhor redirecionar para uma rota específica.
             return redirect()->route('app.orders.index')->with('success', 'Pedido criado com sucesso!');
-
         } catch (\Exception $e) {
             // Em caso de erro, desfaz todas as operações de banco de dados
             DB::rollBack();

@@ -88,7 +88,7 @@ export default function Users({ users }: any) {
                 users?.data?.map((user: any) => (
                   <TableRow key={user.id}>
                     <TableCell>{user.id}</TableCell>
-                    <TableCell className="font-medium">{user?.tenant?.name}</TableCell>
+                    <TableCell className="font-medium">{user?.tenant?.company}</TableCell>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell className="font-medium">{user.telephone}</TableCell>
                     <TableCell className="font-medium">{user.email}</TableCell>

@@ -2,13 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\Tenantable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    use Tenantable;
+    
     protected $fillable = [
+        'tenant_id',
         'user_id',
         'customer_id',
         'order_number',

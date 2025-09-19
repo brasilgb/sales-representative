@@ -24,7 +24,7 @@ import AppPagination from '@/components/app-pagination';
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Dashboard',
-    href: route('dashboard'),
+    href: route('app.dashboard'),
   },
   {
     title: 'Pedidos',
@@ -34,7 +34,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Products({ orders }: any) {
   const { flash } = usePage().props as any;
-console.log(orders);
 
   return (
     <AppLayout> 
@@ -52,12 +51,12 @@ console.log(orders);
 
       <div className='flex items-center justify-between p-4'>
         <div className='w-full'>
-          <InputSearch placeholder="Buscar produto por nome/referência" url="orders.index" />
+          <InputSearch placeholder="Buscar produto por nome/referência" url="app.orders.index" />
         </div>
         <div className='w-full flex justify-end'>
           <Button variant={'default'} asChild>
             <Link
-              href={route('orders.create')}
+              href={route('app.orders.create')}
             >
               <Plus className='h-4 w-4' />
               <span>Pedido</span>
@@ -86,7 +85,7 @@ console.log(orders);
                 orders?.data?.map((order: any) => (
                   <TableRow key={order.id}>
                     <TableCell>{order.id}</TableCell>
-                    <TableCell>{order.customer_id}</TableCell>
+                    <TableCell>{order.customers.name}</TableCell>
                     <TableCell>{order.price}</TableCell>
                     <TableCell>{order.flex}</TableCell>
                     <TableCell>{order.discount}</TableCell>
@@ -95,12 +94,12 @@ console.log(orders);
                     <TableCell className='flex justify-end gap-2'>
 
                       <Button asChild size="icon" className="bg-orange-500 hover:bg-orange-600 text-white">
-                        <Link href={route('orders.edit', order.id)}>
+                        <Link href={route('app.orders.edit', order.id)}>
                           <Edit />
                         </Link>
                       </Button>
 
-                      <ActionDelete title={'este cliente'} url={'orders.destroy'} param={order.id} />
+                      <ActionDelete title={'este cliente'} url={'app.orders.destroy'} param={order.id} />
 
                     </TableCell>
                   </TableRow>

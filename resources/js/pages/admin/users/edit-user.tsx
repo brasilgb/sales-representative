@@ -38,7 +38,7 @@ export default function CreateUser({ user, tenants }: any) {
 
   const newTenant = tenants?.map((tenant: any) => ({
     value: tenant.id,
-    label: tenant.name,
+    label: tenant.company,
   }));
 
   const { data, setData, patch, progress, processing, reset, errors } = useForm({
@@ -55,6 +55,7 @@ export default function CreateUser({ user, tenants }: any) {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
+   
     patch(route('admin.users.update', user?.id));
   }
 
@@ -226,7 +227,7 @@ export default function CreateUser({ user, tenants }: any) {
                     }),
                   }}
                 />
-                <InputError className="mt-2" message={errors.roles} />
+                <InputError className="mt-2" message={errors.tenant_id} />
               </div>
 
               <div className=" grid gap-2">

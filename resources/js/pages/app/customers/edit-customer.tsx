@@ -14,11 +14,11 @@ import AlertSuccess from "@/components/app-alert-success";
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Dashboard',
-    href: route('dashboard'),
+    href: route('app.dashboard'),
   },
   {
     title: 'Clientes',
-    href: route('customers.index'),
+    href: route('app.customers.index'),
   },
   {
     title: 'Editar',
@@ -49,7 +49,7 @@ export default function EditCustomer({ customer }: any) {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    patch(route('customers.update', customer.id))
+    patch(route('app.customers.update', customer.id))
   }
 
   const getCep = (cep: string) => {
@@ -84,7 +84,7 @@ export default function EditCustomer({ customer }: any) {
         <div>
           <Button variant={'default'} asChild>
             <Link
-              href={route('customers.index')}
+              href={route('app.customers.index')}
             >
               <ArrowLeft h-4 w-4 />
               <span>Voltar</span>

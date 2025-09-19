@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\Tenantable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderItem extends Model
 {
+    use Tenantable;
+    
     protected $fillable = [
+        'tenant_id',
         'order_id',
         'product_id',
         'quantity',

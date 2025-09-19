@@ -5,7 +5,6 @@ import AppLayout from "@/layouts/app-layout";
 import { BreadcrumbItem } from "@/types";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { ArrowLeft, ShoppingCartIcon, UserIcon } from "lucide-react";
-import { maskMoneyDot } from "@/Utils/mask";
 import { useEffect, useState } from "react";
 import { ProductSelector } from "./components/ProductSelector";
 import { OrderSummary } from "./components/OrderSummary";
@@ -14,15 +13,17 @@ import { Card, CardTitle } from "@/components/ui/card";
 import InputError from "@/components/input-error";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { maskMoney } from "@/Utils/mask";
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Dashboard',
-    href: route('dashboard'),
+    href: route('app.dashboard'),
   },
   {
     title: 'Pedidos',
-    href: route('products.index'),
+    href: route('app.products.index'),
   },
   {
     title: 'Adicionar',
@@ -30,7 +31,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-export default function CreateProduct({ customers, products }: any) {
+export default function CreateProduct({ customers, products, flex }: any) {
 
   const optionsCustomer = customers.map((customer: any) => ({
     value: customer.id,
@@ -54,7 +55,7 @@ export default function CreateProduct({ customers, products }: any) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    post(route('orders.store'));
+    post(route('app.orders.store'));
   }
 
   const handleProductAdd = (product: any, quantity: number) => {
@@ -96,7 +97,7 @@ export default function CreateProduct({ customers, products }: any) {
         <div>
           <Button variant={'default'} asChild>
             <Link
-              href={route('orders.index')}
+              href={route('app.orders.index')}
             >
               <ArrowLeft h-4 w-4 />
               <span>Voltar</span>
@@ -108,9 +109,6 @@ export default function CreateProduct({ customers, products }: any) {
       </div>
 
       <div className='p-4'>
-        <pre>
-          {JSON.stringify(data)}
-        </pre>
         <form onSubmit={handleSubmit}>
           {/* Seletor de Cliente */}
           <Card className="mb-4 p-2">
@@ -150,13 +148,18 @@ export default function CreateProduct({ customers, products }: any) {
 
           <Card className="mb-4 p-2">
             <div className="flex items-center justify-start gap-6">
-
+              <div className="gap-1 flex flex-col items-center justify-center">
+              <Label>Flex diponível</Label>
+                <Badge variant={'default'} className="text-lg top-4" >
+                  R$ {maskMoney(flex?.value)}
+                </Badge>
+              </div>
               <div className="gap-2">
                 <Label htmlFor="flex">Flex</Label>
                 <Input
                   type="text"
                   id="flex"
-                  value={data.flex}
+                  value={maskMoney(data.flex)}
                   onChange={(e) => setData('flex', e.target.value)}
                 />
               </div>
@@ -166,7 +169,7 @@ export default function CreateProduct({ customers, products }: any) {
                 <Input
                   type="text"
                   id="discount"
-                  value={data.discount}
+                  value={maskMoney(data.discount)}
                   onChange={(e) => setData('discount', e.target.value)}
                 />
               </div>
