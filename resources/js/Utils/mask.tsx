@@ -54,7 +54,7 @@ function maskCpfCnpj(value: string) {
 }
 
 function maskCnpj(value: string) {
-    if (value) {
+    if (value && value.length < 18) {
         value = value.replace(/\D/g, "");
         value = value.replace(
             /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,

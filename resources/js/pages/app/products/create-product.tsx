@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { maskMoney, maskMoneyDot } from "@/Utils/mask";
 import { Switch } from "@/components/ui/switch";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { appsales } from "@/Utils/connectApi";
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -28,6 +29,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function CreateProduct() {
+
+  const [disableInput, setDisableInput] = useState<any>(false);
 
   const { data, setData, post, progress, processing, reset, errors } = useForm({
     name: '',
@@ -48,10 +51,53 @@ export default function CreateProduct() {
       onSuccess: () => reset(),
     });
   }
-  
+
   useEffect(() => {
     setData((data: any) => ({ ...data, price: maskMoneyDot(data?.price) }));
-    }, [data.price]);
+  }, [data.price]);
+
+  const referenceDataSelected = async (e: any) => {
+    e.preventDefault();
+    let valueReference = e.target.value;
+
+    try {
+      const getPartsForPartNumber = await appsales.get(`refproducts/${valueReference}`)
+
+      const { success, product } = getPartsForPartNumber.data;
+
+      if (success && product) {
+        setDisableInput(true)
+        setData((data) => ({ ...data, name: product.name }));
+        setData((data) => ({ ...data, product: product.product }));
+        setData((data) => ({ ...data, description: product.description }));
+        setData((data) => ({ ...data, unity: product.unity }));
+        setData((data) => ({ ...data, measure: product.measure }));
+        setData((data) => ({ ...data, price: product.price }));
+        setData((data) => ({ ...data, quantity: '0' }));
+        setData((data) => ({ ...data, min_quantity: product.min_quantity }));
+        setData((data) => ({ ...data, enabled: product.enabled }));
+        setData((data) => ({ ...data, observations: product.observations }));
+      } else {
+        setDisableInput(false)
+        reset(
+          'name',
+          'reference',
+          'description',
+          'unity',
+          'measure',
+          'price',
+          'quantity',
+          'min_quantity',
+          'enabled',
+          'observations',
+        )
+        setData((data) => ({ ...data, price: '0' }));
+      }
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   return (
     <AppLayout>
@@ -88,25 +134,27 @@ export default function CreateProduct() {
             <div className="grid md:grid-cols-3 gap-4 mt-4">
 
               <div className="grid gap-2">
-                <Label htmlFor="name">Nome do produto</Label>
-                <Input
-                  type="text"
-                  id="name"
-                  value={data.name}
-                  onChange={(e) => setData('name', e.target.value)}
-                />
-                {errors.name && <div className="text-red-500 text-sm">{errors.name}</div>}
-              </div>
-
-              <div className="grid gap-2">
                 <Label htmlFor="reference">Referência</Label>
                 <Input
                   type="text"
                   id="reference"
                   value={data.reference}
                   onChange={(e) => setData('reference', e.target.value)}
+                  onBlur={(e) => referenceDataSelected(e)}
                 />
                 {errors.reference && <div className="text-red-500 text-sm">{errors.reference}</div>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="name">Nome do produto</Label>
+                <Input
+                  type="text"
+                  id="name"
+                  value={data.name}
+                  onChange={(e) => setData('name', e.target.value)}
+                  readOnly={disableInput}
+                />
+                {errors.name && <div className="text-red-500 text-sm">{errors.name}</div>}
               </div>
 
               <div className="grid gap-2">
@@ -116,6 +164,7 @@ export default function CreateProduct() {
                   id="description"
                   value={data.description}
                   onChange={(e) => setData('description', e.target.value)}
+                  readOnly={disableInput}
                 />
                 {errors.description && <div className="text-red-500 text-sm">{errors.description}</div>}
               </div>
@@ -132,6 +181,7 @@ export default function CreateProduct() {
                   value={data.unity}
                   onChange={(e) => setData('unity', e.target.value)}
                   onBlur={(e) => e.target.value}
+                  readOnly={disableInput}
                 />
                 {errors.unity && <div className="text-red-500 text-sm">{errors.unity}</div>}
               </div>
@@ -143,6 +193,7 @@ export default function CreateProduct() {
                   id="measure"
                   value={data.measure}
                   onChange={(e) => setData('measure', e.target.value)}
+                  readOnly={disableInput}
                 />
                 {errors.measure && <div className="text-red-500 text-sm">{errors.measure}</div>}
               </div>
@@ -154,6 +205,7 @@ export default function CreateProduct() {
                   id="price"
                   value={maskMoney(data.price)}
                   onChange={(e) => setData('price', e.target.value)}
+                  readOnly={disableInput}
                 />
                 {errors.price && <div className="text-red-500 text-sm">{errors.price}</div>}
               </div>
@@ -165,6 +217,7 @@ export default function CreateProduct() {
                   id="min_quantity"
                   value={data.min_quantity}
                   onChange={(e) => setData('min_quantity', e.target.value)}
+                  readOnly={disableInput}
                 />
                 {errors.min_quantity && <div className="text-red-500 text-sm">{errors.min_quantity}</div>}
               </div>
@@ -196,6 +249,7 @@ export default function CreateProduct() {
                 id="observations"
                 value={data.observations}
                 onChange={(e) => setData('observations', e.target.value)}
+                readOnly={disableInput}
               />
             </div>
 

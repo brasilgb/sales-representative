@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('flex')->nullable();
             $table->decimal('discount')->nullable();
             $table->decimal('total')->nullable();
+            $table->string('status')->nullable();
             $table->timestamps();
         });
     }

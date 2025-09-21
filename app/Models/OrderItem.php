@@ -11,7 +11,6 @@ class OrderItem extends Model
     use Tenantable;
     
     protected $fillable = [
-        'tenant_id',
         'order_id',
         'product_id',
         'quantity',

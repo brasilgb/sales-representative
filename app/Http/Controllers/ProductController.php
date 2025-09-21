@@ -35,7 +35,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-     return Inertia::render('app/products/create-product');
+        return Inertia::render('app/products/create-product');
     }
 
     /**
@@ -45,7 +45,23 @@ class ProductController extends Controller
     {
         $data = $request->all();
         $request->validated();
-        Product::create($data);
+
+        $product = Product::updateOrCreate(
+            [
+                'reference' => $data['reference']
+            ],
+            [
+                'name' => $data['name'],
+                'description' => $data['description'],
+                'unity' => $data['unity'],
+                'measure' => $data['measure'],
+                'price' => $data['price'],
+                'min_quantity' => $data['min_quantity'],
+                'enabled' => $data['enabled']
+            ]
+        );
+        $product->increment('quantity', $data['quantity']);
+
         return redirect()->route('app.products.index')->with('success', 'Produto cadastrado com sucesso!');
     }
 
@@ -83,5 +99,14 @@ class ProductController extends Controller
     {
         $product->delete();
         return redirect()->route('app.products.index')->with('success', 'Produto excluido com sucesso!');
+    }
+
+        public function getProductsReference(Request $request)
+    {
+        $product = Product::where('reference', $request->reference)->first();
+        return response()->json([
+            "success" => true,
+            "product" => $product
+        ]);
     }
 }

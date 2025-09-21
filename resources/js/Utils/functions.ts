@@ -58,18 +58,16 @@ const statusMessageByValue = (value: any) => {
     }
 };
 
-const statusSaasByValue = (value: any) => {
+const statusOrderByValue = (value: any) => {
     switch (value) {
         case 1:
-            return "Ativo";
+            return "Pedido realizado";
         case 2:
-            return "Inativo";
+            return "Pago";
         case 3:
-            return "Trial";
+            return "Entregue";
         case 4:
-            return "Pausado";
-        case 5:
-            return "Vence em 5D";
+            return "Cancelado";
     }
 };
 
@@ -79,5 +77,5 @@ export {
     roleUserByValue,
     statusAgendaByValue,
     statusMessageByValue,
-    statusSaasByValue
+    statusOrderByValue
 };

@@ -3,7 +3,7 @@ import { Icon } from '@/components/icon';
 import AppLayout from '@/layouts/app-layout'
 import { BreadcrumbItem } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react'
-import { BoxIcon, Calendar, Edit, Plus, ShoppingCartIcon, Users, Wrench } from 'lucide-react';
+import { BoxIcon, Calendar, Edit, EyeIcon, Plus, ShoppingCartIcon, Users, Wrench } from 'lucide-react';
 import moment from 'moment'
 import {
   Table,
@@ -20,6 +20,7 @@ import ActionDelete from '@/components/action-delete';
 import { maskMoney, maskPhone } from '@/Utils/mask';
 import AlertSuccess from '@/components/app-alert-success';
 import AppPagination from '@/components/app-pagination';
+import { statusOrderByValue } from '@/Utils/functions';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -72,11 +73,11 @@ export default function Products({ orders }: any) {
               <TableRow>
                 <TableHead>#</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Preço</TableHead>
                 <TableHead>Flex</TableHead>
                 <TableHead>Desconto</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Emissão</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -85,22 +86,19 @@ export default function Products({ orders }: any) {
                 orders?.data?.map((order: any) => (
                   <TableRow key={order.id}>
                     <TableCell>{order.id}</TableCell>
-                    <TableCell>{order.customers.name}</TableCell>
-                    <TableCell>{order.price}</TableCell>
+                    <TableCell>{order?.customer?.name}</TableCell>
                     <TableCell>{order.flex}</TableCell>
                     <TableCell>{order.discount}</TableCell>
                     <TableCell>R$ {maskMoney(order.total)}</TableCell>
                     <TableCell>{moment(order.created_at).format("DD/MM/YYYY")}</TableCell>
+                    <TableCell>{statusOrderByValue(order.status)}</TableCell>
                     <TableCell className='flex justify-end gap-2'>
-
-                      <Button asChild size="icon" className="bg-orange-500 hover:bg-orange-600 text-white">
+                      <Button asChild size="icon" className="bg-cyan-500 hover:bg-cyan-600 text-white">
                         <Link href={route('app.orders.edit', order.id)}>
-                          <Edit />
+                          <EyeIcon />
                         </Link>
                       </Button>
-
                       <ActionDelete title={'este cliente'} url={'app.orders.destroy'} param={order.id} />
-
                     </TableCell>
                   </TableRow>
                 ))

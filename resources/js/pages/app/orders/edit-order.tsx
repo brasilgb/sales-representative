@@ -6,8 +6,6 @@ import { BreadcrumbItem } from "@/types";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { ArrowLeft, ShoppingCartIcon, UserIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ProductSelector } from "./components/ProductSelector";
-import { OrderSummary } from "./components/OrderSummary";
 import Select from 'react-select';
 import { Card, CardTitle } from "@/components/ui/card";
 import InputError from "@/components/input-error";
@@ -15,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { maskMoney, maskMoneyDot } from "@/Utils/mask";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -31,7 +30,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-export default function CreateProduct({ customers, products, flex }: any) {
+export default function EditProduct({ order, orderitems, customers, products, flex }: any) {
 
   const optionsCustomer = customers.map((customer: any) => ({
     value: customer.id,
@@ -39,14 +38,18 @@ export default function CreateProduct({ customers, products, flex }: any) {
   }));
 
   const [items, setItems] = useState<any>([]);
+  const total = order.order_items.reduce((sum: any, item: any) => sum + item.quantity * item.price, 0);
+
+  const productToId = (id: any) => {
+    return products.find((product: any) => (product.id === id));
+  }
 
   const { data, setData, post, progress, processing, reset, errors } = useForm({
     customer_id: '',
     flex: '',
     discount: '',
     total: '',
-    items: '',
-    status: 1
+    items: ''
   });
 
   useEffect(() => {
@@ -82,6 +85,10 @@ export default function CreateProduct({ customers, products, flex }: any) {
     setData("customer_id", (selected?.value));
   };
 
+  const defaultCustomer = optionsCustomer?.filter((o: any) => o.value == order?.customer_id).map((opt: any) => ({ value: opt.value, label: opt.label }));
+
+
+
   return (
     <AppLayout>
       <Head title="Pedidos" />
@@ -116,6 +123,8 @@ export default function CreateProduct({ customers, products, flex }: any) {
           <Card className="mb-4 p-2">
             <CardTitle className="flex items-center gap-2 font-bold mb-2"><UserIcon className="w-6 h-6" /> Cliente</CardTitle>
             <Select
+            isDisabled={true}
+              defaultValue={defaultCustomer}
               options={optionsCustomer}
               onChange={changeCustomer}
               placeholder="Selecione o cliente"
@@ -142,16 +151,44 @@ export default function CreateProduct({ customers, products, flex }: any) {
             <InputError className="mt-2" message={errors.customer_id} />
           </Card>
 
-          {/* Seletor de Produtos */}
-          <ProductSelector products={products} onAddProduct={handleProductAdd} />
-
           {/* Resumo do Pedido */}
-          <OrderSummary items={items} onRemoveItem={handleProductRemove} />
+          <Card className="mb-4 p-2">
+            <CardTitle className="flex items-center gap-2 font-bold mb-2"><ShoppingCartIcon className="w-6 h-6" /> Resumo do Pedido</CardTitle>
+            <Table className="w-full table-auto">
+              <TableHeader>
+                <TableRow className="text-left">
+                  <TableHead className="p-2">Produto</TableHead>
+                  <TableHead className="p-2">Quantidade</TableHead>
+                  <TableHead className="p-2">Preço Unitário</TableHead>
+                  <TableHead className="p-2">Total</TableHead>
+                  <TableHead className="p-2">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {order?.order_items?.map((item: any) => (
+                  <TableRow key={item.product_id} className="border-b">
+                    <TableCell className="p-2">{productToId(item.product_id)?.name}</TableCell>
+                    <TableCell className="p-2">{item.quantity}</TableCell>
+                    <TableCell className="p-2">R$ {maskMoney(item.price.toString())}</TableCell>
+                    <TableCell className="p-2">R$ {maskMoney((item.quantity * item.price).toFixed(2))}</TableCell>
+                    <TableCell className="p-2">
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={3} className="text-right font-bold p-2">Total:</TableCell>
+                  <TableCell colSpan={2} className="font-bold p-2">R$ {maskMoney(total.toFixed(2))}</TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </Card>
 
           <Card className="mb-4 p-2">
             <div className="flex items-center justify-start gap-6">
               <div className="gap-1 flex flex-col items-center justify-center">
-              <Label>Flex diponível</Label>
+                <Label>Flex diponível</Label>
                 <Badge variant={'default'} className="text-lg top-4" >
                   R$ {maskMoney(flex?.value)}
                 </Badge>
@@ -161,7 +198,7 @@ export default function CreateProduct({ customers, products, flex }: any) {
                 <Input
                   type="text"
                   id="flex"
-                  value={maskMoney(data.flex)}
+                  value={maskMoney(order.flex)}
                   onChange={(e) => setData('flex', e.target.value)}
                 />
               </div>
@@ -171,25 +208,12 @@ export default function CreateProduct({ customers, products, flex }: any) {
                 <Input
                   type="text"
                   id="discount"
-                  value={maskMoney(data.discount)}
+                  value={maskMoney(order.discount)}
                   onChange={(e) => setData('discount', e.target.value)}
                 />
               </div>
-
             </div>
           </Card>
-
-          {/* Botão de Finalizar */}
-          <div className="mt-6">
-            <Button
-              variant="secondary"
-              type="submit"
-              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 disabled:bg-gray-400"
-              disabled={processing}
-            >
-              Finalizar Pedido
-            </Button>
-          </div>
         </form>
       </div>
     </AppLayout>

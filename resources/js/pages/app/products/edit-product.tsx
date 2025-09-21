@@ -89,17 +89,6 @@ export default function CreateProduct({ product }: any) {
             <div className="grid md:grid-cols-3 gap-4 mt-4">
 
               <div className="grid gap-2">
-                <Label htmlFor="name">Nome do produto</Label>
-                <Input
-                  type="text"
-                  id="name"
-                  value={data.name}
-                  onChange={(e) => setData('name', e.target.value)}
-                />
-                {errors.name && <div className="text-red-500 text-sm">{errors.name}</div>}
-              </div>
-
-              <div className="grid gap-2">
                 <Label htmlFor="reference">Referência</Label>
                 <Input
                   type="text"
@@ -108,6 +97,17 @@ export default function CreateProduct({ product }: any) {
                   onChange={(e) => setData('reference', e.target.value)}
                 />
                 {errors.reference && <div className="text-red-500 text-sm">{errors.reference}</div>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="name">Nome do produto</Label>
+                <Input
+                  type="text"
+                  id="name"
+                  value={data.name}
+                  onChange={(e) => setData('name', e.target.value)}
+                />
+                {errors.name && <div className="text-red-500 text-sm">{errors.name}</div>}
               </div>
 
               <div className="grid gap-2">

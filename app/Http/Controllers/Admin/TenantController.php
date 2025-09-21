@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Tenant;
 use Carbon\Carbon;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\TenantRequest;
+use App\Http\Requests\TenantRequest;
 use Illuminate\Http\RedirectResponse;
 use App\Models\Admin\Plan;
 use Inertia\Inertia;

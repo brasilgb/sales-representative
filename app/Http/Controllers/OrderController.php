@@ -9,6 +9,7 @@ use App\Models\Flex;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -27,7 +28,7 @@ class OrderController extends Controller
         //         ->orWhere('reference', 'like', '%' . $search . '%');
         // }
 
-        $orders = $query->with('customers')->paginate(12);
+        $orders = $query->with('customer')->paginate(12);
         return Inertia::render('app/orders/index', ["orders" => $orders]);
     }
 
@@ -86,7 +87,6 @@ class OrderController extends Controller
             $order->orderItems()->createMany($orderItemsData);
 
             $flexBalance = Flex::firstOrCreate(
-                ['id' => 1],
                 ['value' => 0]
             );
 
@@ -123,7 +123,11 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        //
+        $products = Product::all();
+        $customers = Customer::all();
+        $flex = Flex::first();
+        $order = Order::with('customer')->with('orderItems')->orderBy('id', 'DESC')->first();
+        return Inertia::render('app/orders/edit-order', ['order' => $order, 'products' => $products, 'customers' => $customers, 'flex' => $flex, 'orderitems' => $order->orderItems()]);
     }
 
     /**
@@ -131,7 +135,7 @@ class OrderController extends Controller
      */
     public function edit(Order $order)
     {
-        //
+        return Redirect::route('app.orders.show', ['order' => $order->id]);
     }
 
     /**

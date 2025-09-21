@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\Tenantable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
@@ -12,7 +13,6 @@ class Customer extends Model
     use Tenantable;
 
     protected $fillable = [
-        'tenant_id',
         'user_id',
         'name',
         'cnpj',

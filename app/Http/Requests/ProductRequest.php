@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ProductRequest extends FormRequest
 {
@@ -21,9 +22,11 @@ class ProductRequest extends FormRequest
      */
     public function rules(): array
     {
+        $productId = $this->input('reference');
+        
         return [
             'name'  => 'required',
-            'reference'   => ($this->getMethod() == 'POST') ? 'required|unique:products' : 'required|unique:products,reference,' . $this->product->id,
+            'reference'   => ($this->getMethod() == 'POST') ? ['required', Rule::unique('products', 'reference')->ignore($productId, 'reference')] : 'required|unique:products,reference,' . $this->product->id,
             'description' => 'required',
             'unity' => 'required',
             'measure' => 'required',

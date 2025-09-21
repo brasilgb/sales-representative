@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('company');
             $table->string('cnpj');
             $table->string('email');
-            $table->string('phone');
-            $table->string('whatsapp');
+            $table->string('phone')->nullable();
+            $table->string('whatsapp')->nullable();
             $table->string('zip_code', 50)->nullable();
             $table->string('state', 50)->nullable();
             $table->string('city', 50)->nullable();

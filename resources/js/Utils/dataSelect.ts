@@ -57,12 +57,11 @@ const statusOrcamento = [
     { value: '4', label: "Orçamento Aprovado" },
 ];
 
-const statusSaas = [
-    { value: '1', label: "Ativo" },
-    { value: '2', label: "Inativo" },
-    { value: '3', label: "Trial" },
-    { value: '5', label: "Pausado" },
-    { value: '6', label: "Vence em 5D" }
+const statusOrder = [
+    { value: '1', label: "Pedido realizado" },
+    { value: '2', label: "Pago" },
+    { value: '3', label: "Entregue" },
+    { value: '4', label: "Cancelado" }
 ];
 
 export {
@@ -75,5 +74,5 @@ export {
     statusAgenda,
     statusMessage,
     statusOrcamento,
-    statusSaas
+    statusOrder
 };

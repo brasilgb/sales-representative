@@ -14,3 +14,4 @@ Route::resource('orders', OrderController::class);
 Route::resource('products', ProductController::class);
 Route::resource('settings', SettingController::class);
 Route::resource('users', UserController::class);
+Route::get('refproducts/{reference}', [ProductController::class, 'getProductsReference']);

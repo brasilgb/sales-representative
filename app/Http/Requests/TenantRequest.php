@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin;
+namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -22,12 +22,11 @@ class TenantRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_name' => 'required',
-            'company_cnpj' => ($this->getMethod() == 'POST') ? 'required|cpf_ou_cnpj|unique:tenants' : 'required|cpf_ou_cnpj|unique:tenants,company_cnpj,' . $this->tenant->id,
-            'contact_email' => 'required',
-            'contact_name' => 'required',
-            'contact_phone' => 'required',
-            'plan_id' => 'required',
+            'company' => 'required',
+            'cnpj' => ($this->getMethod() == 'POST') ? 'required|cpf_ou_cnpj|unique:tenants' : 'required|cpf_ou_cnpj|unique:tenants,cnpj,' . $this->tenant->id,
+            'email' => 'required',
+            'phone' => 'required',
+            'plan' => 'required',
             'status' => 'required',
         ];
     }
@@ -35,13 +34,12 @@ class TenantRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'company_name' => 'nome da empresa',
-            'company_cnpj' => 'CNPJ',
-            'contact_email' => 'e-mail',
-            'contact_name' => 'nome do contato',
-            'contact_phone' => 'telefone',
+            'company' => 'nome da empresa',
+            'cnpj' => 'CNPJ',
+            'email' => 'e-mail',
+            'phone' => 'e-mail',
             'status' => 'status',
-            'plan_id' => 'plano',
+            'plan' => 'plano',
         ];
     }
 }

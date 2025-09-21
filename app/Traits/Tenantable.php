@@ -2,7 +2,6 @@
 
 namespace App\Traits;
 
-
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 // use App\Helpers\CustomHelpers;
@@ -23,5 +22,4 @@ trait Tenantable
     {
         return $this->belongsTo(Tenant::class);
     }
-    
 }

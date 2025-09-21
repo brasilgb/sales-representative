@@ -8,8 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import { maskCnpj } from '@/Utils/mask';
 
 type RegisterForm = {
+    cnpj: string;
+    company: string;
     name: string;
     email: string;
     password: string;
@@ -24,6 +27,8 @@ export default function Register() {
     }
 
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
+        cnpj: '',
+        company: '',
         name: '',
         email: '',
         password: '',
@@ -43,11 +48,40 @@ export default function Register() {
             <form className="flex flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">
                     <div className="grid gap-2">
+                        <Label htmlFor="company">Razão social</Label>
+                        <Input
+                            id="company"
+                            type="text"
+                            autoFocus
+                            tabIndex={1}
+                            autoComplete="company"
+                            value={data.company}
+                            onChange={(e) => setData('company', e.target.value)}
+                            disabled={processing}
+                            placeholder="Razão social"
+                        />
+                        <InputError message={errors.company} className="mt-2" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="cnpj">CNPJ</Label>
+                        <Input
+                            id="cnpj"
+                            type="text"
+                            autoFocus
+                            tabIndex={1}
+                            autoComplete="cnpj"
+                            value={maskCnpj(data.cnpj)}
+                            onChange={(e) => setData('cnpj', e.target.value)}
+                            disabled={processing}
+                            placeholder="Nome completo"
+                        />
+                        <InputError message={errors.cnpj} className="mt-2" />
+                    </div>
+                    <div className="grid gap-2">
                         <Label htmlFor="name">Nome</Label>
                         <Input
                             id="name"
                             type="text"
-                            required
                             autoFocus
                             tabIndex={1}
                             autoComplete="name"
@@ -64,7 +98,6 @@ export default function Register() {
                         <Input
                             id="email"
                             type="email"
-                            required
                             tabIndex={2}
                             autoComplete="email"
                             value={data.email}
@@ -80,7 +113,6 @@ export default function Register() {
                         <Input
                             id="password"
                             type="password"
-                            required
                             tabIndex={3}
                             autoComplete="new-password"
                             value={data.password}
@@ -96,7 +128,6 @@ export default function Register() {
                         <Input
                             id="password_confirmation"
                             type="password"
-                            required
                             tabIndex={4}
                             autoComplete="new-password"
                             value={data.password_confirmation}
