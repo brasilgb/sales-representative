@@ -21,6 +21,9 @@ import { maskMoney, maskPhone } from '@/Utils/mask';
 import AlertSuccess from '@/components/app-alert-success';
 import AppPagination from '@/components/app-pagination';
 import { statusOrderByValue } from '@/Utils/functions';
+import { AppSelect } from '@/components/app-select';
+import { statusOrder } from '@/Utils/dataSelect';
+import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -35,9 +38,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Products({ orders }: any) {
   const { flash } = usePage().props as any;
+  const [messageStatus, setMessageStatus] = useState<string>('');
+
+  useEffect(() => {
+    // setMessageStatus(messageStatus);
+    setTimeout(() => {
+      setMessageStatus('')
+    }, 3000)
+  }, [messageStatus])
+
+
 
   return (
-    <AppLayout> 
+    <AppLayout>
       {flash.message && <AlertSuccess message={flash.message} />}
       <Head title="Pedidos" />
       <div className='flex items-center justify-between h-16 px-4'>
@@ -77,7 +90,7 @@ export default function Products({ orders }: any) {
                 <TableHead>Desconto</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Emissão</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{messageStatus ? <div className='bg-green-50 text-green-700 border border-green-500 px-2 rounded-md'>{messageStatus}</div> : <div>Status</div>}</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -91,7 +104,16 @@ export default function Products({ orders }: any) {
                     <TableCell>{order.discount}</TableCell>
                     <TableCell>R$ {maskMoney(order.total)}</TableCell>
                     <TableCell>{moment(order.created_at).format("DD/MM/YYYY")}</TableCell>
-                    <TableCell>{statusOrderByValue(order.status)}</TableCell>
+                    {/* <TableCell>{statusOrderByValue(order.status)}</TableCell> */}
+                    <TableCell>{
+                      <AppSelect
+                        setMessageStatus={setMessageStatus}
+                        orderid={order?.id}
+                        data={statusOrder}
+                        title='Selecione o status'
+                        defaultValue={order?.status}
+                      />}
+                    </TableCell>
                     <TableCell className='flex justify-end gap-2'>
                       <Button asChild size="icon" className="bg-cyan-500 hover:bg-cyan-600 text-white">
                         <Link href={route('app.orders.edit', order.id)}>

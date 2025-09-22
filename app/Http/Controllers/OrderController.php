@@ -36,7 +36,7 @@ class OrderController extends Controller
      * Show the form for creating a new resource.
      */
     public function create()
-    { 
+    {
         $products = Product::all();
         $customers = Customer::all();
         $flex = Flex::first();
@@ -153,5 +153,14 @@ class OrderController extends Controller
     {
         $order->delete();
         return redirect()->route('app.orders.index')->with('success', 'Pedido excluído com sucesso');
+    }
+
+    public function setValueStatusOrder(Request $request, $orderid)
+    {
+        Order::where('id', $orderid)->update(['status' => $request->status]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Status alterado com sucesso.'
+        ]);
     }
 }

@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\ApiCustomerController;
 use App\Http\Controllers\ApiOrderController;
 use App\Http\Controllers\Api\ApiProductController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
