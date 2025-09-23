@@ -31,8 +31,8 @@ class ProductRequest extends FormRequest
             'unity' => 'required',
             'measure' => 'required',
             'price' => 'required',
-            'quantity' => 'required',
-            'min_quantity' => 'required'
+            'quantity' => ($this->getMethod() == 'POST') ? 'required' : 'nullable',
+            'min_quantity' => ($this->getMethod() == 'POST') ? 'required' : 'nullable',
         ];
     }
     

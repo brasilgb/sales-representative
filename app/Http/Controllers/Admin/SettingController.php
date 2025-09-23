@@ -15,8 +15,7 @@ class SettingController extends Controller
     public function index()
     {
         if (Setting::get()->isEmpty()) {
-            $data['id'] = '1';
-            Setting::create(['id' => '1']);
+            Setting::create();
         }
         $settings = Setting::first();
         return Inertia::render('admin/settings/index', ["settings" => $settings]);

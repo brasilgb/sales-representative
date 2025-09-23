@@ -61,6 +61,7 @@ class RegisteredUserController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'tenant_id' => null, // O tenant_id é null para o superusuário
+                'status' => 1
             ]);
 
             // Cenário 2: Tentativa de registro como novo tenant
@@ -85,6 +86,7 @@ class RegisteredUserController extends Controller
                 'cnpj' => $request->cnpj,
                 'email' => $request->email,
                 'status' => 1,
+                'plan' => 1
             ]);
 
             // Criar o usuário e associá-lo ao tenant
@@ -93,6 +95,7 @@ class RegisteredUserController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'tenant_id' => $tenant->id,
+                'status' => 1
             ]);
         }
 

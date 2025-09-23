@@ -24,6 +24,7 @@ import { statusOrderByValue } from '@/Utils/functions';
 import { AppSelect } from '@/components/app-select';
 import { statusOrder } from '@/Utils/dataSelect';
 import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -106,6 +107,9 @@ export default function Products({ orders }: any) {
                     <TableCell>{moment(order.created_at).format("DD/MM/YYYY")}</TableCell>
                     {/* <TableCell>{statusOrderByValue(order.status)}</TableCell> */}
                     <TableCell>{
+                      order.status =='4'
+                      ? <Badge variant={'destructive'}>Pedido cancelado</Badge>
+                      :
                       <AppSelect
                         setMessageStatus={setMessageStatus}
                         orderid={order?.id}

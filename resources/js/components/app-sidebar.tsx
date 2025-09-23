@@ -38,6 +38,12 @@ const appNavItems: NavItem[] = [
         icon: CogIcon,
         active: 'admin.settings.*',
     },
+    {
+        title: 'Usuário',
+        href: route('app.users.index'),
+        icon: UserIcon,
+        active: 'app.users.*',
+    },
 ];
 
 const footerNavItems: NavItem[] = [

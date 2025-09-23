@@ -30,20 +30,4 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
-
-    public function products(): BelongsToMany
-    {
-        return $this->belongsToMany(Product::class, 'order_items')
-            ->withPivot('quantity', 'price'); // `withPivot` é a chave!
-    }
-    // Este é o método `boot` que define o evento de modelo
-    protected static function boot()
-    {
-        parent::boot();
-
-        // Quando um Order for deletado, delete todos os OrderItems relacionados
-        static::deleting(function ($order) {
-            $order->orderItems()->delete();
-        });
-    }
 }

@@ -40,7 +40,7 @@ export default function SettingsIndex({ settings }: any) {
       logo: data?.logo
     })
   }
-
+ 
   return (
     <AdminSidebarLayout>
       {flash.message && <AlertSuccess message={flash.message} />}

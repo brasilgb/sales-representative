@@ -79,18 +79,18 @@ export default function CreateProduct() {
         setData((data) => ({ ...data, observations: product.observations }));
       } else {
         setDisableInput(false)
-        reset(
-          'name',
-          'reference',
-          'description',
-          'unity',
-          'measure',
-          'price',
-          'quantity',
-          'min_quantity',
-          'enabled',
-          'observations',
-        )
+        // reset(
+        //   'name',
+        //   'reference',
+        //   'description',
+        //   'unity',
+        //   'measure',
+        //   'price',
+        //   'quantity',
+        //   'min_quantity',
+        //   'enabled',
+        //   'observations',
+        // )
         setData((data) => ({ ...data, price: '0' }));
       }
 
@@ -168,7 +168,6 @@ export default function CreateProduct() {
                 />
                 {errors.description && <div className="text-red-500 text-sm">{errors.description}</div>}
               </div>
-
             </div>
 
             <div className="grid md:grid-cols-5 gap-4 mt-4">

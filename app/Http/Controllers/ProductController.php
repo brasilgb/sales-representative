@@ -57,6 +57,7 @@ class ProductController extends Controller
                 'measure' => $data['measure'],
                 'price' => $data['price'],
                 'min_quantity' => $data['min_quantity'],
+                'quantity' => $data['quantity'],
                 'enabled' => $data['enabled']
             ]
         );
@@ -88,6 +89,8 @@ class ProductController extends Controller
     {
         $data = $request->all();
         $request->validated();
+        $request['quantity'] = $product->quantity;
+        $request['min_quantity'] = $product->min_quantity;
         $product->update($data);
         return redirect()->route('app.products.show', ['product' => $product->id])->with('success', 'Produto alterado com sucesso!');
     }

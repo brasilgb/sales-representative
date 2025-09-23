@@ -95,6 +95,7 @@ export default function CreateProduct({ product }: any) {
                   id="reference"
                   value={data.reference}
                   onChange={(e) => setData('reference', e.target.value)}
+                  readOnly
                 />
                 {errors.reference && <div className="text-red-500 text-sm">{errors.reference}</div>}
               </div>
@@ -132,7 +133,7 @@ export default function CreateProduct({ product }: any) {
                   id="unity"
                   value={data.unity}
                   onChange={(e) => setData('unity', e.target.value)}
-                  onBlur={(e) => e.target.value}
+                  readOnly
                 />
                 {errors.unity && <div className="text-red-500 text-sm">{errors.unity}</div>}
               </div>
@@ -144,6 +145,7 @@ export default function CreateProduct({ product }: any) {
                   id="measure"
                   value={data.measure}
                   onChange={(e) => setData('measure', e.target.value)}
+                  readOnly
                 />
                 {errors.measure && <div className="text-red-500 text-sm">{errors.measure}</div>}
               </div>
@@ -166,6 +168,7 @@ export default function CreateProduct({ product }: any) {
                   id="min_quantity"
                   value={data.min_quantity}
                   onChange={(e) => setData('min_quantity', e.target.value)}
+                  readOnly
                 />
                 {errors.min_quantity && <div className="text-red-500 text-sm">{errors.min_quantity}</div>}
               </div>
@@ -177,6 +180,7 @@ export default function CreateProduct({ product }: any) {
                   id="quantity"
                   value={data.quantity}
                   onChange={(e) => setData('quantity', e.target.value)}
+                  readOnly
                 />
                 {errors.quantity && <div className="text-red-500 text-sm">{errors.quantity}</div>}
               </div>

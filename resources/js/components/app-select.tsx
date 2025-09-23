@@ -30,7 +30,8 @@ export function AppSelect({ orderid, defaultValue, title, data, setMessageStatus
 
     const handleValueSelectedToUpdate = async (value: string) => {
         setValueSelected(value);
-        await appsales.patch(`statusorder/${orderid}`, {
+        
+        await appsales.patch(`${value == '4' ? 'cancelorder' : 'statusorder'}/${orderid}`, {
             status: value
         })
             .then((response) => {

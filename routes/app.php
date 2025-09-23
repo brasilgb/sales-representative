@@ -15,4 +15,5 @@ Route::resource('products', ProductController::class);
 Route::resource('settings', SettingController::class);
 Route::resource('users', UserController::class);
 Route::get('refproducts/{reference}', [ProductController::class, 'getProductsReference']);
-Route::patch('statusorder/{orderid}', [OrderController::class, 'setValueStatusOrder']);
+Route::patch('statusorder/{order}', [OrderController::class, 'setValueStatusOrder']);
+Route::patch('cancelorder/{order}', [OrderController::class, 'cancelOrder']);
