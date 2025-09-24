@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin/admin-layout'
+
 import { Head, Link } from '@inertiajs/react'
 import { BreadcrumbItem } from '@/types';
 import { Building, Edit, Plus } from 'lucide-react'
@@ -11,6 +11,7 @@ import { maskPhone } from '@/Utils/mask';
 import moment from 'moment';
 import ActionDelete from '@/components/action-delete';
 import AppPagination from '@/components/app-pagination';
+import AdminSidebarLayout from '@/layouts/admin/admin-sidebar-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -25,7 +26,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function BranchesIndex({ branches }: any) {
   return (
-    <AdminLayout>
+    <AdminSidebarLayout>
       <Head title="Filiais" />
       <div className='flex items-center justify-between h-16 px-4'>
         <div className='flex items-center gap-2'>
@@ -108,6 +109,6 @@ export default function BranchesIndex({ branches }: any) {
         </div>
       </div>
 
-    </AdminLayout>
+    </AdminSidebarLayout>
   )
 }
