@@ -16,10 +16,6 @@ use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
-    // Códigos secretos
-    protected const SUPERUSER_COMPANY_CODE = 'super-company-megb-admin';
-    protected const SUPERUSER_CNPJ_CODE = '0D82457BF990DE04D1F8F98AC7BFE7DC';
-
     /**
      * Show the registration page.
      */
@@ -48,7 +44,7 @@ class RegisteredUserController extends Controller
         $superuserExists = User::whereNull('tenant_id')->exists();
 
         // Cenário 1: Tentativa de registro como superusuário
-        if ($request->company === self::SUPERUSER_COMPANY_CODE && $request->cnpj === self::SUPERUSER_CNPJ_CODE) {
+        if ($request->company === env('SUPERUSER_COMPANY_CODE') && $request->cnpj === env('SUPERUSER_CNPJ_CODE')) {
 
             // Se um superusuário já existe, bloqueie a criação de outro
             if ($superuserExists) {
