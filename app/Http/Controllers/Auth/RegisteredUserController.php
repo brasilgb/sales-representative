@@ -60,7 +60,6 @@ class RegisteredUserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'tenant_id' => null, // O tenant_id é null para o superusuário
                 'status' => 1
             ]);
 
@@ -94,7 +93,6 @@ class RegisteredUserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'tenant_id' => $tenant->id,
                 'status' => 1
             ]);
         }
