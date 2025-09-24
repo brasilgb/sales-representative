@@ -41,9 +41,6 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $tenant = null;
-        $userTenantId = null;
-
         // Verifica se já existe um superusuário no sistema
         $superuserExists = User::whereNull('tenant_id')->exists();
 
