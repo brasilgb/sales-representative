@@ -69,7 +69,7 @@ class OrderController extends Controller
                 'flex' => $otherData['flex'] ?? '0',
                 'discount' => $otherData['discount'] ?? '0',
                 'total' => $otherData['total'],
-                'status' => 'pendente',
+                'status' => 1,
             ]);
 
             // 2. Preparar e criar os itens do pedido

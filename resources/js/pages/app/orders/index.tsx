@@ -85,7 +85,7 @@ export default function Products({ orders }: any) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>#</TableHead>
+                <TableHead>Nº Pedido</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Flex</TableHead>
                 <TableHead>Desconto</TableHead>
@@ -99,7 +99,7 @@ export default function Products({ orders }: any) {
               {orders?.data.length > 0 ?
                 orders?.data?.map((order: any) => (
                   <TableRow key={order.id}>
-                    <TableCell>{order.id}</TableCell>
+                    <TableCell>{order.order_number}</TableCell>
                     <TableCell>{order?.customer?.name}</TableCell>
                     <TableCell>{order.flex}</TableCell>
                     <TableCell>{order.discount}</TableCell>

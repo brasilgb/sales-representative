@@ -18,7 +18,8 @@ class Order extends Model
         'order_number',
         'flex',
         'discount',
-        'total'
+        'total',
+        'status'
     ];
 
     public function customer(): BelongsTo

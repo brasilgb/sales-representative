@@ -39,7 +39,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     return (
-        <AuthLayout title="Faça login na sua conta" description="Entre para gerenciar seus usuários e suas ordens de serviço">
+        <AuthLayout title="Faça login na sua conta" description="Entre para começar suas vendas">
             <Head title="Log in" />
             <form className="flex flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">

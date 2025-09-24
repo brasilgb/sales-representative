@@ -3,7 +3,7 @@ import { Icon } from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import AppLayout from "@/layouts/app-layout";
 import { BreadcrumbItem } from "@/types";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import { ArrowLeft, ShoppingCartIcon, UserIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProductSelector } from "./components/ProductSelector";
@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { maskMoney, maskMoneyDot } from "@/Utils/mask";
+import AlertError from "@/components/app-alert-error";
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -32,7 +33,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function CreateProduct({ customers, products, flex }: any) {
-
+  const { flash } = usePage().props as any;
   const optionsCustomer = customers.map((customer: any) => ({
     value: customer.id,
     label: customer.name,
@@ -45,8 +46,7 @@ export default function CreateProduct({ customers, products, flex }: any) {
     flex: '',
     discount: '',
     total: '',
-    items: '',
-    status: 1
+    items: ''
   });
 
   useEffect(() => {
@@ -85,6 +85,7 @@ export default function CreateProduct({ customers, products, flex }: any) {
   return (
     <AppLayout>
       <Head title="Pedidos" />
+      {flash.error && <AlertError message={flash.error} />}
       <div className='flex items-center justify-between h-16 px-4'>
         <div className='flex items-center gap-2'>
           <Icon iconNode={ShoppingCartIcon} className='w-8 h-8' />
@@ -151,9 +152,9 @@ export default function CreateProduct({ customers, products, flex }: any) {
           <Card className="mb-4 p-2">
             <div className="flex items-center justify-start gap-6">
               <div className="gap-1 flex flex-col items-center justify-center">
-              <Label>Flex diponível</Label>
+                <Label>Flex diponível</Label>
                 <Badge variant={'default'} className="text-lg top-4" >
-                  R$ {maskMoney(flex?.value)}
+                  R$ {maskMoney(flex ? flex?.value : '0.00')}
                 </Badge>
               </div>
               <div className="gap-2">

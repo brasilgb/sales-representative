@@ -10,7 +10,10 @@ export default function Home() {
       <div className="container mx-auto">
         <h1 className="text-2xl font-bold text-gray-600">
           {!auth?.user &&
-            <Link href={route('login')}>Login</Link>
+            <div className='flex gap-8'>
+            <Link href={route('login')}>Entrar</Link>
+            <Link href={route('register')}>Registrar</Link>
+            </div>
           }
           {auth?.user && auth?.user?.tenant_id
             ? <Link href={route('app.dashboard')}>{auth?.user?.name}</Link>

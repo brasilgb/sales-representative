@@ -38,57 +38,49 @@ export function ProductSelector({ products, onAddProduct }: Props) {
         setSelectedProduct(selected);
     };
 
-
     return (
-<Card className="mb-4 p-2">
+        <Card className="mb-4 p-2">
             <CardTitle className="flex items-center gap-2 font-bold mb-2"><BoxIcon className="w-6 h-6" /> Adicionar Produtos</CardTitle>
-            <div className="flex items-start gap-4">
-                <div className="w-1/2">
+            <div className="flex md:flex-row flex-col items-start gap-4">
+                <div className='flex md:flex-row flex-col w-full gap-4'>
+                    <div className="md:w-1/2">
+                        <Select
+                            options={products}
+                            getOptionLabel={(option) => option.name}
+                            getOptionValue={(option) => option.id.toString()}
+                            onChange={(product) => setSelectedProduct(product)}
+                            value={selectedProduct}
+                            placeholder="Selecione um produto"
+                            className="shadow-xs p-0 border text-gray-700 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-9"
+                            styles={{
+                                control: (baseStyles, state) => ({
+                                    ...baseStyles,
+                                    fontSize: '14px',
+                                    boxShadow: 'none',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    paddingBottom: '2px',
+                                }),
+                                dropdownIndicator: (base) => ({
+                                    ...base,
 
-                    <Select
-                        options={products}
-                        getOptionLabel={(option) => option.name}
-                        getOptionValue={(option) => option.id.toString()}
-                        onChange={(product) => setSelectedProduct(product)}
-                        value={selectedProduct}
-                        placeholder="Selecione um produto"
-                        className="shadow-xs p-0 border text-gray-700 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-9"
-                        styles={{
-                            control: (baseStyles, state) => ({
-                                ...baseStyles,
-                                fontSize: '14px',
-                                boxShadow: 'none',
-                                border: 'none',
-                                background: 'transparent',
-                                paddingBottom: '2px',
-                            }),
-                            dropdownIndicator: (base) => ({
-                                ...base,
-
-                            }),
-                            menuList: (base) => ({
-                                ...base,
-                                fontSize: '14px',
-                            }),
-                        }}
-                    />
-                    {/* <ReactSelect
-                        options={products}
-                        getOptionLabel={(option) => option.name}
-                        getOptionValue={(option) => option.id.toString()}
-                        onChange={(product) => setSelectedProduct(product)}
-                        value={selectedProduct}
-                        placeholder="Selecione um produto"
-                    /> */}
-                </div>
-                <div className="w-1/4">
-                    <input
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => setQuantity(parseInt(e.target.value))}
-                        min="1"
-                        className="w-full border rounded p-2"
-                    />
+                                }),
+                                menuList: (base) => ({
+                                    ...base,
+                                    fontSize: '14px',
+                                }),
+                            }}
+                        />
+                    </div>
+                    <div className="md:w-1/4">
+                        <input
+                            type="number"
+                            value={quantity}
+                            onChange={(e) => setQuantity(parseInt(e.target.value))}
+                            min="1"
+                            className="w-full border rounded p-2"
+                        />
+                    </div>
                 </div>
                 <Button
                     variant="secondary"

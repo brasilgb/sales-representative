@@ -27,24 +27,25 @@ export default function AuthSimpleLayout({ children, title, description }: Props
                                 <h1 className="text-xl font-medium">{title}</h1>
                                 <p className="text-center text-sm text-muted-foreground">{description}</p>
                             </div>
+
                         </div>
                         {children}
                     </div>
                 </div>
             </div>
             <div className="hidden lg:flex flex-1 relative bg-gradient-to-br from-primary/60 to-primary/90 dark:from-primary/20 dark:to-primary/5">
-                <div className="absolute inset-0  bg-[url(/auth-images.png)] bg-cover bg-center bg-no-repeat" />
+                <div className="absolute inset-0  bg-[url(images/sales.jpg)] bg-cover bg-center bg-no-repeat"/>
                 <div className="absolute inset-0 flex flex-col items-center justify-between">
                     <div className="text-center space-y-4 bg-foreground/50 dark:bg-background/50 w-full p-8">
-                        <h2 className="text-3xl font-bold text-white drop-shadow-lg">Gestão de ordens de serviço, clientes e agendamentos</h2>
+                        <h2 className="text-3xl font-bold text-white drop-shadow-lg">Gestão clientes, produtos e pedidos</h2>
                         <p className="text-white/90 drop-shadow text-lg">
-                            Gerencie suas ordens de serviço, clientes e agendamentos de forma eficiente e organizada, com emissão de orçamentos e controle de status e emissão de recibos.
+                            Gerencie seus clientes e produtos de forma eficiente e organizada, gere pedidos de compras para seu cliente, com controle de estoque.
                         </p>
                     </div>
                     <div className="text-center space-y-4 bg-foreground/50 dark:bg-background/50 w-full p-8">
-                        <h2 className="text-3xl font-bold text-white drop-shadow-lg">Aplicativos para registro de imagens e auto atendimento</h2>
+                        <h2 className="text-3xl font-bold text-white drop-shadow-lg">Aplicativo para atendimento ao cliente</h2>
                         <p className="text-white/90 drop-shadow text-lg">
-                            Registre as imagens de equipamentos para uso posterior e faça auto atendimento para seus clientes com nossos aplicativos.
+                            Mais agilidade com o atendimento aos seus clientes com nosso aplicativo.
                         </p>
                     </div>
                 </div>
