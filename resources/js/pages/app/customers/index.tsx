@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import InputSearch from '@/components/inputSearch';
 import ActionDelete from '@/components/action-delete';
-import { maskPhone } from '@/Utils/mask';
+import { maskCnpj, maskPhone } from '@/Utils/mask';
 import AlertSuccess from '@/components/app-alert-success';
 import AppPagination from '@/components/app-pagination';
 
@@ -70,10 +70,9 @@ export default function Customers({ customers }: any) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>#</TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>CPF</TableHead>
+                <TableHead>CNPJ</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Cadastro</TableHead>
                 <TableHead></TableHead>
@@ -83,10 +82,9 @@ export default function Customers({ customers }: any) {
               {customers?.data.length > 0 ?
                 customers?.data?.map((customer: any) => (
                   <TableRow key={customer.id}>
-                    <TableCell>{customer.id}</TableCell>
                     <TableCell>{customer.name}</TableCell>
                     <TableCell>{customer.email}</TableCell>
-                    <TableCell>{customer.cnpj}</TableCell>
+                    <TableCell>{maskCnpj(customer.cnpj)}</TableCell>
                     <TableCell>{maskPhone(customer.phone)}</TableCell>
                     <TableCell>{moment(customer.created_at).format("DD/MM/YYYY")}</TableCell>
                     <TableCell className='flex justify-end gap-2'>

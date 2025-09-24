@@ -1,6 +1,6 @@
 import { KpiDashboard } from '@/components/kpi-dashboard';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -23,13 +23,17 @@ export default function Dashboard({ kpis_dash, salesOrders }: any) {
     <AppLayout>
       <Head title="Dashboard" />
       <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-        <div className="flex-col">
-          <div className="grid md:md:grid-cols-4 gap-4">
+        <div className="flex md:flex-row flex-col gap-4">
+          <div className="grid md:md:grid-cols-4 gap-4 w-full">
             <KpiDashboard link={route('app.users.index')} title="Usuários" value={kpis_dash?.users.name} icon={<User2Icon className='h-10 w-10' />} description="Usário do sistema" />
             <KpiDashboard link={route('app.customers.index')} title="Clientes" value={kpis_dash?.customers} icon={<User2Icon className='h-10 w-10' />} description="Clientes cadastrados" />
             <KpiDashboard link={route('app.products.index')} title="Produtos" value={kpis_dash?.products} icon={<BoxIcon className='h-10 w-10' />} description="Produtos cadastrados" />
             <KpiDashboard link={route('app.orders.index')} title="Pedidos" value={kpis_dash?.orders} icon={<ShoppingCartIcon className='h-10 w-10' />} description="Pedidos emitidos" />
           </div>
+          <Card className='md:w-52 flex flex-col items-center'>
+            <CardTitle className='text-sm font-bold'>FLEX</CardTitle>
+            <CardContent className='text-2xl font-bold'>R$ {maskMoney(kpis_dash?.flex.value ? kpis_dash?.flex.value : '0.00')}</CardContent>
+          </Card>
         </div>
         <Card className='p-4'>
           <CardTitle>

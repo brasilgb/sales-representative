@@ -70,9 +70,8 @@ export default function Products({ products }: any) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>Nome</TableHead>
                 <TableHead>Referência</TableHead>
+                <TableHead>Nome</TableHead>
                 <TableHead>Un. Medida</TableHead>
                 <TableHead>Medida</TableHead>
                 <TableHead>Quantidade</TableHead>
@@ -85,9 +84,8 @@ export default function Products({ products }: any) {
               {products?.data.length > 0 ?
                 products?.data?.map((customer: any) => (
                   <TableRow key={customer.id}>
-                    <TableCell>{customer.id}</TableCell>
-                    <TableCell>{customer.name}</TableCell>
                     <TableCell>{customer.reference}</TableCell>
+                    <TableCell>{customer.name}</TableCell>
                     <TableCell>{customer.unity}</TableCell>
                     <TableCell>{customer.measure}</TableCell>
                     <TableCell>{customer.quantity}</TableCell>

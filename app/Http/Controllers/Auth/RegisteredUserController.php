@@ -41,6 +41,9 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $tenant = null;
+        $userTenantId = null;
+
         // Verifica se já existe um superusuário no sistema
         $superuserExists = User::whereNull('tenant_id')->exists();
 
@@ -57,8 +60,8 @@ class RegisteredUserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'status' => 1,
-                'tenant_id' => null
+                'tenant_id' => null, // O tenant_id é null para o superusuário
+                'status' => 1
             ]);
 
             // Cenário 2: Tentativa de registro como novo tenant
@@ -91,6 +94,7 @@ class RegisteredUserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
+                'tenant_id' => $tenant->id,
                 'status' => 1
             ]);
         }
