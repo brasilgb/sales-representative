@@ -32,7 +32,7 @@ export default function Dashboard({ kpis_dash, salesOrders }: any) {
           </div>
           <Card className='md:w-52 flex flex-col items-center'>
             <CardTitle className='text-sm font-bold'>FLEX</CardTitle>
-            <CardContent className='text-2xl font-bold'>R$ {maskMoney(kpis_dash?.flex.value ? kpis_dash?.flex.value : '0.00')}</CardContent>
+            <CardContent className='text-2xl font-bold'>R$ {maskMoney(kpis_dash?.flex?.value ? kpis_dash?.flex?.value : '0.00')}</CardContent>
           </Card>
         </div>
         <Card className='p-4'>
