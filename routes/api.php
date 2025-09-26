@@ -9,18 +9,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('loginuser', [ApiAuthController::class, 'loginuser'])->name('loginuser');
-    Route::post('logoutuser', [ApiAuthController::class, 'logoutuser'])->name('logoutuser');
+    // Route::post('/register', [AuthController::class, 'register']);
+    // Route::post('/login', [AuthController::class, 'login']);
+    // Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('getproducts/{reference}', [ApiProductController::class, 'getProductsForReference']);
 });
 
+Route::post('register', [ApiAuthController::class, 'register']);
+Route::post('login', [ApiAuthController::class, 'login']);
+
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('user', [ApiAuthController::class, 'userInfo']);
+    Route::post('logout', [ApiAuthController::class, 'logOut']);
     Route::apiResource('customers', ApiCustomerController::class);
     Route::apiResource('orders', ApiOrderController::class);
     Route::apiResource('products', ApiProductController::class);
-    Route::get('getproducts/{reference}', [ApiProductController::class, 'getProductsForReference']);
 });
 
 Route::get('/user', function (Request $request) {
