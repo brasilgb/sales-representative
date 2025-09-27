@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
-use App\Http\Controllers\API\ApiBaseController as BaseController;
 use App\Models\Tenant;
+use App\Http\Controllers\Api\ApiBaseController as BaseController
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class ApiAuthController extends BaseController
+class ApiAuthController extends ApiBaseController
 {
     /**
      * Register api
