@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\User;
 use App\Models\Tenant;
-use App\Http\Controllers\Api\ApiBaseController as BaseController
+use App\Http\Controllers\Api\ApiBaseController as BaseController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
