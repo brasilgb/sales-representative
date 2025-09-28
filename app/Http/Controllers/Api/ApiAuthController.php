@@ -71,12 +71,4 @@ class ApiAuthController extends ApiBaseController
         }
     }
 
-    public function logoutuser()
-    {
-        Auth::user()->tokens()->delete();
-        return $this->sendResponse($success, 'Login do usuário realizado com sucesso.');
-        return response()->json([
-            "message" => "logged out"
-        ]);
-    }
 }

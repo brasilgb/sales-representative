@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\ApiCustomerController;
+use App\Http\Controllers\Api\ApiHomeController;
 use App\Http\Controllers\ApiOrderController;
 use App\Http\Controllers\Api\ApiProductController;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('customers', ApiCustomerController::class);
     Route::apiResource('orders', ApiOrderController::class);
     Route::apiResource('products', ApiProductController::class);
+    Route::get('alldata',[ ApiHomeController::class, 'getAllData']);
 });
 
 Route::get('/user', function (Request $request) {
