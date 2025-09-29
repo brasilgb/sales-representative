@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ApiAuthController extends ApiBaseController
 {
@@ -50,7 +51,7 @@ class ApiAuthController extends ApiBaseController
         $udata['password'] = bcrypt($input['password']);
         $user = User::create($udata);
 
-        $success['token'] =  $user->createToken('salesmegb')->plainTextToken;
+        $success['token'] =  $user->createToken($request->device_name)->plainTextToken;
         $success['name'] =  $user->name;
         $success['cnpj'] =  $tenant->cnpj;
         $success['company'] =  $tenant->company;
@@ -58,17 +59,30 @@ class ApiAuthController extends ApiBaseController
         return $this->sendResponse($success, 'Usuário registrado com sucesso.');
     }
 
-    public function login(Request $request): JsonResponse
+    public function login(Request $request)
     {
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $user = Auth::user();
-            $success['token'] =  $user->createToken('salesmegb')->plainTextToken;
-            $success['name'] =  $user->name;
-
-            return $this->sendResponse($success, 'Login do usuário realizado com sucesso.');
-        } else {
-            return $this->sendError('Não authorizado.', ['error' => 'Usuário não encontrado na base de dados.']);
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+            'device_name' => 'required',
+        ]);
+        $user = User::where('email', $request->email)->first();
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
         }
+        return response()->json([
+            'token' => $user->createToken($request->device_name)->plainTextToken
+        ]);
     }
 
+    public function getUser(Request $request) {
+        return $request->user();
+    }
+
+    public function logOut(Request $request) {
+        $request->user()->tokens()->delete();
+        return response()->noContent();
+    }
 }

@@ -7,14 +7,13 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Http\Request;
 
 class ApiHomeController extends Controller
 {
     public function getAllData()
     {
         $users = User::get();
-        $orders = Order::get();
+        $orders = Order::with('customers')->get();
         $products = Product::get();
         $customers = Customer::get();
 
