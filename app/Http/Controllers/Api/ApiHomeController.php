@@ -13,7 +13,7 @@ class ApiHomeController extends Controller
     public function getAllData()
     {
         $users = User::get();
-        $orders = Order::with('customers')->get();
+        $orders = Order::with('customer')->get();
         $products = Product::get();
         $customers = Customer::get();
 
