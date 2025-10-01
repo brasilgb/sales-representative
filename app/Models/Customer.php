@@ -13,7 +13,6 @@ class Customer extends Model
     use Tenantable;
 
     protected $fillable = [
-        'user_id',
         'name',
         'cnpj',
         'email',

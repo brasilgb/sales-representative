@@ -6,13 +6,14 @@ use App\Models\Customer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class ApiCustomerController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
         $customers = Customer::get();
         return response()->json($customers);
@@ -23,14 +24,50 @@ class ApiCustomerController extends Controller
      */
     public function store(Request $request)
     {
+        $customerId = $request->input('id');
+
+        if ($customerId) {
+            // Ensure the customer exists and belongs to the authenticated user.
+            Customer::where('id', $customerId)->where('user_id', Auth::id())->firstOrFail();
+        }
+
         $validated = $request->validate([
+            'cnpj' => [
+                'required',
+                'cnpj',
+                Rule::unique('customers')->ignore($customerId)->where('user_id', Auth::id()),
+            ],
             'name' => 'required|string|max:100',
-            'email' => 'required|email:rfc,dns|unique:users,email'
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('customers')->ignore($customerId)->where('user_id', Auth::id()),
+            ],
         ]);
-        $customer = new Customer($validated);
-        $customer->user_id = Auth::user()->id;
-        $customer->save();
-        return response()->json($customer, 201);
+
+        $additionalData = $request->only([
+            'zip_code',
+            'state',
+            'city',
+            'district',
+            'street',
+            'complement',
+            'number',
+            'phone',
+            'contactname',
+            'whatsapp',
+            'contactphone',
+            'observations'
+        ]);
+
+        $data = array_merge($validated, $additionalData);
+
+        $customer = Customer::updateOrCreate(
+            ['id' => $customerId, 'user_id' => Auth::id()],
+            $data
+        );
+
+        return response()->json($customer, $customer->wasRecentlyCreated ? 201 : 200);
     }
 
     /**
@@ -52,11 +89,39 @@ class ApiCustomerController extends Controller
         if (Auth::user()->id != $customer->user_id) {
             return response()->json(['error' => 'Este cliente não pertence a você!'], 403);
         }
+        
         $validated = $request->validate([
+            'cnpj' => [
+                'required',
+                'cnpj',
+                Rule::unique('customers')->ignore($customer->id)->where('user_id', Auth::id()),
+            ],
             'name' => 'required|string|max:100',
-            'email' => 'required|email:rfc,dns|unique:users,email'
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('customers')->ignore($customer->id)->where('user_id', Auth::id()),
+            ],
         ]);
-        $customer->update($validated);
+
+        $additionalData = $request->only([
+            'zip_code',
+            'state',
+            'city',
+            'district',
+            'street',
+            'complement',
+            'number',
+            'phone',
+            'contactname',
+            'whatsapp',
+            'contactphone',
+            'observations'
+        ]);
+
+        $data = array_merge($validated, $additionalData);
+
+        $customer->update($data);
         return response()->json($customer);
     }
 
