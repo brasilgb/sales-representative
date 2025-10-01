@@ -14,8 +14,7 @@ class ApiCustomerController extends Controller
      */
     public function index(Request $request)
     {
-        $per_page = $request->input('per_page', 10);
-        $customers = Auth::user()->customers()->latest()->paginate($per_page);
+        $customers = Customer::get();
         return response()->json($customers);
     }
 

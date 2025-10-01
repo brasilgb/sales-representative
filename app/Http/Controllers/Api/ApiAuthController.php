@@ -82,7 +82,7 @@ class ApiAuthController extends ApiBaseController
     }
 
     public function logOut(Request $request) {
-        $request->user()->tokens()->delete();
+        $request->user()->currentAccessToken()->delete();
         return response()->noContent();
     }
 }
