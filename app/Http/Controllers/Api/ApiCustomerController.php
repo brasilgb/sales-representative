@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Models\Customer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class ApiCustomerController extends Controller
@@ -15,33 +14,30 @@ class ApiCustomerController extends Controller
      */
     public function index()
     {
+        // The TenantScope will automatically filter customers by the current tenant.
         $customers = Customer::get();
         return response()->json($customers);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Store a newly created resource in storage or update an existing one.
      */
     public function store(Request $request)
     {
         $customerId = $request->input('id');
-
-        if ($customerId) {
-            // Ensure the customer exists and belongs to the authenticated user.
-            Customer::where('id', $customerId)->where('user_id', Auth::id())->firstOrFail();
-        }
+        $tenantId = auth()->user()->tenant_id;
 
         $validated = $request->validate([
             'cnpj' => [
                 'required',
                 'cnpj',
-                Rule::unique('customers')->ignore($customerId)->where('user_id', Auth::id()),
+                Rule::unique('customers')->ignore($customerId)->where('tenant_id', $tenantId),
             ],
             'name' => 'required|string|max:100',
             'email' => [
                 'required',
                 'email',
-                Rule::unique('customers')->ignore($customerId)->where('user_id', Auth::id()),
+                Rule::unique('customers')->ignore($customerId)->where('tenant_id', $tenantId),
             ],
         ]);
 
@@ -62,8 +58,10 @@ class ApiCustomerController extends Controller
 
         $data = array_merge($validated, $additionalData);
 
+        // The 'creating' event in Tenantable trait will set the tenant_id for new records.
+        // The TenantScope will ensure we only update a record within the correct tenant.
         $customer = Customer::updateOrCreate(
-            ['id' => $customerId, 'user_id' => Auth::id()],
+            ['id' => $customerId],
             $data
         );
 
@@ -75,9 +73,8 @@ class ApiCustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        if (Auth::user()->id != $customer->user_id) {
-            return response()->json(['error' => 'Este cliente não pertence a você!'], 403);
-        }
+        // The TenantScope already ensures that the customer belongs to the correct tenant
+        // because of the route model binding. If it doesn't, a 404 will be thrown.
         return response()->json($customer);
     }
 
@@ -86,21 +83,20 @@ class ApiCustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
-        if (Auth::user()->id != $customer->user_id) {
-            return response()->json(['error' => 'Este cliente não pertence a você!'], 403);
-        }
+        // The TenantScope ensures this customer belongs to the current tenant.
+        $tenantId = auth()->user()->tenant_id;
         
         $validated = $request->validate([
             'cnpj' => [
                 'required',
                 'cnpj',
-                Rule::unique('customers')->ignore($customer->id)->where('user_id', Auth::id()),
+                Rule::unique('customers')->ignore($customer->id)->where('tenant_id', $tenantId),
             ],
             'name' => 'required|string|max:100',
             'email' => [
                 'required',
                 'email',
-                Rule::unique('customers')->ignore($customer->id)->where('user_id', Auth::id()),
+                Rule::unique('customers')->ignore($customer->id)->where('tenant_id', $tenantId),
             ],
         ]);
 
@@ -130,9 +126,7 @@ class ApiCustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        if (Auth::user()->id != $customer->user_id) {
-            return response()->json(['error' => 'Este cliente não pertence a você!'], 403);
-        }
+        // The TenantScope ensures this customer belongs to the current tenant.
         $customer->delete();
         return response()->json(null, 204);
     }
