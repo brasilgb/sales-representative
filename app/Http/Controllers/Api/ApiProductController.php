@@ -16,4 +16,14 @@ class ApiProductController extends Controller
             "product" => $product
         ]);
     }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        // The TenantScope will automatically filter customers by the current tenant.
+        $products = Product::get();
+        return response()->json($products);
+    }
 }
