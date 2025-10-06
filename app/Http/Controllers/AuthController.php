@@ -13,21 +13,23 @@ class AuthController extends Controller
 {
     function register(Request $request)
     {
+
         $validated = $request->validate([
+            'company' => 'required',
+            'cnpj' => 'required',
             'name' => 'required|string|max:100',
             'email' => 'required|email:rfc,dns|unique:users,email',
-            'cpf_cnpj' => 'required',
-            'telephone' => 'required',
-            'plan' => 'required',
-            'password' => 'required|min:8|confirmed'
+            'password' => 'required|min:8|confirmed',
+            'password_confirmation' => 'min:8',
+            'device_name' => 'required',
         ]);
         $user = User::create([
+            'company' => $validated['company'],
+            'cnpj' => $validated['cnpj'],
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'cpf_cnpj' => $validated['cpf_cnpj'],
             'plan' => $validated['plan'],
-            'telephone' => $validated['telephone'],
-            'password' => Hash::make($validated['password'])
+            'password' => Hash::make($validated['password']),
         ]);
         $token = $user->createToken('api-token', ['post:read', 'post:create'])->plainTextToken;
 
@@ -45,7 +47,7 @@ class AuthController extends Controller
 
             $token = $user->createToken('api-token', ['post:read', 'post:create'])->plainTextToken;
 
-            return response()->json(['success' => true, 'user' => $user,'token' => $token], 201);
+            return response()->json(['success' => true, 'user' => $user, 'token' => $token], 201);
         }
 
         return response()->json(['success' => false, 'message' => 'Credenciais inválidas'], 401);

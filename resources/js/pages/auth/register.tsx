@@ -77,6 +77,7 @@ export default function Register() {
                         />
                         <InputError message={errors.cnpj} className="mt-2" />
                     </div>
+
                     <div className="grid gap-2">
                         <Label htmlFor="name">Nome</Label>
                         <Input
