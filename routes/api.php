@@ -18,6 +18,7 @@ Route::prefix('auth')->group(function () {
 
 Route::post('/register', [ApiAuthController::class, 'register']);
 Route::post('/login', [ApiAuthController::class, 'login']);
+Route::post('/forgot-password', [ApiAuthController::class, 'forgotPassword']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user', [ApiAuthController::class, 'getUser']);

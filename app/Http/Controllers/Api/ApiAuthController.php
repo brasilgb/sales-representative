@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -22,14 +23,22 @@ class ApiAuthController extends ApiBaseController
 
     public function register(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'cnpj' => 'required|cnpj|unique:tenants',
-            'company' => 'required',
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required',
-            'r_password' => 'required|same:password'
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'cnpj' => 'required|cnpj|unique:tenants',
+                'company' => 'required',
+                'name' => 'required',
+                'email' => 'required|email|unique:users',
+                'password' => 'required',
+                'password_confirmation' => 'required|same:password',
+                'device_name' => 'required',
+            ],
+            [],
+            [
+                'company' => 'Razão social'
+            ]
+        );
 
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors());
@@ -56,7 +65,29 @@ class ApiAuthController extends ApiBaseController
         $success['cnpj'] =  $tenant->cnpj;
         $success['company'] =  $tenant->company;
 
-        return $this->sendResponse($success, 'Usuário registrado com sucesso.');
+        // return $this->sendResponse($success, 'Usuário registrado com sucesso.');
+        return response()->json([
+            'token' => $user->createToken($request->device_name)->plainTextToken
+        ]);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        if ($status != Password::RESET_LINK_SENT) {
+            throw ValidationException::withMessages([
+                'email' => [__($status)]
+            ]);
+        }
+ 
+        return response()->json(['status' => __($status)]);
     }
 
     public function login(Request $request)
@@ -69,7 +100,7 @@ class ApiAuthController extends ApiBaseController
         $user = User::where('email', $request->email)->first();
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => ['As credenciais fornecidas estão incorretas.'],
             ]);
         }
         return response()->json([
@@ -77,11 +108,13 @@ class ApiAuthController extends ApiBaseController
         ]);
     }
 
-    public function getUser(Request $request) {
+    public function getUser(Request $request)
+    {
         return $request->user();
     }
 
-    public function logOut(Request $request) {
+    public function logOut(Request $request)
+    {
         $request->user()->currentAccessToken()->delete();
         return response()->noContent();
     }
