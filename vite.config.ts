@@ -14,6 +14,12 @@ export default defineConfig({
         react(),
         tailwindcss(),
     ],
+    server: {
+        // Isso forçará o Vite a usar o IP para servir os assets
+        host: '192.168.2.53', 
+        // Esta linha é crucial para o CORS em desenvolvimento
+        cors: true, 
+    },
     esbuild: {
         jsx: 'automatic',
     },

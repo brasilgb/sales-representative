@@ -38,8 +38,8 @@ class ApiProductController extends Controller
             'name' => 'required|string',
             'description' => 'required|string',
             'unity' => 'required|string',
-            'measure' => 'required|string',
-            'price' => 'required|numeric',
+            'measure' => 'required',
+            'price' => 'required',
             'min_quantity' => 'required|numeric',
             'quantity' => 'required|numeric',
             'enabled' => 'required|boolean',
@@ -56,7 +56,6 @@ class ApiProductController extends Controller
                 'measure' => $validated['measure'],
                 'price' => $validated['price'],
                 'min_quantity' => $validated['min_quantity'],
-                'quantity' => $validated['quantity'],
                 'enabled' => $validated['enabled']
             ]
         );
@@ -86,7 +85,9 @@ class ApiProductController extends Controller
             'observations' => 'nullable',
         ]);
 
-        // $product = Product::update(
+        $validated['quantity'] = $product->quantity;
+        $validated['min_quantity'] = $product->min_quantity;
+        // $data = Product::update(
         //     [
         //         'reference' => $validated['reference'],
         //         'name' => $validated['name'],
@@ -99,8 +100,6 @@ class ApiProductController extends Controller
         //         'enabled' => $validated['enabled']
         //     ]
         // );
-        $validated['quantity'] = $product->quantity;
-        $validated['min_quantity'] = $product->min_quantity;
         $product->update($validated);
 
         return response()->json($product);

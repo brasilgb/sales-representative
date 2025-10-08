@@ -85,7 +85,7 @@ class ApiCustomerController extends Controller
     {
         // The TenantScope ensures this customer belongs to the current tenant.
         $tenantId = auth()->user()->tenant_id;
-        
+
         $validated = $request->validate([
             'cnpj' => [
                 'required',
