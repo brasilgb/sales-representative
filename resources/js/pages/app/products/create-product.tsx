@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { maskMoney, maskMoneyDot } from "@/Utils/mask";
 import { Switch } from "@/components/ui/switch";
 import { useEffect, useState } from "react";
-import { appsales } from "@/Utils/connectApi";
+import { apisales, appsales } from "@/Utils/connectApi";
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -61,7 +61,8 @@ export default function CreateProduct() {
     let valueReference = e.target.value;
 
     try {
-      const getPartsForPartNumber = await appsales.get(`refproducts/${valueReference}`)
+      const getPartsForPartNumber = await apisales.get(`/getproducts/${valueReference}`)
+console.log(getPartsForPartNumber);
 
       const { success, product } = getPartsForPartNumber.data;
 

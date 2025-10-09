@@ -1,0 +1,148 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Flex;
+use App\Models\Order;
+use App\Models\Product;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class ApiOrderController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        // The TenantScope will automatically filter customers by the current tenant.
+        $orders = Order::with('customer')->get();
+        return response()->json($orders);
+    }
+    
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $otherData = $request->all();
+        $validatedData = $request->validate([
+            'customer_id' => ['required', 'exists:customers,id'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'gt:0'], // 'gt:0' é uma boa adição
+            'items.*.price' => ['required', 'numeric', 'min:0'],
+            'items.*.name' => ['required', 'string'], // min:0 não é necessário aqui
+            'items.*.total' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Criação do Pedido principal
+            $order = Order::create([
+                'customer_id' => $validatedData['customer_id'],
+                'order_number' => Order::exists() ? Order::latest()->first()->order_number + 1 : 1,
+                'flex' => $otherData['flex'] ?? '0',
+                'discount' => $otherData['discount'] ?? '0',
+                'total' => $otherData['total'],
+                'status' => 1,
+            ]);
+
+            // 2. Preparar e criar os itens do pedido
+            $orderItemsData = collect($validatedData['items'])->map(function ($item) {
+                return [
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'name' => $item['name'],
+                    'total' => $item['total'],
+                ];
+            })->toArray();
+
+            $order->orderItems()->createMany($orderItemsData);
+
+            // --- NOVO: LÓGICA PARA DECREMENTAR O ESTOQUE ---
+            // 3. Iterar sobre os itens para validar o estoque e decrementar
+            foreach ($validatedData['items'] as $item) {
+                // Usamos lockForUpdate() para previnir 'race conditions',
+                // onde duas pessoas compram o último item ao mesmo tempo.
+                $product = Product::lockForUpdate()->findOrFail($item['product_id']);
+
+                // Verifica se a quantidade em estoque é suficiente
+                if ($product->quantity < $item['quantity']) {
+                    // Se não houver estoque, lança uma exceção.
+                    // Isso vai acionar o DB::rollBack() no bloco catch.
+                    throw new \Exception("Estoque insuficiente para o produto: " . $product->name);
+                }
+
+                // Decrementa o estoque. O método decrement() é atômico e seguro.
+                // Substitua 'stock' pelo nome real da sua coluna de estoque no banco de dados.
+                $product->decrement('quantity', $item['quantity']);
+            }
+            // --- FIM DA NOVA LÓGICA ---
+
+            // 4. Lógica para o Flex (mantida como estava)
+            $flexBalance = Flex::firstOrCreate(['value' => 0]);
+            $flexAmount = (float) ($otherData['flex'] ?? 0);
+            $discountAmount = (float) ($otherData['discount'] ?? 0);
+
+            if ($flexAmount > 0) {
+                $flexBalance->increment('value', $flexAmount);
+            }
+            if ($discountAmount > 0) {
+                $flexBalance->decrement('value', $discountAmount);
+            }
+
+            DB::commit();
+
+            return redirect()->route('app.orders.index')->with('success', 'Pedido criado com sucesso!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+            // Retorna com a mensagem de erro específica (inclusive a de estoque)
+            return redirect()->back()->with('error', 'Ocorreu um erro: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Order $order)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Order $order)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Order $order)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Order $order)
+    {
+        //
+    }
+}

@@ -1,6 +1,7 @@
 import axios from "axios";
 const apisales = axios.create({
-  baseURL: "http://localhost:8000/api/",
+  baseURL: "http://172.16.1.67:8000/api/",
+  // baseURL: "http://localhost:8000/api/",
   // baseURL: "https://eplusteutonia.com.br/api/",
   headers: {
     'Access-Control-Allow-Origin': '*',
@@ -11,7 +12,8 @@ const apisales = axios.create({
 });
 
 const appsales = axios.create({
-  baseURL: "http://localhost:8000/app/",
+  baseURL: "http://172.16.1.67:8000/app/",
+  // baseURL: "http://localhost:8000/app/",
   // baseURL: "https://eplusteutonia.com.br/api/",
   headers: {
     'Access-Control-Allow-Origin': '*',

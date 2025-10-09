@@ -46,23 +46,40 @@ class ProductController extends Controller
         $data = $request->all();
         $request->validated();
 
-        $product = Product::updateOrCreate(
+        // $product = Product::updateOrCreate(
+        //     [
+        //         'reference' => $data['reference']
+        //     ],
+        //     [
+        //         'name' => $data['name'],
+        //         'description' => $data['description'],
+        //         'unity' => $data['unity'],
+        //         'measure' => $data['measure'],
+        //         'price' => $data['price'],
+        //         'min_quantity' => $data['min_quantity'],
+        //         'quantity' => $data['quantity'],
+        //         'enabled' => $data['enabled']
+        //     ]
+        // );
+        // $product->increment('quantity', $data['quantity']);
+        // 1. Encontre o produto pela referência ou crie uma NOVA INSTÂNCIA (ainda não salva no banco)
+        $product = Product::firstOrNew(
             [
                 'reference' => $data['reference']
-            ],
-            [
-                'name' => $data['name'],
-                'description' => $data['description'],
-                'unity' => $data['unity'],
-                'measure' => $data['measure'],
-                'price' => $data['price'],
-                'min_quantity' => $data['min_quantity'],
-                'quantity' => $data['quantity'],
-                'enabled' => $data['enabled']
             ]
         );
-        $product->increment('quantity', $data['quantity']);
-
+        $product->fill([
+            'name' => $data['name'],
+            'description' => $data['description'],
+            'unity' => $data['unity'],
+            'measure' => $data['measure'],
+            'price' => $data['price'],
+            'min_quantity' => $data['min_quantity'],
+            'enabled' => $data['enabled'],
+            'observations' => $data['observations']
+        ]);
+        $product->quantity = ($product->quantity ?? 0) + $data['quantity'];
+        $product->save();
         return redirect()->route('app.products.index')->with('success', 'Produto cadastrado com sucesso!');
     }
 
@@ -104,7 +121,7 @@ class ProductController extends Controller
         return redirect()->route('app.products.index')->with('success', 'Produto excluido com sucesso!');
     }
 
-        public function getProductsReference(Request $request)
+    public function getProductsReference(Request $request)
     {
         $product = Product::where('reference', $request->reference)->first();
         return response()->json([
