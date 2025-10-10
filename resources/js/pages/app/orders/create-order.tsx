@@ -46,9 +46,16 @@ export default function CreateProduct({ customers, products, flex }: any) {
     flex: '',
     discount: '',
     total: '',
-    items: ''
+    items: []
   });
 
+  [{
+    customer_id: '',
+    flex: '',
+    discount: '',
+    total: '',
+    items: []
+  }]
   useEffect(() => {
     setData("items", items);
     setData((data: any) => ({ ...data, flex: maskMoneyDot(data?.flex) }));
