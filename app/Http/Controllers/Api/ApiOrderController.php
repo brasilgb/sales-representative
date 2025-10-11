@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 
 class ApiOrderController extends Controller
 {
@@ -73,7 +76,7 @@ class ApiOrderController extends Controller
 
             // --- NOVO: LÓGICA PARA DECREMENTAR O ESTOQUE ---
             // 3. Iterar sobre os itens para validar o estoque e decrementar
-            foreach ($validatedData['items'] as $item) {
+            foreach ($validatedData['items'] as $item) { 
                 // Usamos lockForUpdate() para previnir 'race conditions',
                 // onde duas pessoas compram o último item ao mesmo tempo.
                 $product = Product::lockForUpdate()->findOrFail($item['product_id']);
@@ -91,8 +94,19 @@ class ApiOrderController extends Controller
             }
             // --- FIM DA NOVA LÓGICA ---
 
-            // 4. Lógica para o Flex (mantida como estava)
-            $flexBalance = Flex::firstOrCreate(['value' => 0]);
+            // 4. Lógica para o Flex por tenant
+            $tenantId = null;
+            $user = Auth::user();
+            if ($user) {
+                $tenantId = $user->tenant_id;
+            } elseif (function_exists('checkTenantId') && checkTenantId()) {
+                $tenantId = session('tenant_id');
+            }
+            $flexBalance = Flex::firstOrCreate([
+                'tenant_id' => $tenantId
+            ], [
+                'value' => 0
+            ]);
             $flexAmount = (float) ($otherData['flex'] ?? 0);
             $discountAmount = (float) ($otherData['discount'] ?? 0);
 
@@ -115,12 +129,22 @@ class ApiOrderController extends Controller
         }
     }
 
+
     /**
      * Display the specified resource.
      */
     public function show(Order $order)
     {
-        //
+        $products = Product::all();
+        $customers = Customer::all();
+        $flex = Flex::first()->value;
+        $order = Order::with('customer')->with('orderItems')->orderBy('id', 'DESC')->first();
+        return response()->json([
+            'order' => $order, 
+            'products' => $products, 
+            'customers' => $customers, 
+            'flex' => $flex, 
+            'orderitems' => $order->orderItems()]);
     }
 
     /**
@@ -128,7 +152,7 @@ class ApiOrderController extends Controller
      */
     public function edit(Order $order)
     {
-        //
+        return Redirect::route('app.orders.show', ['order' => $order->id]);
     }
 
     /**
