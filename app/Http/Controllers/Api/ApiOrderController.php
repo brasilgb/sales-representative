@@ -146,4 +146,10 @@ class ApiOrderController extends Controller
     {
         //
     }
+
+    public function getFlex()
+    {
+        $flex = Flex::first();
+        return response()->json($flex);
+    }
 }
