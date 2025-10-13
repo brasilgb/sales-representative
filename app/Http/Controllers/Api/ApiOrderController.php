@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Carbon\Carbon;
 
 class ApiOrderController extends Controller
 {
@@ -19,11 +20,22 @@ class ApiOrderController extends Controller
      */
     public function index()
     {
-        // The TenantScope will automatically filter customers by the current tenant.
+        $dateToFilter = Carbon::today();
+        if (!Order::whereDate('created_at', $dateToFilter)->exists()) {
+            $dateToFilter = Order::max('created_at');
+        }
+        if ($dateToFilter) {
+            $orders = Order::with('customer')
+                ->whereDate('created_at', $dateToFilter)
+                ->latest()
+                ->get();
+        } else {
+            $orders = collect();
+        }
         $orders = Order::with('customer')->get();
         return response()->json($orders);
     }
-    
+
     /**
      * Show the form for creating a new resource.
      */
@@ -76,7 +88,7 @@ class ApiOrderController extends Controller
 
             // --- NOVO: LÓGICA PARA DECREMENTAR O ESTOQUE ---
             // 3. Iterar sobre os itens para validar o estoque e decrementar
-            foreach ($validatedData['items'] as $item) { 
+            foreach ($validatedData['items'] as $item) {
                 // Usamos lockForUpdate() para previnir 'race conditions',
                 // onde duas pessoas compram o último item ao mesmo tempo.
                 $product = Product::lockForUpdate()->findOrFail($item['product_id']);
@@ -122,7 +134,7 @@ class ApiOrderController extends Controller
             // return redirect()->route('app.orders.index')->with('success', 'Pedido criado com sucesso!');
         } catch (\Exception $e) {
             DB::rollBack();
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
             // Retorna com a mensagem de erro específica (inclusive a de estoque)
             return response()->json(['message' => 'Ocorreu um erro: ' . $e->getMessage()], 400);
             // return redirect()->back()->with('error', 'Ocorreu um erro: ' . $e->getMessage())->withInput();
@@ -140,11 +152,12 @@ class ApiOrderController extends Controller
         $flex = Flex::first()->value;
         $order = Order::with('customer')->with('orderItems')->orderBy('id', 'DESC')->first();
         return response()->json([
-            'order' => $order, 
-            'products' => $products, 
-            'customers' => $customers, 
-            'flex' => $flex, 
-            'orderitems' => $order->orderItems()]);
+            'order' => $order,
+            'products' => $products,
+            'customers' => $customers,
+            'flex' => $flex,
+            'orderitems' => $order->orderItems()
+        ]);
     }
 
     /**
@@ -175,5 +188,25 @@ class ApiOrderController extends Controller
     {
         $flex = Flex::first();
         return response()->json($flex);
+    }
+
+    public function getDateOrders(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date',
+        ]);
+
+        $startDate = $request->input('date');
+        $sumFlex = Order::whereDate('created_at', $startDate)->sum('flex');
+        $sumDiscount = Order::whereDate('created_at', $startDate)->sum('discount');
+        $sumTotal = Order::whereDate('created_at', $startDate)->sum('total');
+        $orders = Order::with('customer')->whereDate('created_at', $startDate)->get();
+        $orderData = [
+            'orders' => $orders,
+            'sumFlex' => $sumFlex,
+            'sumDiscount' => $sumDiscount,
+            'sumTotal' => $sumTotal,
+        ];
+        return response()->json($orderData);
     }
 }

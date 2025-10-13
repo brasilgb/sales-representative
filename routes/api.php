@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/products', ApiProductController::class);
     Route::get('/alldata', [ApiHomeController::class, 'getAllData']);
     Route::get('/flex', [ApiOrderController::class, 'getFlex']);
+    Route::post('/dateorders', [ApiOrderController::class, 'getDateOrders']);
 });
 
 Route::get('/user', function (Request $request) {
