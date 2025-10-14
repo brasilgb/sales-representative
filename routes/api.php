@@ -28,6 +28,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/alldata', [ApiHomeController::class, 'getAllData']);
     Route::get('/flex', [ApiOrderController::class, 'getFlex']);
     Route::post('/dateorders', [ApiOrderController::class, 'getDateOrders']);
+    Route::patch('/statusorderapp/{order}', [ApiOrderController::class, 'setValueStatusOrderApp']);
+    Route::patch('/cancelorderapp/{order}', [ApiOrderController::class, 'cancelOrderApp']);
 });
 
 Route::get('/user', function (Request $request) {

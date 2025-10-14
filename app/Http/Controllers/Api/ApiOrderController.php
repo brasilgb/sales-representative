@@ -209,4 +209,71 @@ class ApiOrderController extends Controller
         ];
         return response()->json($orderData);
     }
+
+    public function setValueStatusOrderApp(Request $request, $orderid)
+    {
+        Order::where('id', $orderid)->update(['status' => $request->status]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Status alterado com sucesso.'
+        ]);
+    }
+
+    public function cancelOrderApp(Order $order)
+    {
+        // 💡 Verificação inicial: não se pode cancelar um pedido já cancelado.
+        if ($order->status === '4') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este pedido já foi cancelado.'
+            ], 409); // 409 Conflict é um bom status HTTP para isso.
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Itera sobre os itens do pedido para devolver ao estoque
+            foreach ($order->orderItems as $item) {
+
+                // 🛡️ lockForUpdate() previne que duas pessoas alterem o mesmo produto ao mesmo tempo
+                $product = Product::lockForUpdate()->find($item->product_id);
+
+                if ($product) {
+                    // Substitua 'stock' pelo nome real da sua coluna de estoque
+                    $product->increment('quantity', $item->quantity);
+                }
+            }
+
+            $flexBalance = Flex::firstOrCreate(['value' => 0]);
+            $flexAmount = (float) ($order->flex ?? 0);
+            $discountAmount = (float) ($order->discount ?? 0);
+
+            if ($flexAmount > 0) {
+                $flexBalance->increment('value', $flexAmount);
+            }
+            if ($discountAmount > 0) {
+                $flexBalance->decrement('value', $discountAmount);
+            }
+
+            // 2. Atualiza o status do pedido para 'cancelado'
+            $order::where('id', $order->id)->update(['status' => '4']);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pedido cancelado e estoque atualizado com sucesso.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Em um ambiente de produção, você deveria logar este erro.
+            // Log::error('Erro ao cancelar pedido: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocorreu um erro ao cancelar o pedido.'
+            ], 500); // 500 Internal Server Error
+        }
+    }
 }
