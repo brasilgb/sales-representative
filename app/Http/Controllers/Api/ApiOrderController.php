@@ -141,7 +141,6 @@ class ApiOrderController extends Controller
         }
     }
 
-
     /**
      * Display the specified resource.
      */
