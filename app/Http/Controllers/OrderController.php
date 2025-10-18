@@ -275,4 +275,14 @@ class OrderController extends Controller
             ], 500); // 500 Internal Server Error
         }
     }
+
+    public function orderReport()
+    {
+        return Inertia::render('app/orders/order-reports');
+    }
+    // public function orderDateReport($date)
+    // {
+    //     $orders = Order::with('customer')->whereDate('created_at', $date)->get();
+    //     return Inertia::render('app/orders/order-report', ["orders" => $orders]);
+    // }
 }

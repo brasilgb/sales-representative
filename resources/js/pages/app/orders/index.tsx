@@ -3,7 +3,7 @@ import { Icon } from '@/components/icon';
 import AppLayout from '@/layouts/app-layout'
 import { BreadcrumbItem } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react'
-import { BoxIcon, Calendar, Edit, EyeIcon, Plus, ShoppingCartIcon, Users, Wrench } from 'lucide-react';
+import { BoxIcon, Calendar, CalendarDaysIcon, Edit, EyeIcon, Plus, ShoppingCartIcon, Users, Wrench } from 'lucide-react';
 import moment from 'moment'
 import {
   Table,
@@ -68,7 +68,14 @@ export default function Products({ orders }: any) {
         <div className='w-full'>
           <InputSearch placeholder="Buscar produto por nome/referência" url="app.orders.index" />
         </div>
-        <div className='w-full flex justify-end'>
+        <div className='w-full flex justify-end gap-4'>
+          <Button variant={'secondary'} asChild className="bg-emerald-500 hover:bg-emerald-500 text-white">
+            <Link
+              href={route('app.orders.report')}
+            >
+              <CalendarDaysIcon className='h-4 w-4' />
+            </Link>
+          </Button>
           <Button variant={'default'} asChild>
             <Link
               href={route('app.orders.create')}
@@ -107,16 +114,16 @@ export default function Products({ orders }: any) {
                     <TableCell>{moment(order.created_at).format("DD/MM/YYYY")}</TableCell>
                     {/* <TableCell>{statusOrderByValue(order.status)}</TableCell> */}
                     <TableCell>{
-                      order.status =='4'
-                      ? <Badge variant={'destructive'}>Pedido cancelado</Badge>
-                      :
-                      <AppSelect
-                        setMessageStatus={setMessageStatus}
-                        orderid={order?.id}
-                        data={statusOrder}
-                        title='Selecione o status'
-                        defaultValue={order?.status}
-                      />}
+                      order.status == '4'
+                        ? <Badge variant={'destructive'}>Pedido cancelado</Badge>
+                        :
+                        <AppSelect
+                          setMessageStatus={setMessageStatus}
+                          orderid={order?.id}
+                          data={statusOrder}
+                          title='Selecione o status'
+                          defaultValue={order?.status}
+                        />}
                     </TableCell>
                     <TableCell className='flex justify-end gap-2'>
                       <Button asChild size="icon" className="bg-cyan-500 hover:bg-cyan-600 text-white">

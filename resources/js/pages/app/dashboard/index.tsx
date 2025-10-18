@@ -37,7 +37,7 @@ export default function Dashboard({ kpis_dash, salesOrders }: any) {
         </div>
         <Card className='p-4'>
           <CardTitle>
-            Pedidos recentes
+            Pedidos dos últimos 7 dias
           </CardTitle>
           <div className='grid md:md:grid-cols-4 gap-4'>
             {salesOrders.length == '0' && <div>Não há pedidos recentes</div>}

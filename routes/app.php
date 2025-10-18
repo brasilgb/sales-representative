@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::resource('/customers', CustomerController::class);
 Route::resource('/orders', OrderController::class);
+Route::get('/report', [OrderController::class, 'orderReport'])->name('orders.report');
 Route::resource('/products', ProductController::class);
 Route::resource('/settings', SettingController::class);
 Route::resource('/users', UserController::class);

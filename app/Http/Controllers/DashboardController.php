@@ -22,7 +22,9 @@ class DashboardController extends Controller
             'orders' => Order::get()->count(),
             'flex' => Flex::first()
         ];
-        $salesOrders = Order::with('customer')->whereDate('created_at', Carbon::now()->format('Y-m-d'))->get();
+        $salesOrders = Order::with('customer')
+            ->where('created_at', '>=', Carbon::now()->subDays(7))
+            ->get();
 
         return Inertia::render('app/dashboard/index', ['kpis_dash' => $kpis_dash, 'salesOrders' => $salesOrders]);
     }
