@@ -48,14 +48,14 @@ export default function Dashboard({ kpis_dash, salesOrders }: any) {
               >
                 <div className="flex items-center gap-4">
                   <div>
-                    <p className="font-medium text-foreground">{order.order_number}</p>
+                    <p className="font-medium text-foreground">N°.Ped: {order.order_number}</p>
                     <p className="text-sm text-muted-foreground">{order.customer.name}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <p className="font-medium text-foreground">R$ {maskMoney(order.total)}</p>
-                    <p className="text-sm text-muted-foreground">{moment(order.created_at).format('HH:MM')}</p>
+                    <p className="text-sm text-muted-foreground">{moment(order.created_at).format('DD/MM/YYYY - HH:MM')}</p>
                   </div>
                   <Badge
                     variant={

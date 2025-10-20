@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { CalendarIcon } from "lucide-react"
 
@@ -14,40 +12,50 @@ import {
 } from "@/components/ui/popover"
 import moment from "moment"
 
+function formatDate(date: Date | undefined) {
+    if (!date) {
+        return ""
+    }
+
+    return date.toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+    })
+}
+
+function isValidDate(date: Date | undefined) {
+    if (!date) {
+        return false
+    }
+    return !isNaN(date.getTime())
+}
+
 interface DatePickerProps {
-    date: Date | undefined;
-    setDate: (date: Date | undefined) => void;
-    onDateSelect?: (date: Date | undefined) => void;
+    date: any;
+    setDate: any;
+    onDateSelect?: any;
 }
 
 export function DatePicker({ date, setDate, onDateSelect }: DatePickerProps) {
     const [open, setOpen] = React.useState(false)
     const [month, setMonth] = React.useState<Date | undefined>(date)
-
-    // Deriva o valor do input diretamente do estado 'date'
-    const inputValue = date ? moment(date).format("DD/MM/YYYY") : ""
-
-    // Sincroniza o mês do calendário se a data externa mudar
-    React.useEffect(() => {
-        if (date) {
-            setMonth(date);
-        }
-    }, [date]);
+    const [value, setValue] = React.useState(moment(date).format('DD/MM/YYYY'))
 
     return (
         <div className="flex flex-col gap-3">
             <div className="relative flex gap-2">
                 <Input
                     id="date"
-                    value={inputValue}
-                    placeholder="DD/MM/YYYY"
+                    value={value}
+                    placeholder="June 01, 2025"
                     className="bg-background pr-10"
-                    // A edição manual pode ser complexa. Moment.js com `true` no 3º argumento
-                    // faz um parsing estrito, o que é mais seguro.
                     onChange={(e) => {
-                        const newDate = moment(e.target.value, "DD/MM/YYYY", true);
-                        if (newDate.isValid()) {
-                            setDate(newDate.toDate());
+                        const date = new Date(e.target.value)
+                        setValue(e.target.value)
+                        if (isValidDate(date)) {
+                            setDate(date)
+                            setMonth(date)
                         }
                     }}
                     onKeyDown={(e) => {
@@ -89,6 +97,7 @@ export function DatePicker({ date, setDate, onDateSelect }: DatePickerProps) {
                             }}
                             onSelect={(date) => {
                                 setDate(date)
+                                setValue(moment(date).format('DD/MM/YYYY'))
                                 setOpen(false)
                             }}
                         />
@@ -98,3 +107,24 @@ export function DatePicker({ date, setDate, onDateSelect }: DatePickerProps) {
         </div>
     )
 }
+/**
+ * 
+ * <Calendar
+                            mode="single"
+                            selected={date}
+                            captionLayout="dropdown"
+                            month={month}
+                            onMonthChange={setMonth}
+                            onDayClick={(day) => {
+                                setDate(day);
+                                if (onDateSelect) {
+                                    onDateSelect(day);
+                                }
+                                setOpen(false);
+                            }}
+                            onSelect={(date) => {
+                                setDate(date)
+                                setOpen(false)
+                            }}
+                        />
+ */

@@ -281,18 +281,8 @@ class OrderController extends Controller
 
     public function orderReport()
     {
-        $sumFlex = Order::sum('flex');
-        $sumDiscount = Order::sum('discount');
-        $sumTotal = Order::sum('total');
         $orders = Order::with('customer')->get();
-        $orderData = [
-            'orders' => $orders,
-            'sumFlex' => $sumFlex,
-            'sumDiscount' => $sumDiscount,
-            'sumTotal' => $sumTotal,
-        ];
-
-        return Inertia::render('app/orders/order-reports', ["orderData" => $orderData]);
+        return Inertia::render('app/orders/order-reports', ["orders" => $orders]);
     }
     // public function orderDateReport($date)
     // {
