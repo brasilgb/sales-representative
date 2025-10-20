@@ -136,8 +136,11 @@ class OrderController extends Controller
         $products = Product::all();
         $customers = Customer::all();
         $flex = Flex::first();
-        $order = Order::with('customer')->with('orderItems')->orderBy('id', 'DESC')->first();
-        return Inertia::render('app/orders/edit-order', ['order' => $order, 'products' => $products, 'customers' => $customers, 'flex' => $flex, 'orderitems' => $order->orderItems()]);
+        // Carrega os relacionamentos necessários no modelo já injetado pela rota.
+        $order->load('customer', 'orderItems');
+
+        // O método orderItems() retorna a relação, para obter os itens, acesse a propriedade.
+        return Inertia::render('app/orders/edit-order', ['order' => $order, 'products' => $products, 'customers' => $customers, 'flex' => $flex, 'orderitems' => $order->orderItems]);
     }
 
     /**
@@ -278,7 +281,18 @@ class OrderController extends Controller
 
     public function orderReport()
     {
-        return Inertia::render('app/orders/order-reports');
+        $sumFlex = Order::sum('flex');
+        $sumDiscount = Order::sum('discount');
+        $sumTotal = Order::sum('total');
+        $orders = Order::with('customer')->get();
+        $orderData = [
+            'orders' => $orders,
+            'sumFlex' => $sumFlex,
+            'sumDiscount' => $sumDiscount,
+            'sumTotal' => $sumTotal,
+        ];
+
+        return Inertia::render('app/orders/order-reports', ["orderData" => $orderData]);
     }
     // public function orderDateReport($date)
     // {

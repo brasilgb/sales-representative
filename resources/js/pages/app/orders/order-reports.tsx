@@ -1,10 +1,15 @@
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { DatePicker } from '@/components/date-picker';
 import { Button } from '@/components/ui/button';
+import { apisales } from '@/Utils/connectApi';
 import AppLayout from '@/layouts/app-layout'
 import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react'
 import { ArrowLeft, CalendarDaysIcon } from 'lucide-react'
+import { useState } from 'react';
+import moment from 'moment';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { statusSaasByValue } from '@/Utils/functions';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -17,7 +22,18 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-function OrderReports() {
+function OrderReports({ orderData }: any) {
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+    const [reportData, setReportData] = useState<any>(null);
+
+    const handleFetchReport = async (date: Date | undefined) => {
+        setSelectedDate(date);
+        const dataForDate = orderData.orders.filter((order: any) => (
+            moment(order.created_at).format('YYYY-MM-DD') === moment(date).format('YYYY-MM-DD')
+        ));
+        setReportData(dataForDate);
+    }
+
     return (
         <AppLayout>
             <Head title="Pedidos" />
@@ -49,11 +65,41 @@ function OrderReports() {
             <div className='p-4'>
                 <div className='border rounded-lg p-2'>
                     <div className='flex items-center justify-between'>
-                        <div>Pedidos emitidos em</div>
-                        <div>
-                            <DatePicker />
+                        <div className='flex items-center gap-4'>
+                            <span>Pedidos emitidos em: {moment(selectedDate).format('DD/MM/YYYY')}</span>
                         </div>
+                        <DatePicker date={selectedDate} setDate={setSelectedDate} onDateSelect={handleFetchReport} />
                     </div>
+
+                    <div className='mt-4 flex items-center justify-between border rounded-md p-2'>
+                        <div>Flex: {orderData.sumFlex}</div>
+                        <div>Descontos: {orderData.sumDiscount}</div>
+                        <div>Total: {orderData.sumTotal}</div>
+                    </div>
+
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nº Pedido</TableHead>
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Total</TableHead>
+                                <TableHead></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {reportData?.map((order: any) => (
+                                <TableRow key={order.id}>
+                                    <TableCell>{order.order_number}</TableCell>
+                                    <TableCell>{order?.customer?.name}</TableCell>
+                                    <TableCell>R$ {order.total}</TableCell>
+                                    <TableCell>
+                                        {statusSaasByValue(order.status)}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+
                 </div>
             </div>
 
