@@ -4,7 +4,8 @@ import { CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import "react-day-picker/style.css";
+import { ptBR } from "react-day-picker/locale";
 import {
     Popover,
     PopoverContent,
@@ -83,6 +84,7 @@ export function DatePicker({ date, setDate, onDateSelect }: DatePickerProps) {
                         sideOffset={10}
                     >
                         <Calendar
+                            locale={ptBR}
                             mode="single"
                             selected={date}
                             captionLayout="dropdown"
@@ -100,6 +102,10 @@ export function DatePicker({ date, setDate, onDateSelect }: DatePickerProps) {
                                 setValue(moment(date).format('DD/MM/YYYY'))
                                 setOpen(false)
                             }}
+                            classNames={{
+                                today: `border-amber-500`, // Add a border to today's date
+                                selected: `bg-amber-500 border-amber-500 text-white rounded-full`, // Highlight the selected day
+                            }}
                         />
                     </PopoverContent>
                 </Popover>
@@ -107,24 +113,3 @@ export function DatePicker({ date, setDate, onDateSelect }: DatePickerProps) {
         </div>
     )
 }
-/**
- * 
- * <Calendar
-                            mode="single"
-                            selected={date}
-                            captionLayout="dropdown"
-                            month={month}
-                            onMonthChange={setMonth}
-                            onDayClick={(day) => {
-                                setDate(day);
-                                if (onDateSelect) {
-                                    onDateSelect(day);
-                                }
-                                setOpen(false);
-                            }}
-                            onSelect={(date) => {
-                                setDate(date)
-                                setOpen(false)
-                            }}
-                        />
- */

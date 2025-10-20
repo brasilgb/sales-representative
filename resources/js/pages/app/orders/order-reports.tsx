@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout'
 import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react'
-import { ArrowLeft, CalendarDaysIcon } from 'lucide-react'
+import { ArrowLeft, CalendarDaysIcon, FileOutputIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react';
 import moment from 'moment';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -133,7 +133,7 @@ function OrderReports({ orders }: any) {
                             loading ? (
                                 <Button variant={'default'} disabled >Gerando PDF...</Button>
                             ) : (
-                                <Button variant={'default'} >Baixar Relatório PDF</Button>
+                                <Button variant={'default'} ><FileOutputIcon /> Gerar Relatório PDF</Button>
                             )
                         }
                     </PDFDownloadLink>
