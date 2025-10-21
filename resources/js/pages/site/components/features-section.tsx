@@ -5,7 +5,7 @@ const features = [
   {
     icon: Users,
     title: "Gestão de Clientes",
-    description: "Cadastre e organize todos os seus clientes com informações completas e histórico de compras.",
+    description: "Cadastre e organize todos os seus clientes com informações completas.",
   },
   {
     icon: Package,
@@ -25,7 +25,7 @@ const features = [
   {
     icon: Smartphone,
     title: "App Android",
-    description: "Acesse todas as funcionalidades no seu smartphone Android, mesmo offline.",
+    description: "Acesse todas as funcionalidades no seu smartphone Android.",
   },
   {
     icon: Cloud,

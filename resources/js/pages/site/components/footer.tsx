@@ -14,7 +14,7 @@ export function Footer() {
                                     />
                                 </span>
                             </div>
-                            <span className="text-xl font-bold">VendaFácil</span>
+                            <span className="text-xl font-bold">SalesEasy</span>
                         </div>
                         <p className="text-sm text-muted-foreground leading-relaxed">
                             A solução completa para gerenciar suas vendas com eficiência.

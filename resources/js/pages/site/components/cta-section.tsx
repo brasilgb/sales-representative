@@ -21,10 +21,12 @@ export function CTASection() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="text-base bg-transparent">
+              <a href="https://wa.me/5551995179173?text=Quero%20mais%20informações%20sobre%20SalesEasy">
               Falar com Vendas
+              </a>
             </Button>
           </div>
-          <p className="mt-6 text-sm text-muted-foreground">Mais de 500 empresas já confiam no VendaFácil</p>
+          <p className="mt-6 text-sm text-muted-foreground">Mais de 500 empresas já confiam no SalesEasy</p>
         </div>
       </div>
     </section>
