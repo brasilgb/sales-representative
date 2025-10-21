@@ -17,7 +17,8 @@ class ApiHomeController extends Controller
         $orders = Order::with('customer')->get();
         $products = Product::get();
         $customers = Customer::get();
-        $flex = Flex::sum('flex');
+        $flex = Order::sum('flex');
+        $discount = Order::sum('discount');
 
 
         $dataApp = [
@@ -25,7 +26,8 @@ class ApiHomeController extends Controller
             "orders" => $orders,
             "products" => $products,
             "customers" => $customers,
-            "flex" => $flex
+            "flex" => $flex,
+            "discount" => $discount
         ];
 
         return response()->json([
