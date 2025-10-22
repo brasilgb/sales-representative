@@ -37,7 +37,7 @@ export function BenefitsSection() {
             Resultados que fazem a diferença
           </h2>
           <p className="text-lg text-muted-foreground text-balance">
-            Junte-se a centenas de empresas que já transformaram suas vendas
+            Junte-se aos vendedores que já estão usando suas vendas
           </p>
         </div>
 

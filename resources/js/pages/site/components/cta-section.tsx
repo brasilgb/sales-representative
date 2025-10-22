@@ -26,7 +26,7 @@ export function CTASection() {
               </a>
             </Button>
           </div>
-          <p className="mt-6 text-sm text-muted-foreground">Muitas empresas confiam no SalesEasy</p>
+          <p className="mt-6 text-sm text-muted-foreground">Muitas vendedores já confiam no SalesEasy</p>
         </div>
       </div>
     </section>
