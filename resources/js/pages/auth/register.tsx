@@ -20,11 +20,6 @@ type RegisterForm = {
 };
 
 export default function Register() {
-    const { auth } = usePage().props as any;
-
-    if (auth?.userexists) {
-        return router.get(route('dashboard'));
-    }
 
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
         cnpj: '',
@@ -71,9 +66,9 @@ export default function Register() {
                             tabIndex={1}
                             autoComplete="cnpj"
                             value={maskCnpj(data.cnpj)}
-                            onChange={(e) => setData('cnpj', e.target.value)}
+                            onChange={(e) => setData('cnpj', e.target.value.replace(/\D/g, ''))}
                             disabled={processing}
-                            placeholder="Nome completo"
+                            placeholder="CNPJ"
                         />
                         <InputError message={errors.cnpj} className="mt-2" />
                     </div>
