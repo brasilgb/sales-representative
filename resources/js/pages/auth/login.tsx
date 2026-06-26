@@ -1,5 +1,5 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { EyeIcon, EyeOffIcon, LoaderCircle } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, LoaderCircle, Lock, Mail } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
 import InputError from '@/components/input-error';
@@ -39,36 +39,41 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     return (
-        <AuthLayout title="Faça login na sua conta" description="Entre para começar suas vendas">
-            <Head title="Log in" />
-            <form className="flex flex-col gap-6" onSubmit={submit}>
+        <AuthLayout title="Bem vindo de volta" description="Entre com suas credenciais para acessar o sistema">
+            <Head title="Conecte-se" />
+            <form className="flex min-w-0 flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Endereço de e-mail</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            required
-                            autoFocus
-                            tabIndex={1}
-                            autoComplete="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                            placeholder="email@examplo.com"
-                        />
+                        <Label htmlFor="email">E-mail</Label>
+                        <div className="relative">
+                            <Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                id="email"
+                                type="email"
+                                required
+                                autoFocus
+                                tabIndex={1}
+                                autoComplete="email"
+                                value={data.email}
+                                onChange={(e) => setData('email', e.target.value)}
+                                placeholder="email@examplo.com"
+                                className="pl-10"
+                            />
+                        </div>
                         <InputError message={errors.email} />
                     </div>
 
                     <div className="grid gap-2">
-                        <div className="flex items-center">
+                        <div className="flex items-center justify-between">
                             <Label htmlFor="password">Senha</Label>
                             {canResetPassword && (
-                                <TextLink href={route('password.request')} className="ml-auto text-sm" tabIndex={5}>
+                                <TextLink href={route('password.request')} className="text-sm text-foreground hover:underline" tabIndex={5}>
                                     Esqueceu a senha?
                                 </TextLink>
                             )}
                         </div>
-                        <div className='relative'>
+                        <div className="relative">
+                            <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 id="password"
                                 type={showPassword ? 'text' : 'password'}
@@ -78,9 +83,16 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
                                 placeholder="Senha"
+                                className="pr-10 pl-10"
                             />
-                            <Button type='button' className='absolute right-1 top-0' variant="ghost" size="icon" onClick={() => setShowPassword(!showPassword)}>
-                                {showPassword ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                            <Button
+                                type="button"
+                                className="absolute top-0 right-1"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                             </Button>
                         </div>
                         <InputError message={errors.password} />
@@ -93,24 +105,27 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             checked={data.remember}
                             onClick={() => setData('remember', !data.remember)}
                             tabIndex={3}
+                            className="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-ring"
                         />
-                        <Label htmlFor="remember">Lembrar-me</Label>
+                        <Label htmlFor="remember" className="cursor-pointer text-sm font-normal">
+                            Lembrar de mim
+                        </Label>
                     </div>
 
-                    <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
+                    <Button type="submit" size="lg" className="mt-4 w-full" tabIndex={4} disabled={processing}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Entrar
+                        {processing ? 'Entrando...' : 'Entrar'}
                     </Button>
                 </div>
 
-                {!auth?.userexists &&
+                {!auth?.userexists && (
                     <div className="text-center text-sm text-muted-foreground">
                         Não tem uma conta?{' '}
                         <TextLink href={route('register')} tabIndex={5}>
                             Registre-se
                         </TextLink>
                     </div>
-                }
+                )}
             </form>
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}

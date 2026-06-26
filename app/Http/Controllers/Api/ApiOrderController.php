@@ -7,11 +7,11 @@ use App\Models\Customer;
 use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 
 class ApiOrderController extends Controller
 {
@@ -21,18 +21,20 @@ class ApiOrderController extends Controller
     public function index()
     {
         $dateToFilter = Carbon::today();
-        if (!Order::whereDate('created_at', $dateToFilter)->exists()) {
-            $dateToFilter = Order::max('created_at');
+        if (! Order::visibleTo()->whereDate('created_at', $dateToFilter)->exists()) {
+            $dateToFilter = Order::visibleTo()->max('created_at');
         }
         if ($dateToFilter) {
-            $orders = Order::with('customer')
+            $orders = Order::visibleTo()
+                ->with('customer.region')
                 ->whereDate('created_at', $dateToFilter)
                 ->latest()
                 ->get();
         } else {
             $orders = collect();
         }
-        $orders = Order::with('customer')->get();
+        $orders = Order::visibleTo()->with('customer.region')->get();
+
         return response()->json($orders);
     }
 
@@ -61,6 +63,8 @@ class ApiOrderController extends Controller
         ]);
 
         try {
+            abort_unless(Customer::visibleTo()->whereKey($validatedData['customer_id'])->exists(), 404);
+
             DB::beginTransaction();
 
             // 1. Criação do Pedido principal
@@ -97,7 +101,7 @@ class ApiOrderController extends Controller
                 if ($product->quantity < $item['quantity']) {
                     // Se não houver estoque, lança uma exceção.
                     // Isso vai acionar o DB::rollBack() no bloco catch.
-                    throw new \Exception("Estoque insuficiente para o produto: " . $product->name);
+                    throw new \Exception('Estoque insuficiente para o produto: '.$product->name);
                 }
 
                 // Decrementa o estoque. O método decrement() é atômico e seguro.
@@ -115,9 +119,9 @@ class ApiOrderController extends Controller
                 $tenantId = session('tenant_id');
             }
             $flexBalance = Flex::firstOrCreate([
-                'tenant_id' => $tenantId
+                'tenant_id' => $tenantId,
             ], [
-                'value' => 0
+                'value' => 0,
             ]);
             $flexAmount = (float) ($otherData['flex'] ?? 0);
             $discountAmount = (float) ($otherData['discount'] ?? 0);
@@ -130,13 +134,14 @@ class ApiOrderController extends Controller
             }
 
             DB::commit();
+
             return response()->json(['message' => 'Pedido criado com sucesso!'], 201);
             // return redirect()->route('app.orders.index')->with('success', 'Pedido criado com sucesso!');
         } catch (\Exception $e) {
             DB::rollBack();
 
             // Retorna com a mensagem de erro específica (inclusive a de estoque)
-            return response()->json(['message' => 'Ocorreu um erro: ' . $e->getMessage()], 400);
+            return response()->json(['message' => 'Ocorreu um erro: '.$e->getMessage()], 400);
             // return redirect()->back()->with('error', 'Ocorreu um erro: ' . $e->getMessage())->withInput();
         }
     }
@@ -146,16 +151,19 @@ class ApiOrderController extends Controller
      */
     public function show(Order $order)
     {
+        $this->authorizeVisibleOrder($order);
+
         $products = Product::all();
-        $customers = Customer::all();
+        $customers = Customer::visibleTo()->get();
         $flex = Flex::first()->value;
-        $order = Order::with('customer')->with('orderItems')->orderBy('id', 'DESC')->first();
+        $order = Order::visibleTo()->with('customer.region')->with('orderItems')->orderBy('id', 'DESC')->first();
+
         return response()->json([
             'order' => $order,
             'products' => $products,
             'customers' => $customers,
             'flex' => $flex,
-            'orderitems' => $order->orderItems()
+            'orderitems' => $order->orderItems(),
         ]);
     }
 
@@ -186,6 +194,7 @@ class ApiOrderController extends Controller
     public function getFlex()
     {
         $flex = Flex::first();
+
         return response()->json($flex);
     }
 
@@ -196,35 +205,41 @@ class ApiOrderController extends Controller
         ]);
 
         $startDate = $request->input('date');
-        $sumFlex = Order::whereDate('created_at', $startDate)->sum('flex');
-        $sumDiscount = Order::whereDate('created_at', $startDate)->sum('discount');
-        $sumTotal = Order::whereDate('created_at', $startDate)->sum('total');
-        $orders = Order::with('customer')->whereDate('created_at', $startDate)->get();
+        $sumFlex = Order::visibleTo()->whereDate('created_at', $startDate)->sum('flex');
+        $sumDiscount = Order::visibleTo()->whereDate('created_at', $startDate)->sum('discount');
+        $sumTotal = Order::visibleTo()->whereDate('created_at', $startDate)->sum('total');
+        $orders = Order::visibleTo()->with('customer.region')->whereDate('created_at', $startDate)->get();
         $orderData = [
             'orders' => $orders,
             'sumFlex' => $sumFlex,
             'sumDiscount' => $sumDiscount,
             'sumTotal' => $sumTotal,
         ];
+
         return response()->json($orderData);
     }
 
     public function setValueStatusOrderApp(Request $request, $orderid)
     {
+        abort_unless(Order::visibleTo()->whereKey($orderid)->exists(), 404);
+
         Order::where('id', $orderid)->update(['status' => $request->status]);
+
         return response()->json([
             'success' => true,
-            'message' => 'Status alterado com sucesso.'
+            'message' => 'Status alterado com sucesso.',
         ]);
     }
 
     public function cancelOrderApp(Order $order)
     {
+        $this->authorizeVisibleOrder($order);
+
         // 💡 Verificação inicial: não se pode cancelar um pedido já cancelado.
         if ($order->status === '4') {
             return response()->json([
                 'success' => false,
-                'message' => 'Este pedido já foi cancelado.'
+                'message' => 'Este pedido já foi cancelado.',
             ], 409); // 409 Conflict é um bom status HTTP para isso.
         }
 
@@ -261,7 +276,7 @@ class ApiOrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pedido cancelado e estoque atualizado com sucesso.'
+                'message' => 'Pedido cancelado e estoque atualizado com sucesso.',
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -271,8 +286,13 @@ class ApiOrderController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ocorreu um erro ao cancelar o pedido.'
+                'message' => 'Ocorreu um erro ao cancelar o pedido.',
             ], 500); // 500 Internal Server Error
         }
+    }
+
+    private function authorizeVisibleOrder(Order $order): void
+    {
+        abort_unless(Order::visibleTo()->whereKey($order->id)->exists(), 404);
     }
 }

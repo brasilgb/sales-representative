@@ -16,13 +16,15 @@ class DashboardController extends Controller
     public function index()
     {
         $kpis_dash = [
-            'users' => User::first(),
-            'customers' => Customer::get()->count(),
+            'users' => auth()->user()->canManageTeam()
+                ? User::where('tenant_id', auth()->user()->tenant_id)->count()
+                : 1,
+            'customers' => Customer::visibleTo()->count(),
             'products' => Product::get()->count(),
-            'orders' => Order::get()->count(),
+            'orders' => Order::visibleTo()->count(),
             'flex' => Flex::first()
         ];
-        $salesOrders = Order::with('customer')
+        $salesOrders = Order::visibleTo()->with('customer', 'user')
             ->where('created_at', '>=', Carbon::now()->subDays(7))
             ->get();
 

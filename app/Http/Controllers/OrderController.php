@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
-use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Flex;
+use App\Models\Order;
 use App\Models\Product;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
@@ -21,15 +21,21 @@ class OrderController extends Controller
     {
         $search = $request->get('q');
 
-        $query = Order::orderBy('id', 'DESC');
-        // $query->where('id', $search);
-        // if ($search) {
-        //     $query->where('name', 'like', '%' . $search . '%')
-        //         ->orWhere('reference', 'like', '%' . $search . '%');
-        // }
+        $query = Order::visibleTo()->orderBy('id', 'DESC');
 
-        $orders = $query->with('customer')->paginate(12);
-        return Inertia::render('app/orders/index', ["orders" => $orders]);
+        if ($search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('order_number', 'like', '%'.$search.'%')
+                    ->orWhereHas('customer', function ($query) use ($search) {
+                        $query->where('name', 'like', '%'.$search.'%')
+                            ->orWhere('cnpj', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        $orders = $query->with('customer.region', 'user')->paginate(12);
+
+        return Inertia::render('app/orders/index', ['orders' => $orders]);
     }
 
     /**
@@ -37,10 +43,20 @@ class OrderController extends Controller
      */
     public function create()
     {
-        $products = Product::all();
-        $customers = Customer::all();
+        $products = Product::orderBy('name')->get();
+        $customers = Customer::visibleTo()
+            ->with(['region', 'latestOrder.orderItems.product'])
+            ->orderBy('name')
+            ->get();
         $flex = Flex::first();
-        return Inertia::render('app/orders/create-order', ['products' => $products, 'customers' => $customers, 'flex' => $flex]);
+        $selectedCustomerId = request()->integer('customer_id') ?: null;
+
+        return Inertia::render('app/orders/create-order', [
+            'products' => $products,
+            'customers' => $customers,
+            'flex' => $flex,
+            'selectedCustomerId' => $selectedCustomerId,
+        ]);
     }
 
     /**
@@ -60,6 +76,8 @@ class OrderController extends Controller
         ]);
 
         try {
+            abort_unless(Customer::visibleTo()->whereKey($validatedData['customer_id'])->exists(), 404);
+
             DB::beginTransaction();
 
             // 1. Criação do Pedido principal
@@ -96,7 +114,7 @@ class OrderController extends Controller
                 if ($product->quantity < $item['quantity']) {
                     // Se não houver estoque, lança uma exceção.
                     // Isso vai acionar o DB::rollBack() no bloco catch.
-                    throw new \Exception("Estoque insuficiente para o produto: " . $product->name);
+                    throw new \Exception('Estoque insuficiente para o produto: '.$product->name);
                 }
 
                 // Decrementa o estoque. O método decrement() é atômico e seguro.
@@ -124,7 +142,7 @@ class OrderController extends Controller
             DB::rollBack();
 
             // Retorna com a mensagem de erro específica (inclusive a de estoque)
-            return redirect()->back()->with('error', 'Ocorreu um erro: ' . $e->getMessage())->withInput();
+            return redirect()->back()->with('error', 'Ocorreu um erro: '.$e->getMessage())->withInput();
         }
     }
 
@@ -133,8 +151,10 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
+        $this->authorizeVisibleOrder($order);
+
         $products = Product::all();
-        $customers = Customer::all();
+        $customers = Customer::visibleTo()->get();
         $flex = Flex::first();
         // Carrega os relacionamentos necessários no modelo já injetado pela rota.
         $order->load('customer', 'orderItems');
@@ -171,11 +191,12 @@ class OrderController extends Controller
     /**
      * Remove o pedido do banco de dados e devolve os itens ao estoque.
      *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function destroy(Order $order)
     {
+        $this->authorizeVisibleOrder($order);
+
         // Alternativa: verifique se o pedido pode ser deletado
         // Por exemplo, talvez pedidos 'concluídos' não possam ser deletados.
         // if ($order->status === 'concluido') {
@@ -208,26 +229,32 @@ class OrderController extends Controller
             return redirect()->route('app.orders.index')->with('success', 'Pedido deletado e estoque atualizado com sucesso!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Erro ao deletar o pedido: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Erro ao deletar o pedido: '.$e->getMessage());
         }
     }
 
     public function setValueStatusOrder(Request $request, $orderid)
     {
+        abort_unless(Order::visibleTo()->whereKey($orderid)->exists(), 404);
+
         Order::where('id', $orderid)->update(['status' => $request->status]);
+
         return response()->json([
             'success' => true,
-            'message' => 'Status alterado com sucesso.'
+            'message' => 'Status alterado com sucesso.',
         ]);
     }
 
     public function cancelOrder(Order $order)
     {
+        $this->authorizeVisibleOrder($order);
+
         // 💡 Verificação inicial: não se pode cancelar um pedido já cancelado.
         if ($order->status === '4') {
             return response()->json([
                 'success' => false,
-                'message' => 'Este pedido já foi cancelado.'
+                'message' => 'Este pedido já foi cancelado.',
             ], 409); // 409 Conflict é um bom status HTTP para isso.
         }
 
@@ -264,7 +291,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pedido cancelado e estoque atualizado com sucesso.'
+                'message' => 'Pedido cancelado e estoque atualizado com sucesso.',
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -274,19 +301,25 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ocorreu um erro ao cancelar o pedido.'
+                'message' => 'Ocorreu um erro ao cancelar o pedido.',
             ], 500); // 500 Internal Server Error
         }
     }
 
     public function orderReport()
     {
-        $orders = Order::with('customer')->get();
-        return Inertia::render('app/orders/order-reports', ["orders" => $orders]);
+        $orders = Order::visibleTo()->with('customer.region', 'user')->get();
+
+        return Inertia::render('app/orders/order-reports', ['orders' => $orders]);
     }
     // public function orderDateReport($date)
     // {
     //     $orders = Order::with('customer')->whereDate('created_at', $date)->get();
     //     return Inertia::render('app/orders/order-report', ["orders" => $orders]);
     // }
+
+    private function authorizeVisibleOrder(Order $order): void
+    {
+        abort_unless(Order::visibleTo()->whereKey($order->id)->exists(), 404);
+    }
 }

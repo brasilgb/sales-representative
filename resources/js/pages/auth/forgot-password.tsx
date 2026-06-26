@@ -27,7 +27,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
 
-            <div className="space-y-6">
+            <div className="min-w-0 space-y-6">
                 <form onSubmit={submit}>
                     <div className="grid gap-2">
                         <Label htmlFor="email">E-mail</Label>
@@ -45,15 +45,15 @@ export default function ForgotPassword({ status }: { status?: string }) {
                         <InputError message={errors.email} />
                     </div>
 
-                    <div className="my-6 flex items-center justify-start">
-                        <Button className="w-full" disabled={processing}>
+                    <div className="my-6 flex min-w-0 items-center justify-start">
+                        <Button className="h-auto min-h-10 w-full px-4 py-2 text-center leading-snug whitespace-normal" disabled={processing}>
                             {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                             Enviar link de redefinição de senha
                         </Button>
                     </div>
                 </form>
 
-                <div className="text-muted-foreground space-x-1 text-center text-sm">
+                <div className="space-x-1 text-center text-sm text-muted-foreground">
                     <span>Ou, retornar para</span>
                     <TextLink href={route('login')}>login</TextLink>
                 </div>

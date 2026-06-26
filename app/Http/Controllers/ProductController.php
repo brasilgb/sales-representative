@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
+use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -22,12 +21,18 @@ class ProductController extends Controller
         $query = Product::orderBy('id', 'DESC');
 
         if ($search) {
-            $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('reference', 'like', '%' . $search . '%');
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('reference', 'like', '%'.$search.'%')
+                    ->orWhere('barcode', 'like', '%'.$search.'%')
+                    ->orWhere('brand', 'like', '%'.$search.'%')
+                    ->orWhere('category', 'like', '%'.$search.'%');
+            });
         }
 
         $products = $query->paginate(12);
-        return Inertia::render('app/products/index', ["products" => $products]);
+
+        return Inertia::render('app/products/index', ['products' => $products]);
     }
 
     /**
@@ -65,21 +70,28 @@ class ProductController extends Controller
         // 1. Encontre o produto pela referência ou crie uma NOVA INSTÂNCIA (ainda não salva no banco)
         $product = Product::firstOrNew(
             [
-                'reference' => $data['reference']
+                'reference' => $data['reference'],
             ]
         );
         $product->fill([
             'name' => $data['name'],
             'description' => $data['description'],
+            'barcode' => $data['barcode'] ?? null,
+            'species' => $data['species'] ?? null,
+            'category' => $data['category'] ?? null,
+            'brand' => $data['brand'] ?? null,
+            'line' => $data['line'] ?? null,
+            'package_size' => $data['package_size'] ?? null,
             'unity' => $data['unity'],
             'measure' => $data['measure'],
             'price' => $data['price'],
             'min_quantity' => $data['min_quantity'],
             'enabled' => $data['enabled'],
-            'observations' => $data['observations']
+            'observations' => $data['observations'],
         ]);
         $product->quantity = ($product->quantity ?? 0) + $data['quantity'];
         $product->save();
+
         return redirect()->route('app.products.index')->with('success', 'Produto cadastrado com sucesso!');
     }
 
@@ -109,6 +121,7 @@ class ProductController extends Controller
         $request['quantity'] = $product->quantity;
         $request['min_quantity'] = $product->min_quantity;
         $product->update($data);
+
         return redirect()->route('app.products.show', ['product' => $product->id])->with('success', 'Produto alterado com sucesso!');
     }
 
@@ -118,15 +131,17 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+
         return redirect()->route('app.products.index')->with('success', 'Produto excluido com sucesso!');
     }
 
     public function getProductsReference(Request $request)
     {
         $product = Product::where('reference', $request->reference)->first();
+
         return response()->json([
-            "success" => true,
-            "product" => $product
+            'success' => true,
+            'product' => $product,
         ]);
     }
 }

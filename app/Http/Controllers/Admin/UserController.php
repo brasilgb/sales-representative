@@ -6,10 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserRequest;
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -23,9 +21,10 @@ class UserController extends Controller
         $search = $request->get('q');
         $query = User::orderBy('id', 'DESC');
         if ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
+            $query->where('name', 'like', '%'.$search.'%');
         }
         $users = $query->with('tenant')->paginate(12);
+
         return Inertia::render('admin/users/index', ['users' => $users]);
     }
 
@@ -35,6 +34,7 @@ class UserController extends Controller
     public function create()
     {
         $tenants = Tenant::get();
+
         return Inertia::render('admin/users/create-user', ['tenants' => $tenants]);
     }
 
@@ -46,7 +46,9 @@ class UserController extends Controller
         $data = $request->all();
         $request->validated();
         $data['password'] = Hash::make($request->password);
-        User::create($data);
+        $user = User::create($data);
+        $this->syncTenantOwner($user);
+
         return redirect()->route('admin.users.index')->with('success', 'Usuário cadastrado com sucesso');
     }
 
@@ -56,6 +58,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         $tenants = Tenant::get();
+
         return Inertia::render('admin/users/edit-user', ['user' => $user, 'tenants' => $tenants]);
     }
 
@@ -76,6 +79,8 @@ class UserController extends Controller
         $request->validated();
         $data['password'] = $request->password ? Hash::make($request->password) : $user->password;
         $user->update($data);
+        $this->syncTenantOwner($user);
+
         return redirect()->route('admin.users.show', ['user' => $user->id])->with('success', 'Usuário editado com sucesso');
     }
 
@@ -85,7 +90,14 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
+
         return redirect()->route('admin.users.index')->with('success', 'Usuário excluido com sucesso!');
     }
 
+    private function syncTenantOwner(User $user): void
+    {
+        if ($user->tenant_id && $user->isOwner()) {
+            Tenant::whereKey($user->tenant_id)->update(['owner_user_id' => $user->id]);
+        }
+    }
 }

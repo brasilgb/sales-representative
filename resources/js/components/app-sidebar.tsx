@@ -1,10 +1,9 @@
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, BoxIcon, CogIcon, Folder, LayoutGrid, ShoppingCartIcon, User2Icon, UserIcon, UsersIcon } from 'lucide-react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import { BookOpen, BoxIcon, CogIcon, Folder, LayoutGrid, MapPinned, ShoppingCartIcon, User2Icon, UserIcon, UsersIcon } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const appNavItems: NavItem[] = [
@@ -31,6 +30,12 @@ const appNavItems: NavItem[] = [
         href: route('app.customers.index'),
         icon: UsersIcon,
         active: 'app.customers.*',
+    },
+    {
+        title: 'Regiões',
+        href: route('app.regions.index'),
+        icon: MapPinned,
+        active: 'app.regions.*',
     },
     {
         title: 'Configurações',
@@ -60,6 +65,9 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage<SharedData>().props;
+    const visibleNavItems = appNavItems.filter((item) => item.title !== 'Regiões' || auth.canManageTeam);
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -75,12 +83,11 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={appNavItems} />
+                <NavMain items={visibleNavItems} />
             </SidebarContent>
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
             </SidebarFooter>
         </Sidebar>
     );

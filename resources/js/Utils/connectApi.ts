@@ -1,24 +1,19 @@
 import axios from "axios";
+
+const appUrl =
+  import.meta.env.VITE_APP_URL ??
+  (typeof window !== "undefined" ? window.location.origin : "http://localhost:8000");
+
 const apisales = axios.create({
-  baseURL: "http://172.16.1.67:8000/api/",
-  // baseURL: "http://localhost:8000/api/",
-  // baseURL: "https://eplusteutonia.com.br/api/",
+  baseURL: new URL("/api/", appUrl).toString(),
   headers: {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': '*',
     "Content-Type": "application/json"
   },
 });
 
 const appsales = axios.create({
-  baseURL: "http://172.16.1.67:8000/app/",
-  // baseURL: "http://localhost:8000/app/",
-  // baseURL: "https://eplusteutonia.com.br/api/",
+  baseURL: new URL("/app/", appUrl).toString(),
   headers: {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': '*',
     "Content-Type": "application/json"
   },
 });

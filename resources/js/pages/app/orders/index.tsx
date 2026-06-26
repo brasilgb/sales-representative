@@ -1,159 +1,159 @@
-import { Breadcrumbs } from '@/components/breadcrumbs'
-import { Icon } from '@/components/icon';
-import AppLayout from '@/layouts/app-layout'
-import { BreadcrumbItem } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react'
-import { BoxIcon, Calendar, CalendarDaysIcon, Edit, EyeIcon, Plus, ShoppingCartIcon, Users, Wrench } from 'lucide-react';
-import moment from 'moment'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Button } from '@/components/ui/button';
-import InputSearch from '@/components/inputSearch';
 import ActionDelete from '@/components/action-delete';
-import { maskMoney, maskPhone } from '@/Utils/mask';
 import AlertSuccess from '@/components/app-alert-success';
-import AppPagination from '@/components/app-pagination';
-import { statusOrderByValue } from '@/Utils/functions';
+import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import { AppSelect } from '@/components/app-select';
-import { statusOrder } from '@/Utils/dataSelect';
-import { useEffect, useState } from 'react';
+import { Icon } from '@/components/icon';
+import InputSearch from '@/components/inputSearch';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from '@/types';
+import { statusOrder } from '@/Utils/dataSelect';
+import { maskMoney } from '@/Utils/mask';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { CalendarDaysIcon, EyeIcon, Plus, ShoppingCartIcon } from 'lucide-react';
+import moment from 'moment';
+import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Dashboard',
-    href: route('app.dashboard'),
-  },
-  {
-    title: 'Pedidos',
-    href: "#",
-  },
+    {
+        title: 'Dashboard',
+        href: route('app.dashboard'),
+    },
+    {
+        title: 'Pedidos',
+        href: '#',
+    },
 ];
 
-export default function Products({ orders }: any) {
-  const { flash } = usePage().props as any;
-  const [messageStatus, setMessageStatus] = useState<string>('');
+export default function Orders({ orders }: any) {
+    const { flash } = usePage().props as any;
+    const [messageStatus, setMessageStatus] = useState<string>('');
 
-  useEffect(() => {
-    // setMessageStatus(messageStatus);
-    setTimeout(() => {
-      setMessageStatus('')
-    }, 3000)
-  }, [messageStatus])
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            setMessageStatus('');
+        }, 3000);
 
+        return () => clearTimeout(timeout);
+    }, [messageStatus]);
 
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            {flash.message && <AlertSuccess message={flash.message} />}
+            <Head title="Pedidos" />
 
-  return (
-    <AppLayout>
-      {flash.message && <AlertSuccess message={flash.message} />}
-      <Head title="Pedidos" />
-      <div className='flex items-center justify-between h-16 px-4'>
-        <div className='flex items-center gap-2'>
-          <Icon iconNode={ShoppingCartIcon} className='w-8 h-8' />
-          <h2 className="text-xl font-semibold tracking-tight">Pedidos</h2>
-        </div>
-        <div>
-          <Breadcrumbs breadcrumbs={breadcrumbs} />
-        </div>
-      </div>
+            <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
+                <div className="flex items-center gap-2">
+                    <Icon iconNode={ShoppingCartIcon} className="h-8 w-8" />
+                    <h2 className="text-xl font-semibold tracking-tight">Pedidos</h2>
+                </div>
+            </div>
 
-      <div className='flex items-center justify-between p-4'>
-        <div className='w-full'>
-          <InputSearch placeholder="Buscar produto por nome/referência" url="app.orders.index" />
-        </div>
-        <div className='w-full flex justify-end gap-4'>
-          <Button variant={'secondary'} asChild className="bg-emerald-500 hover:bg-emerald-500 text-white">
-            <Link
-              href={route('app.orders.report')}
-            >
-              <CalendarDaysIcon className='h-4 w-4' />
-            </Link>
-          </Button>
-          <Button variant={'default'} asChild>
-            <Link
-              href={route('app.orders.create')}
-            >
-              <Plus className='h-4 w-4' />
-              <span>Pedido</span>
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      <div className='p-4'>
-        <div className='border rounded-lg'>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nº Pedido</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Flex</TableHead>
-                <TableHead>Desconto</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Emissão</TableHead>
-                <TableHead>{messageStatus ? <div className='bg-green-50 text-green-700 border border-green-500 px-2 rounded-md'>{messageStatus}</div> : <div>Status</div>}</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders?.data.length > 0 ?
-                orders?.data?.map((order: any) => (
-                  <TableRow key={order.id}>
-                    <TableCell>{order.order_number}</TableCell>
-                    <TableCell>{order?.customer?.name}</TableCell>
-                    <TableCell>{order.flex}</TableCell>
-                    <TableCell>{order.discount}</TableCell>
-                    <TableCell>R$ {maskMoney(order.total)}</TableCell>
-                    <TableCell>{moment(order.created_at).format("DD/MM/YYYY")}</TableCell>
-                    {/* <TableCell>{statusOrderByValue(order.status)}</TableCell> */}
-                    <TableCell>{
-                      order.status == '4'
-                        ? <Badge variant={'destructive'}>Pedido cancelado</Badge>
-                        :
-                        <AppSelect
-                          setMessageStatus={setMessageStatus}
-                          orderid={order?.id}
-                          data={statusOrder}
-                          title='Selecione o status'
-                          defaultValue={order?.status}
-                        />}
-                    </TableCell>
-                    <TableCell className='flex justify-end gap-2'>
-                      <Button asChild size="icon" className="bg-cyan-500 hover:bg-cyan-600 text-white">
-                        <Link href={route('app.orders.edit', order.id)}>
-                          <EyeIcon />
+            <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="w-full min-w-0 lg:max-w-[420px] lg:flex-1">
+                    <InputSearch placeholder="Buscar pedido por número, cliente ou produto" url="app.orders.index" />
+                </div>
+                <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto lg:shrink-0 lg:justify-end">
+                    <Button variant="secondary" asChild className="w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto">
+                        <Link href={route('app.orders.report')}>
+                            <CalendarDaysIcon className="h-4 w-4" />
+                            <span>Relatório</span>
                         </Link>
-                      </Button>
-                      <ActionDelete title={'este cliente'} url={'app.orders.destroy'} param={order.id} />
-                    </TableCell>
-                  </TableRow>
-                ))
-                : (
-                  <TableRow>
-                    <TableCell colSpan={7} className='h-16 w-full flex items-center justify-center'>
-                      Não há dados a serem mostrados no momento.
-                    </TableCell>
-                  </TableRow>
-                )
-              }
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={9}>
-                  <AppPagination data={orders} />
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </div>
-      </div>
-    </AppLayout>
-  )
+                    </Button>
+                    <Button variant="default" asChild className="w-full whitespace-nowrap sm:w-auto">
+                        <Link href={route('app.orders.create')}>
+                            <Plus className="h-4 w-4" />
+                            <span>Novo pedido</span>
+                        </Link>
+                    </Button>
+                </div>
+            </div>
+
+            <div className="p-4">
+                <PaginationSummary data={orders} />
+                <div className="rounded-lg border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Pedido</TableHead>
+                                <TableHead>Valores</TableHead>
+                                <TableHead>Emissão</TableHead>
+                                <TableHead>
+                                    {messageStatus ? (
+                                        <div className="rounded-md border border-green-500 bg-green-50 px-2 text-green-700">{messageStatus}</div>
+                                    ) : (
+                                        'Status'
+                                    )}
+                                </TableHead>
+                                <TableHead className="min-w-[120px]"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {orders?.data.length > 0 ? (
+                                orders?.data?.map((order: any) => (
+                                    <TableRow key={order.id}>
+                                        <TableCell>
+                                            <div className="space-y-1">
+                                                <div className="font-medium">#{order.order_number}</div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    {order?.customer?.name || 'Cliente não informado'}
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="space-y-1">
+                                                <div className="font-medium">R$ {maskMoney(order.total)}</div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    Flex: {order.flex} | Desc.: {order.discount}
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{moment(order.created_at).format('DD/MM/YYYY')}</TableCell>
+                                        <TableCell>
+                                            {order.status == '4' ? (
+                                                <Badge variant="destructive">Pedido cancelado</Badge>
+                                            ) : (
+                                                <AppSelect
+                                                    setMessageStatus={setMessageStatus}
+                                                    orderid={order?.id}
+                                                    data={statusOrder}
+                                                    title="Selecione o status"
+                                                    defaultValue={order?.status}
+                                                />
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="min-w-[120px]">
+                                            <div className="flex flex-wrap justify-end gap-2">
+                                                <Button asChild size="icon" className="bg-cyan-500 text-white hover:bg-cyan-600" title="Ver pedido">
+                                                    <Link href={route('app.orders.edit', order.id)} aria-label={`Ver pedido ${order.order_number}`}>
+                                                        <EyeIcon className="h-4 w-4" />
+                                                    </Link>
+                                                </Button>
+                                                <ActionDelete title={'este pedido'} url={'app.orders.destroy'} param={order.id} />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="h-16 text-center">
+                                        Não há dados a serem mostrados no momento.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TableCell colSpan={5}>
+                                    <AppPagination data={orders} />
+                                </TableCell>
+                            </TableRow>
+                        </TableFooter>
+                    </Table>
+                </div>
+            </div>
+        </AppLayout>
+    );
 }

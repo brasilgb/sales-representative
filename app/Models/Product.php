@@ -14,14 +14,20 @@ class Product extends Model
     protected $fillable = [
         'name',
         'reference',
+        'barcode',
         'description',
+        'species',
+        'category',
+        'brand',
+        'line',
+        'package_size',
         'unity',
         'measure',
         'price',
         'quantity',
         'min_quantity',
         'enabled',
-        'observations'
+        'observations',
     ];
 
     public function OrderItem(): HasMany

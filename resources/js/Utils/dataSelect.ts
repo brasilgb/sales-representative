@@ -10,9 +10,8 @@ const statusServico = [
 ];
 
 const rolesUser = [
-    { value: '1', label: "Administrador" },
-    { value: '2', label: "Usuário" },
-    { value: '3', label: "Técnico" },
+    { value: '1', label: "Chefe da equipe" },
+    { value: '2', label: "Vendedor" },
 ];
 
 const statusUser = [

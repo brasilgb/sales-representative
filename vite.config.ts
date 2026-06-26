@@ -15,9 +15,7 @@ export default defineConfig({
         tailwindcss(),
     ],
     server: {
-        // Isso forçará o Vite a usar o IP para servir os assets
-        // host: '192.168.2.53', 
-        host: '172.16.1.67', 
+        // host: '0.0.0.0',
         // Esta linha é crucial para o CORS em desenvolvimento
         cors: true, 
     },

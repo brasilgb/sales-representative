@@ -1,5 +1,5 @@
 import { type NavItem } from '@/types';
-import { Link as linkmegb, Calendar, Cog, LayoutGrid, MessageSquareMore, PackagePlus, UserCog, Users2, Wrench, Building, MessageCircleCode, Printer, Tags, CogIcon, Copyright, Monitor, Sparkles, ClipboardList, Blocks, Building2, HandCoins, MemoryStick } from 'lucide-react';
+import { Building, Cog, Copyright, HandCoins, LayoutGrid, Link as linkmegb, MapPinned, Sparkles, UserCog, Users2, Wrench } from 'lucide-react';
 
 const mainNavItems: NavItem[] = [
     {
@@ -15,16 +15,24 @@ const mainNavItems: NavItem[] = [
         active: 'app.customers.*',
     },
     {
-        title: 'Ordens de serviço',
+        title: 'Regiões',
+        href: route('app.regions.index'),
+        icon: MapPinned,
+        active: 'app.regions.*',
+    },
+    {
+        title: 'Equipe',
+        href: route('app.users.index'),
+        icon: UserCog,
+        active: 'app.users.*',
+    },
+    {
+        title: 'Pedidos',
         href: route('app.orders.index'),
         icon: Wrench,
         active: 'app.orders.*',
     },
-    
 ];
-
-
-
 
 const mainAdminItems = [
     {
@@ -55,8 +63,8 @@ const mainAdminItems = [
 
 const mainPlansItems = [
     {
-        title: "Planos",
-        url: "#",
+        title: 'Planos',
+        url: '#',
         icon: HandCoins,
         items: [
             {
@@ -77,8 +85,8 @@ const mainPlansItems = [
                 icon: Sparkles,
                 active: 'admin.features.*',
             },
-        ]
-    }
+        ],
+    },
 ];
 
 const footerNavItems: NavItem[] = [
@@ -89,4 +97,4 @@ const footerNavItems: NavItem[] = [
     },
 ];
 
-export { mainNavItems, mainUserItems ,mainConfItems, mainRegisterItems,footerNavItems, mainAdminItems, mainPlansItems};
+export { footerNavItems, mainAdminItems, mainNavItems, mainPlansItems };

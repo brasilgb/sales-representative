@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
+
 // use App\Helpers\CustomHelpers;
 
 trait Tenantable
@@ -13,6 +14,10 @@ trait Tenantable
         static::addGlobalScope(new TenantScope);
 
         static::creating(function ($model) {
+            if ($model->tenant_id !== null) {
+                return;
+            }
+
             if (auth()->hasUser()) {
                 $model->tenant_id = auth()->user()->tenant_id;
             } elseif (checkTenantId()) {

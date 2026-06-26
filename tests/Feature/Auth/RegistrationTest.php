@@ -10,10 +10,13 @@ test('new users can register', function () {
     $response = $this->post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
+        'company' => 'Test Company',
+        'cnpj' => '04.252.011/0001-10',
+        'plan_type' => 'individual',
         'password' => 'password',
         'password_confirmation' => 'password',
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('app.dashboard', absolute: false));
 });

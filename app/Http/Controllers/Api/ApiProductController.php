@@ -68,8 +68,14 @@ class ApiProductController extends Controller
     {
         $validated = $request->validate([
             'reference' => 'required',
+            'barcode' => 'nullable|string|max:80',
             'name' => 'required',
             'description' => 'required',
+            'species' => 'nullable|string|max:30',
+            'category' => 'nullable|string|max:60',
+            'brand' => 'nullable|string|max:80',
+            'line' => 'nullable|string|max:80',
+            'package_size' => 'nullable|string|max:50',
             'unity' => 'required',
             'measure' => 'required',
             'price' => 'required',
@@ -91,6 +97,12 @@ class ApiProductController extends Controller
         $product->fill([
             'name' => $validated['name'],
             'description' => $validated['description'],
+            'barcode' => $validated['barcode'] ?? null,
+            'species' => $validated['species'] ?? null,
+            'category' => $validated['category'] ?? null,
+            'brand' => $validated['brand'] ?? null,
+            'line' => $validated['line'] ?? null,
+            'package_size' => $validated['package_size'] ?? null,
             'unity' => $validated['unity'],
             'measure' => $validated['measure'],
             'price' => $validated['price'],
@@ -120,9 +132,15 @@ class ApiProductController extends Controller
     {
         $tenantId = auth()->user()->tenant_id;
         $validated = $request->validate([
-            'reference' => 'required', Rule::unique('products')->ignore($product->id)->where('tenant_id', $tenantId),
+            'reference' => ['required', Rule::unique('products')->ignore($product->id)->where('tenant_id', $tenantId)],
+            'barcode' => 'nullable|string|max:80',
             'name' => 'required',
             'description' => 'required',
+            'species' => 'nullable|string|max:30',
+            'category' => 'nullable|string|max:60',
+            'brand' => 'nullable|string|max:80',
+            'line' => 'nullable|string|max:80',
+            'package_size' => 'nullable|string|max:50',
             'unity' => 'required',
             'measure' => 'required',
             'price' => 'required',

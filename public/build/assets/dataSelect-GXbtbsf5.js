@@ -1,0 +1,1 @@
+const a=[{value:"1",label:"Chefe da equipe"},{value:"2",label:"Vendedor"}],e=[{value:"1",label:"Pedido realizado"},{value:"2",label:"Pago"},{value:"3",label:"Entregue"},{value:"4",label:"Cancelado"}],l=[{value:"1",label:"Ativo"},{value:"2",label:"Inativo"},{value:"3",label:"Trial"},{value:"5",label:"Pausado"},{value:"6",label:"Vence em 5D"}];export{e as a,a as r,l as s};

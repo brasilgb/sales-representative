@@ -1,284 +1,308 @@
-import { Breadcrumbs } from "@/components/breadcrumbs";
-import { Icon } from "@/components/icon";
-import { Button } from "@/components/ui/button";
-import AppLayout from "@/layouts/app-layout";
-import { BreadcrumbItem } from "@/types";
-import { Head, Link, useForm, usePage } from "@inertiajs/react";
-import { ArrowLeft, Save, Users } from "lucide-react";
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { maskCep, maskCpfCnpj, maskPhone, unMask } from "@/Utils/mask";
+import { Icon } from '@/components/icon';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from '@/types';
+import { maskCep, maskCpfCnpj, maskPhone, unMask } from '@/Utils/mask';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowLeft, Save, Users } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Dashboard',
-    href: route('app.dashboard'),
-  },
-  {
-    title: 'Clientes',
-    href: route('app.customers.index'),
-  },
-  {
-    title: 'Adicionar',
-    href: '#',
-  },
+    {
+        title: 'Dashboard',
+        href: route('app.dashboard'),
+    },
+    {
+        title: 'Clientes',
+        href: route('app.customers.index'),
+    },
+    {
+        title: 'Adicionar',
+        href: '#',
+    },
 ];
 
-export default function CreateCustomer() {
+const establishmentTypes = [
+    { value: 'petshop', label: 'Petshop' },
+    { value: 'clinica_veterinaria', label: 'Clínica veterinária' },
+    { value: 'agropecuaria', label: 'Agropecuária' },
+    { value: 'banho_tosa', label: 'Banho e tosa' },
+    { value: 'distribuidor', label: 'Distribuidor' },
+    { value: 'outro', label: 'Outro' },
+];
 
-  const { data, setData, post, progress, processing, reset, errors } = useForm({
-    name: '',
-    cnpj: '',
-    email: '',
-    zip_code: '',
-    state: '',
-    city: '',
-    district: '',
-    street: '',
-    complement: '',
-    number: '',
-    phone: '',
-    contactname: '',
-    whatsapp: '',
-    contactphone: '',
-    observations: '',
-  });
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    post(route('app.customers.store'), {
-      onSuccess: () => reset(),
+export default function CreateCustomer({ regions }: any) {
+    const { data, setData, post, progress, processing, reset, errors } = useForm({
+        region_id: regions?.[0]?.id ?? '',
+        establishment_type: '',
+        name: '',
+        cnpj: '',
+        email: '',
+        zip_code: '',
+        state: '',
+        city: '',
+        district: '',
+        street: '',
+        complement: '',
+        number: '',
+        phone: '',
+        contactname: '',
+        whatsapp: '',
+        contactphone: '',
+        preferred_visit_days: '',
+        preferred_visit_time: '',
+        commercial_notes: '',
+        observations: '',
     });
-  }
 
-  const getCep = (cep: string) => {
-    const cleanCep = unMask(cep);
-    fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
-      .then((response) => response.json())
-      .then((result) => {
-        setData((data) => ({ ...data, state: result.uf }));
-        setData((data) => ({ ...data, city: result.localidade }));
-        setData((data) => ({ ...data, district: result.bairro }));
-        setData((data) => ({ ...data, street: result.logradouro }));
-        setData((data) => ({ ...data, complement: result.complemento }));
-      })
-      .catch((error) => console.error(error));
-  };
+    const handleSubmit = async (e: any) => {
+        e.preventDefault();
+        post(route('app.customers.store'), {
+            onSuccess: () => reset(),
+        });
+    };
 
-  return (
-    <AppLayout>
-      <Head title="Clientes" />
-      <div className='flex items-center justify-between h-16 px-4'>
-        <div className='flex items-center gap-2'>
-          <Icon iconNode={Users} className='w-8 h-8' />
-          <h2 className="text-xl font-semibold tracking-tight">Clientes</h2>
-        </div>
-        <div>
-          <Breadcrumbs breadcrumbs={breadcrumbs} />
-        </div>
-      </div>
+    const getCep = (cep: string) => {
+        const cleanCep = unMask(cep);
+        fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+            .then((response) => response.json())
+            .then((result) => {
+                setData((data) => ({ ...data, state: result.uf }));
+                setData((data) => ({ ...data, city: result.localidade }));
+                setData((data) => ({ ...data, district: result.bairro }));
+                setData((data) => ({ ...data, street: result.logradouro }));
+                setData((data) => ({ ...data, complement: result.complemento }));
+            })
+            .catch((error) => console.error(error));
+    };
 
-      <div className='flex items-center justify-between p-4'>
-        <div>
-          <Button variant={'default'} asChild>
-            <Link
-              href={route('app.customers.index')}
-            >
-              <ArrowLeft h-4 w-4 />
-              <span>Voltar</span>
-            </Link>
-          </Button>
-        </div>
-        <div>
-        </div>
-      </div>
-
-      <div className='p-4'>
-        <div className='border rounded-lg p-2'>
-
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid md:grid-cols-3 gap-4 mt-4">
-
-              <div className="gap-2">
-                <Label htmlFor="name">CNPJ</Label>
-                <Input
-                  type="text"
-                  id="cnpj"
-                  value={maskCpfCnpj(data.cnpj)}
-                  onChange={(e) => setData('cnpj', e.target.value)}
-                  maxLength={18}
-                />
-                {errors.cnpj && <div className="text-red-500 text-sm">{errors.cnpj}</div>}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nome da empresa</Label>
-                <Input
-                  type="text"
-                  id="name"
-                  value={data.name}
-                  onChange={(e) => setData('name', e.target.value)}
-                />
-                {errors.name && <div className="text-red-500 text-sm">{errors.name}</div>}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  type="text"
-                  id="email"
-                  value={data.email}
-                  onChange={(e) => setData('email', e.target.value)}
-                />
-                {errors.email && <div className="text-red-500 text-sm">{errors.email}</div>}
-              </div>
-
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Clientes" />
+            <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
+                <div className="flex items-center gap-2">
+                    <Icon iconNode={Users} className="h-8 w-8" />
+                    <h2 className="text-xl font-semibold tracking-tight">Clientes</h2>
+                </div>
             </div>
 
-            <div className="grid md:grid-cols-6 gap-4 mt-4">
-
-              <div className="grid gap-2">
-                <Label htmlFor="cep">CEP</Label>
-                <Input
-                  type="text"
-                  id="zip_code"
-                  value={maskCep(data.zip_code)}
-                  onChange={(e) => setData('zip_code', e.target.value)}
-                  onBlur={(e) => getCep(e.target.value)}
-                  maxLength={9}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="state">UF</Label>
-                <Input
-                  type="text"
-                  id="state"
-                  value={data.state}
-                  onChange={(e) => setData('state', e.target.value)}
-                />
-                {errors.state && <div>{errors.state}</div>}
-              </div>
-
-              <div className="md:col-span-2 grid gap-2">
-                <Label htmlFor="city">Cidade</Label>
-                <Input
-                  type="text"
-                  id="city"
-                  value={data.city}
-                  onChange={(e) => setData('city', e.target.value)}
-                />
-              </div>
-
-              <div className="md:col-span-2 grid gap-2">
-                <Label htmlFor="district">Bairro</Label>
-                <Input
-                  type="text"
-                  id="district"
-                  value={data.district}
-                  onChange={(e) => setData('district', e.target.value)}
-                />
-              </div>
-
+            <div className="flex items-center justify-between p-4">
+                <div>
+                    <Button variant={'default'} asChild>
+                        <Link href={route('app.customers.index')}>
+                            <ArrowLeft className="h-4 w-4" />
+                            <span>Voltar</span>
+                        </Link>
+                    </Button>
+                </div>
+                <div></div>
             </div>
 
-            <div className="grid md:grid-cols-4 gap-4 mt-4">
-              <div className="grid gap-2 md:col-span-2">
-                <Label htmlFor="street">Endereço</Label>
-                <Input
-                  type="text"
-                  id="street"
-                  value={data.street}
-                  onChange={(e) => setData('street', e.target.value)}
-                />
-              </div>
+            <div className="p-4">
+                <div className="rounded-lg border p-2">
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        <div className="mt-4 grid gap-4 md:grid-cols-3">
+                            <div className="grid gap-2">
+                                <Label htmlFor="region_id">Região</Label>
+                                <select
+                                    id="region_id"
+                                    className="flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                                    value={data.region_id}
+                                    onChange={(e) => setData('region_id', e.target.value)}
+                                >
+                                    <option value="">Selecione</option>
+                                    {regions?.map((region: any) => (
+                                        <option key={region.id} value={region.id}>
+                                            {region.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.region_id && <div className="text-sm text-red-500">{errors.region_id}</div>}
+                            </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="complement">Complemento</Label>
-                <Input
-                  type="text"
-                  id="complement"
-                  value={data.complement}
-                  onChange={(e) => setData('complement', e.target.value)}
-                />
-              </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="establishment_type">Tipo de estabelecimento</Label>
+                                <select
+                                    id="establishment_type"
+                                    className="flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                                    value={data.establishment_type}
+                                    onChange={(e) => setData('establishment_type', e.target.value)}
+                                >
+                                    <option value="">Selecione</option>
+                                    {establishmentTypes.map((type) => (
+                                        <option key={type.value} value={type.value}>
+                                            {type.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.establishment_type && <div className="text-sm text-red-500">{errors.establishment_type}</div>}
+                            </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="number">Número</Label>
-                <Input
-                  type="text"
-                  id="number"
-                  value={data.number}
-                  onChange={(e) => setData('number', e.target.value)}
-                />
-              </div>
+                            <div className="gap-2">
+                                <Label htmlFor="name">CNPJ</Label>
+                                <Input
+                                    type="text"
+                                    id="cnpj"
+                                    value={maskCpfCnpj(data.cnpj)}
+                                    onChange={(e) => setData('cnpj', e.target.value)}
+                                    maxLength={18}
+                                />
+                                {errors.cnpj && <div className="text-sm text-red-500">{errors.cnpj}</div>}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Nome da empresa</Label>
+                                <Input type="text" id="name" value={data.name} onChange={(e) => setData('name', e.target.value)} />
+                                {errors.name && <div className="text-sm text-red-500">{errors.name}</div>}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">E-mail</Label>
+                                <Input type="text" id="email" value={data.email} onChange={(e) => setData('email', e.target.value)} />
+                                {errors.email && <div className="text-sm text-red-500">{errors.email}</div>}
+                            </div>
+                        </div>
+
+                        <div className="mt-4 grid gap-4 md:grid-cols-6">
+                            <div className="grid gap-2">
+                                <Label htmlFor="cep">CEP</Label>
+                                <Input
+                                    type="text"
+                                    id="zip_code"
+                                    value={maskCep(data.zip_code)}
+                                    onChange={(e) => setData('zip_code', e.target.value)}
+                                    onBlur={(e) => getCep(e.target.value)}
+                                    maxLength={9}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="state">UF</Label>
+                                <Input type="text" id="state" value={data.state} onChange={(e) => setData('state', e.target.value)} />
+                                {errors.state && <div>{errors.state}</div>}
+                            </div>
+
+                            <div className="grid gap-2 md:col-span-2">
+                                <Label htmlFor="city">Cidade</Label>
+                                <Input type="text" id="city" value={data.city} onChange={(e) => setData('city', e.target.value)} />
+                            </div>
+
+                            <div className="grid gap-2 md:col-span-2">
+                                <Label htmlFor="district">Bairro</Label>
+                                <Input type="text" id="district" value={data.district} onChange={(e) => setData('district', e.target.value)} />
+                            </div>
+                        </div>
+
+                        <div className="mt-4 grid gap-4 md:grid-cols-4">
+                            <div className="grid gap-2 md:col-span-2">
+                                <Label htmlFor="street">Endereço</Label>
+                                <Input type="text" id="street" value={data.street} onChange={(e) => setData('street', e.target.value)} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="complement">Complemento</Label>
+                                <Input type="text" id="complement" value={data.complement} onChange={(e) => setData('complement', e.target.value)} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="number">Número</Label>
+                                <Input type="text" id="number" value={data.number} onChange={(e) => setData('number', e.target.value)} />
+                            </div>
+                        </div>
+
+                        <div className="mt-4 grid gap-4 md:grid-cols-5">
+                            <div className="grid gap-2">
+                                <Label htmlFor="phone">Telefone</Label>
+                                <Input
+                                    type="text"
+                                    id="phone"
+                                    value={maskPhone(data.phone)}
+                                    onChange={(e) => setData('phone', e.target.value)}
+                                    maxLength={15}
+                                />
+                                {errors.phone && <div className="text-sm text-red-500">{errors.phone}</div>}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="whatsapp">Whatsapp</Label>
+                                <Input type="text" id="whatsapp" value={data.whatsapp} onChange={(e) => setData('whatsapp', e.target.value)} />
+                            </div>
+
+                            <div className="grid gap-2 md:col-span-2">
+                                <Label htmlFor="contactname">Contato</Label>
+                                <Input
+                                    type="text"
+                                    id="contactname"
+                                    value={data.contactname}
+                                    onChange={(e) => setData('contactname', e.target.value)}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="contactphone">Telefone do contato</Label>
+                                <Input
+                                    type="text"
+                                    id="contactphone"
+                                    value={maskPhone(data.contactphone)}
+                                    onChange={(e) => setData('contactphone', e.target.value)}
+                                    maxLength={15}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-4 grid gap-4 md:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor="preferred_visit_days">Dias preferenciais de visita</Label>
+                                <Input
+                                    type="text"
+                                    id="preferred_visit_days"
+                                    value={data.preferred_visit_days}
+                                    onChange={(e) => setData('preferred_visit_days', e.target.value)}
+                                    placeholder="Ex.: segunda e quinta"
+                                />
+                                {errors.preferred_visit_days && <div className="text-sm text-red-500">{errors.preferred_visit_days}</div>}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="preferred_visit_time">Horário preferencial</Label>
+                                <Input
+                                    type="text"
+                                    id="preferred_visit_time"
+                                    value={data.preferred_visit_time}
+                                    onChange={(e) => setData('preferred_visit_time', e.target.value)}
+                                    placeholder="Ex.: manhã, 9h às 11h"
+                                />
+                                {errors.preferred_visit_time && <div className="text-sm text-red-500">{errors.preferred_visit_time}</div>}
+                            </div>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="commercial_notes">Observações comerciais</Label>
+                            <Textarea
+                                id="commercial_notes"
+                                value={data.commercial_notes}
+                                onChange={(e) => setData('commercial_notes', e.target.value)}
+                                placeholder="Condição comercial, perfil de compra, marcas de interesse ou restrições."
+                            />
+                            {errors.commercial_notes && <div className="text-sm text-red-500">{errors.commercial_notes}</div>}
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="observations">Observações gerais</Label>
+                            <Textarea id="observations" value={data.observations} onChange={(e) => setData('observations', e.target.value)} />
+                        </div>
+
+                        <div className="flex justify-end">
+                            <Button type="submit" disabled={processing}>
+                                <Save />
+                                Salvar
+                            </Button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <div className="grid md:grid-cols-5 gap-4 mt-4">
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Telefone</Label>
-                <Input
-                  type="text"
-                  id="phone"
-                  value={maskPhone(data.phone)}
-                  onChange={(e) => setData('phone', e.target.value)}
-                  maxLength={15}
-                />
-                {errors.phone && <div className="text-red-500 text-sm">{errors.phone}</div>}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="whatsapp">Whatsapp</Label>
-                <Input
-                  type="text"
-                  id="whatsapp"
-                  value={data.whatsapp}
-                  onChange={(e) => setData('whatsapp', e.target.value)}
-                />
-              </div>
-
-              <div className="grid gap-2 md:col-span-2">
-                <Label htmlFor="contactname">Contato</Label>
-                <Input
-                  type="text"
-                  id="contactname"
-                  value={data.contactname}
-                  onChange={(e) => setData('contactname', e.target.value)}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="contactphone">Telefone do contato</Label>
-                <Input
-                  type="text"
-                  id="contactphone"
-                  value={maskPhone(data.contactphone)}
-                  onChange={(e) => setData('contactphone', e.target.value)}
-                  maxLength={15}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="observations">Observações</Label>
-              <Textarea
-                id="observations"
-                value={data.observations}
-                onChange={(e) => setData('observations', e.target.value)}
-              />
-            </div>
-
-            <div className="flex justify-end">
-              <Button type="submit" disabled={processing}>
-                <Save />
-                Salvar
-              </Button>
-            </div>
-          </form>
-
-        </div>
-      </div>
-    </AppLayout>
-  )
+        </AppLayout>
+    );
 }

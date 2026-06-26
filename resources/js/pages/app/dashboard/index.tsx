@@ -25,7 +25,7 @@ export default function Dashboard({ kpis_dash, salesOrders }: any) {
       <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
         <div className="flex md:flex-row flex-col gap-4">
           <div className="grid md:md:grid-cols-4 gap-4 w-full">
-            <KpiDashboard link={route('app.users.index')} title="Usuários" value={kpis_dash?.users.name} icon={<User2Icon className='h-10 w-10' />} description="Usário do sistema" />
+            <KpiDashboard link={route('app.users.index')} title="Usuários" value={kpis_dash?.users} icon={<User2Icon className='h-10 w-10' />} description="Usuários do sistema" />
             <KpiDashboard link={route('app.customers.index')} title="Clientes" value={kpis_dash?.customers} icon={<User2Icon className='h-10 w-10' />} description="Clientes cadastrados" />
             <KpiDashboard link={route('app.products.index')} title="Produtos" value={kpis_dash?.products} icon={<BoxIcon className='h-10 w-10' />} description="Produtos cadastrados" />
             <KpiDashboard link={route('app.orders.index')} title="Pedidos" value={kpis_dash?.orders} icon={<ShoppingCartIcon className='h-10 w-10' />} description="Pedidos emitidos" />
@@ -50,6 +50,7 @@ export default function Dashboard({ kpis_dash, salesOrders }: any) {
                   <div>
                     <p className="font-medium text-foreground">N°.Ped: {order.order_number}</p>
                     <p className="text-sm text-muted-foreground">{order.customer.name}</p>
+                    {order.user?.name && <p className="text-xs text-muted-foreground">Vendedor: {order.user.name}</p>}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">

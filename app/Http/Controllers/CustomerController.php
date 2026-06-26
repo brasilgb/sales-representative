@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
-use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomerRequest;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Models\Customer;
+use App\Models\Region;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Inertia\Inertia;
 
 class CustomerController extends Controller
 {
@@ -18,17 +18,34 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('q');
+        $regionId = $request->integer('region_id') ?: null;
+        $user = $request->user();
 
-        $query = Customer::orderBy('id', 'DESC');
+        $query = Customer::visibleTo()->orderBy('id', 'DESC');
 
         if ($search) {
-            $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('cpf', 'like', '%' . $search . '%');
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('cnpj', 'like', '%'.$search.'%')
+                    ->orWhere('establishment_type', 'like', '%'.$search.'%');
+            });
         }
 
-        $customers = $query->paginate(12);
-        $customerlast = Customer::orderBy('id', 'DESC')->first();
-        return Inertia::render('app/customers/index', ["customers" => $customers, "customerlast" => $customerlast]);
+        if ($regionId) {
+            $query->where('region_id', $regionId);
+        }
+
+        $customers = $query->with('region')->paginate(12);
+        $customerlast = Customer::visibleTo()->orderBy('id', 'DESC')->first();
+
+        return Inertia::render('app/customers/index', [
+            'customers' => $customers,
+            'customerlast' => $customerlast,
+            'regions' => $this->availableRegions(),
+            'filters' => [
+                'region_id' => $regionId,
+            ],
+        ]);
     }
 
     /**
@@ -36,17 +53,20 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        return Inertia::render('app/customers/create-customer');
+        return Inertia::render('app/customers/create-customer', [
+            'regions' => $this->availableRegions(),
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-        public function store(CustomerRequest $request): RedirectResponse
-    { 
+    public function store(CustomerRequest $request): RedirectResponse
+    {
         $data = $request->all();
         $request->validated();
         Customer::create($data);
+
         return redirect()->route('app.customers.index')->with('success', 'Cliente cadastrado com sucesso!');
     }
 
@@ -55,7 +75,12 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        return Inertia::render('app/customers/edit-customer', ['customer' => $customer]);
+        $this->authorizeVisibleCustomer($customer);
+
+        return Inertia::render('app/customers/edit-customer', [
+            'customer' => $customer,
+            'regions' => $this->availableRegions(),
+        ]);
     }
 
     /**
@@ -71,9 +96,12 @@ class CustomerController extends Controller
      */
     public function update(CustomerRequest $request, Customer $customer): RedirectResponse
     {
+        $this->authorizeVisibleCustomer($customer);
+
         $data = $request->all();
         $request->validated();
         $customer->update($data);
+
         return redirect()->route('app.customers.show', ['customer' => $customer->id])->with('success', 'Cliente alterado com sucesso!');
     }
 
@@ -82,7 +110,24 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
+        $this->authorizeVisibleCustomer($customer);
+
         $customer->delete();
+
         return redirect()->route('app.customers.index')->with('success', 'Cliente excluido com sucesso!');
+    }
+
+    private function authorizeVisibleCustomer(Customer $customer): void
+    {
+        abort_unless(Customer::visibleTo()->whereKey($customer->id)->exists(), 404);
+    }
+
+    private function availableRegions()
+    {
+        $user = auth()->user();
+
+        return $user->canManageTeam()
+            ? Region::where('status', true)->orderBy('name')->get()
+            : $user->regions()->where('status', true)->orderBy('name')->get();
     }
 }

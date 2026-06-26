@@ -17,7 +17,10 @@ export default function VerifyEmail({ status }: { status?: string }) {
     };
 
     return (
-        <AuthLayout title="Verificar e-mail" description="Por favor, verifique seu endereço de e-mail clicando no link que acabamos de enviar para você.">
+        <AuthLayout
+            title="Verificar e-mail"
+            description="Por favor, verifique seu endereço de e-mail clicando no link que acabamos de enviar para você."
+        >
             <Head title="Verificar e-mail" />
 
             {status === 'verification-link-sent' && (
@@ -27,7 +30,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
             )}
 
             <form onSubmit={submit} className="space-y-6 text-center">
-                <Button disabled={processing} variant="secondary">
+                <Button disabled={processing} variant="secondary" className="h-auto min-h-10 px-4 py-2 text-center leading-snug whitespace-normal">
                     {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                     Reenviar e-mail de verificação
                 </Button>

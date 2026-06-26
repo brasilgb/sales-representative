@@ -9,9 +9,6 @@ import { CTASection } from '../components/cta-section';
 import { Footer } from '../components/footer';
 
 export default function Home() {
-  const { auth } = usePage().props as any;
-  console.log(auth);
-
   return (
     <div className="min-h-screen">
       <Header />

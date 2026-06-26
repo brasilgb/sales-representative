@@ -2,25 +2,26 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\User;
-use App\Models\Tenant;
 use App\Http\Controllers\Api\ApiBaseController as BaseController;
+use App\Models\Admin\Plan;
+use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-class ApiAuthController extends ApiBaseController
+class ApiAuthController extends BaseController
 {
     /**
      * Register api
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
-
     public function register(Request $request): JsonResponse
     {
         $validator = Validator::make(
@@ -33,10 +34,12 @@ class ApiAuthController extends ApiBaseController
                 'password' => 'required',
                 'password_confirmation' => 'required|same:password',
                 'device_name' => 'required',
+                'plan_type' => 'required|in:individual,team',
             ],
             [],
             [
-                'company' => 'Razão social'
+                'company' => 'Razão social',
+                'plan_type' => 'Tipo de conta',
             ]
         );
 
@@ -44,30 +47,38 @@ class ApiAuthController extends ApiBaseController
             return $this->sendError('Validation Error.', $validator->errors());
         }
 
-        $input = $request->all();
+        [$tenant, $user] = DB::transaction(function () use ($request) {
+            $tenant = Tenant::create([
+                'company' => $request->company,
+                'cnpj' => $request->cnpj,
+                'email' => $request->email,
+                'status' => 1,
+                'plan' => Plan::query()->value('id'),
+                'plan_type' => $request->plan_type,
+            ]);
 
-        $tdata['company'] = $input['company'];
-        $tdata['cnpj'] = $input['cnpj'];
-        $tdata['email'] = $input['email'];
-        $tdata['status'] = 1;
-        $tdata['plan'] = 1;
-        $tenant = Tenant::create($tdata);
+            $user = User::create([
+                'tenant_id' => $tenant->id,
+                'name' => $request->name,
+                'email' => $request->email,
+                'status' => 1,
+                'roles' => User::ROLE_OWNER,
+                'password' => bcrypt($request->password),
+            ]);
 
-        $udata['tenant_id'] = $tenant->id;
-        $udata['name'] = $input['name'];
-        $udata['email'] = $input['email'];
-        $udata['status'] = 1;
-        $udata['password'] = bcrypt($input['password']);
-        $user = User::create($udata);
+            $tenant->update(['owner_user_id' => $user->id]);
 
-        $success['token'] =  $user->createToken($request->device_name)->plainTextToken;
-        $success['name'] =  $user->name;
-        $success['cnpj'] =  $tenant->cnpj;
-        $success['company'] =  $tenant->company;
+            return [$tenant, $user];
+        });
+
+        $success['token'] = $user->createToken($request->device_name)->plainTextToken;
+        $success['name'] = $user->name;
+        $success['cnpj'] = $tenant->cnpj;
+        $success['company'] = $tenant->company;
 
         // return $this->sendResponse($success, 'Usuário registrado com sucesso.');
         return response()->json([
-            'token' => $user->createToken($request->device_name)->plainTextToken
+            'token' => $user->createToken($request->device_name)->plainTextToken,
         ]);
     }
 
@@ -83,10 +94,10 @@ class ApiAuthController extends ApiBaseController
 
         if ($status != Password::RESET_LINK_SENT) {
             throw ValidationException::withMessages([
-                'email' => [__($status)]
+                'email' => [__($status)],
             ]);
         }
- 
+
         return response()->json(['status' => __($status)]);
     }
 
@@ -103,8 +114,9 @@ class ApiAuthController extends ApiBaseController
                 'email' => ['As credenciais fornecidas estão incorretas.'],
             ]);
         }
+
         return response()->json([
-            'token' => $user->createToken($request->device_name)->plainTextToken
+            'token' => $user->createToken($request->device_name)->plainTextToken,
         ]);
     }
 
@@ -116,6 +128,7 @@ class ApiAuthController extends ApiBaseController
     public function logOut(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
+
         return response()->noContent();
     }
 }

@@ -4,12 +4,14 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\RegionController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::resource('/customers', CustomerController::class);
+Route::resource('/regions', RegionController::class);
 Route::resource('/orders', OrderController::class);
 Route::get('/report', [OrderController::class, 'orderReport'])->name('orders.report');
 Route::resource('/products', ProductController::class);

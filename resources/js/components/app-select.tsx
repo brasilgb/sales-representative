@@ -40,8 +40,8 @@ export function AppSelect({ orderid, defaultValue, title, data, setMessageStatus
                     setMessageStatus(message);
                 }
             })
-            .catch((err) => {
-                console.log(err);
+            .catch(() => {
+                setMessageStatus('Não foi possível atualizar o status.');
             })
     }
 
