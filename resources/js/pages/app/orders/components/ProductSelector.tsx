@@ -10,6 +10,7 @@ interface Product {
     id: number;
     name: string;
     price: number;
+    base_price?: number;
 }
 
 interface Props {
@@ -18,11 +19,6 @@ interface Props {
 }
 
 export function ProductSelector({ products, onAddProduct }: Props) {
-    const optionsProduct = products.map((customer: any) => ({
-        value: customer.id,
-        label: customer.name,
-    }));
-
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
 
@@ -46,7 +42,7 @@ export function ProductSelector({ products, onAddProduct }: Props) {
                     <div className="md:w-1/2">
                         <Select
                             options={products}
-                            getOptionLabel={(option) => option.name}
+                            getOptionLabel={(option) => `${option.name} - R$ ${Number(option.price).toFixed(2).replace('.', ',')}`}
                             getOptionValue={(option) => option.id.toString()}
                             onChange={(product) => setSelectedProduct(product)}
                             value={selectedProduct}
@@ -91,6 +87,12 @@ export function ProductSelector({ products, onAddProduct }: Props) {
                     Adicionar
                 </Button>
             </div>
+            {selectedProduct && Number(selectedProduct.base_price ?? selectedProduct.price) !== Number(selectedProduct.price) && (
+                <div className="mt-3 text-sm text-muted-foreground">
+                    Preço base R$ {Number(selectedProduct.base_price).toFixed(2).replace('.', ',')} ajustado para R${' '}
+                    {Number(selectedProduct.price).toFixed(2).replace('.', ',')}.
+                </div>
+            )}
         </Card>
     );
 }

@@ -3,7 +3,7 @@ import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, BoxIcon, CogIcon, Folder, LayoutGrid, MapPinned, ShoppingCartIcon, User2Icon, UserIcon, UsersIcon } from 'lucide-react';
+import { BookOpen, BoxIcon, BrainCircuit, CalendarDays, CogIcon, CreditCard, Folder, HandCoins, LayoutGrid, MapPinned, ShoppingCartIcon, User2Icon, UserIcon, UsersIcon } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const appNavItems: NavItem[] = [
@@ -20,6 +20,12 @@ const appNavItems: NavItem[] = [
         active: 'app.orders.*',
     },
     {
+        title: 'Agenda',
+        href: route('app.visits.index'),
+        icon: CalendarDays,
+        active: 'app.visits.*',
+    },
+    {
         title: 'Produtos',
         href: route('app.products.index'),
         icon: BoxIcon,
@@ -32,16 +38,34 @@ const appNavItems: NavItem[] = [
         active: 'app.customers.*',
     },
     {
+        title: 'Inteligência',
+        href: route('app.intelligence.index'),
+        icon: BrainCircuit,
+        active: 'app.intelligence.*|app.campaigns.*',
+    },
+    {
         title: 'Regiões',
         href: route('app.regions.index'),
         icon: MapPinned,
         active: 'app.regions.*',
     },
     {
+        title: 'Condições',
+        href: route('app.commercial-conditions.index'),
+        icon: HandCoins,
+        active: 'app.commercial-conditions.*|app.commissions.*',
+    },
+    {
         title: 'Configurações',
         href: route('app.settings.index'),
         icon: CogIcon,
         active: 'admin.settings.*',
+    },
+    {
+        title: 'Assinatura',
+        href: route('app.subscription.index'),
+        icon: CreditCard,
+        active: 'app.subscription.*',
     },
     {
         title: 'Usuário',
@@ -66,7 +90,19 @@ const footerNavItems: NavItem[] = [
 
 export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
-    const visibleNavItems = appNavItems.filter((item) => item.title !== 'Regiões' || auth.canManageTeam);
+    const featureByTitle: Record<string, string> = {
+        Condições: 'commercial_conditions',
+        Inteligência: 'intelligence',
+    };
+    const visibleNavItems = appNavItems.filter((item) => {
+        if (['Regiões', 'Condições'].includes(item.title) && !auth.canManageTeam) {
+            return false;
+        }
+
+        const requiredFeature = featureByTitle[item.title];
+
+        return !requiredFeature || auth.planFeatures?.includes(requiredFeature);
+    });
 
     return (
         <Sidebar collapsible="icon" variant="inset">

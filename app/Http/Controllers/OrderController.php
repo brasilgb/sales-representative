@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\CommercialCondition;
 use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
+use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +49,10 @@ class OrderController extends Controller
         $customers = Customer::visibleTo()
             ->with(['region', 'latestOrder.orderItems.product'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->each(function (Customer $customer) {
+                $customer->setAttribute('commercial_condition', CommercialCondition::resolveForCustomer($customer));
+            });
         $flex = Flex::first();
         $selectedCustomerId = request()->integer('customer_id') ?: null;
 
@@ -64,6 +69,8 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
+        PlanLimits::forTenant()->ensureCanCreate('orders_month');
+
         $otherData = $request->all();
         $validatedData = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
@@ -73,21 +80,58 @@ class OrderController extends Controller
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.name' => ['required', 'string'], // min:0 não é necessário aqui
             'items.*.total' => ['required', 'numeric', 'min:0'],
+            'payment_condition' => ['nullable', 'string', 'max:120'],
         ]);
 
         try {
-            abort_unless(Customer::visibleTo()->whereKey($validatedData['customer_id'])->exists(), 404);
+            $customer = Customer::visibleTo()->findOrFail($validatedData['customer_id']);
+            $commercialCondition = CommercialCondition::resolveForCustomer($customer);
 
             DB::beginTransaction();
+
+            $subtotal = 0;
+            foreach ($validatedData['items'] as $item) {
+                $product = Product::findOrFail($item['product_id']);
+                $expectedPrice = $commercialCondition ? $commercialCondition->adjustedPrice((float) $product->price) : (float) $product->price;
+
+                if (abs((float) $item['price'] - $expectedPrice) > 0.01) {
+                    throw new \Exception('Preço divergente da condição comercial para o produto: '.$product->name);
+                }
+
+                $subtotal += $expectedPrice * (int) $item['quantity'];
+            }
+
+            $flexAmount = (float) ($otherData['flex'] ?? 0);
+            $discountAmount = (float) ($otherData['discount'] ?? 0);
+            $total = max($subtotal + $flexAmount - $discountAmount, 0);
+
+            if ($commercialCondition) {
+                $discountPercentage = $subtotal > 0 ? ($discountAmount / $subtotal) * 100 : 0;
+
+                if ($discountPercentage > (float) $commercialCondition->max_discount_percentage) {
+                    throw new \Exception('Desconto acima do limite permitido para este cliente.');
+                }
+
+                if ($total < (float) $commercialCondition->minimum_order_amount) {
+                    throw new \Exception('Pedido abaixo do valor mínimo da condição comercial.');
+                }
+            }
+
+            $commissionPercentage = (float) ($commercialCondition?->commission_percentage ?? 0);
+            $commissionAmount = round($total * ($commissionPercentage / 100), 2);
 
             // 1. Criação do Pedido principal
             $order = Order::create([
                 'customer_id' => $validatedData['customer_id'],
+                'commercial_condition_id' => $commercialCondition?->id,
                 'order_number' => Order::exists() ? Order::latest()->first()->order_number + 1 : 1,
-                'flex' => $otherData['flex'] ?? '0',
-                'discount' => $otherData['discount'] ?? '0',
-                'total' => $otherData['total'],
+                'flex' => $flexAmount,
+                'discount' => $discountAmount,
+                'total' => $total,
                 'status' => 1,
+                'payment_condition' => $validatedData['payment_condition'] ?? $commercialCondition?->payment_terms,
+                'commission_percentage' => $commissionPercentage,
+                'commission_amount' => $commissionAmount,
             ]);
 
             // 2. Preparar e criar os itens do pedido
@@ -125,9 +169,6 @@ class OrderController extends Controller
 
             // 4. Lógica para o Flex (mantida como estava)
             $flexBalance = Flex::firstOrCreate(['value' => 0]);
-            $flexAmount = (float) ($otherData['flex'] ?? 0);
-            $discountAmount = (float) ($otherData['discount'] ?? 0);
-
             if ($flexAmount > 0) {
                 $flexBalance->increment('value', $flexAmount);
             }

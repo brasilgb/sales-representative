@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney, maskMoneyDot } from '@/Utils/mask';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft, ClipboardList, RotateCcw, ShoppingCartIcon, UserIcon } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ClipboardList, RotateCcw, ShoppingCartIcon, UserIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import Select from 'react-select';
 import { OrderSummary } from './components/OrderSummary';
@@ -72,14 +72,34 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
         flex: '',
         discount: '',
         total: '',
+        payment_condition: initialCustomer?.commercial_condition?.payment_terms ?? '',
         items: [] as OrderItem[],
     });
 
+    const selectedCondition = selectedCustomer?.commercial_condition ?? null;
     const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.quantity * Number(item.price), 0), [items]);
     const flexAmount = Number(data.flex || 0);
     const discountAmount = Number(data.discount || 0);
     const commercialTotal = Math.max(subtotal + flexAmount - discountAmount, 0);
+    const discountPercentage = subtotal > 0 ? (discountAmount / subtotal) * 100 : 0;
+    const maxDiscountPercentage = Number(selectedCondition?.max_discount_percentage ?? 0);
+    const minimumOrderAmount = Number(selectedCondition?.minimum_order_amount ?? 0);
+    const commissionAmount = commercialTotal * (Number(selectedCondition?.commission_percentage ?? 0) / 100);
     const latestOrder = selectedCustomer?.latest_order;
+    const pricedProducts = useMemo(
+        () =>
+            products.map((product: any) => {
+                const adjustment = Number(selectedCondition?.price_adjustment_percentage ?? 0);
+                const price = Number(product.price) * (1 + adjustment / 100);
+
+                return {
+                    ...product,
+                    price: Number(price.toFixed(2)),
+                    base_price: product.price,
+                };
+            }),
+        [products, selectedCondition],
+    );
 
     useEffect(() => {
         setData((currentData: any) => ({
@@ -137,6 +157,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
             customer_id: customer?.id ?? '',
             items: [],
             total: '',
+            payment_condition: customer?.commercial_condition?.payment_terms ?? '',
         }));
     };
 
@@ -146,7 +167,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
         setItems(
             lastItems
                 .map((item: any) => {
-                    const product = item.product ?? products.find((currentProduct: any) => currentProduct.id === item.product_id);
+                    const product = pricedProducts.find((currentProduct: any) => currentProduct.id === item.product_id) ?? item.product;
 
                     if (!product) {
                         return null;
@@ -259,7 +280,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                         </CardContent>
                     </Card>
 
-                    <ProductSelector products={products} onAddProduct={handleProductAdd} />
+                    <ProductSelector products={pricedProducts} onAddProduct={handleProductAdd} />
                     <OrderSummary items={items} onRemoveItem={handleProductRemove} />
 
                     <Card>
@@ -270,7 +291,46 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid gap-4 md:grid-cols-5">
+                            {selectedCondition && (
+                                <div className="mb-4 grid gap-3 rounded-md border p-3 text-sm md:grid-cols-5">
+                                    <div>
+                                        <div className="text-muted-foreground">Condição</div>
+                                        <div className="font-medium">{selectedCondition.name}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Desconto máximo</div>
+                                        <div className="font-medium">{Number(selectedCondition.max_discount_percentage).toFixed(2)}%</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Pedido mínimo</div>
+                                        <div className="font-medium">R$ {maskMoney(selectedCondition.minimum_order_amount)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Prazo</div>
+                                        <div className="font-medium">{selectedCondition.payment_terms || 'Não definido'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Comissão prevista</div>
+                                        <div className="font-medium">R$ {maskMoney(commissionAmount.toFixed(2))}</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {(discountPercentage > maxDiscountPercentage || commercialTotal < minimumOrderAmount) && selectedCondition && (
+                                <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+                                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                                    <div>
+                                        {discountPercentage > maxDiscountPercentage && (
+                                            <div>Desconto atual de {discountPercentage.toFixed(2)}% acima do limite permitido.</div>
+                                        )}
+                                        {commercialTotal < minimumOrderAmount && (
+                                            <div>Total comercial abaixo do pedido mínimo desta condição.</div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid gap-4 md:grid-cols-6">
                                 <div className="flex flex-col justify-center gap-1">
                                     <Label>Flex disponível</Label>
                                     <Badge variant="default" className="w-fit text-base">
@@ -293,6 +353,16 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                                         id="discount"
                                         value={maskMoney(data.discount)}
                                         onChange={(e) => setData('discount', maskMoneyDot(e.target.value) ?? '')}
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="payment_condition">Pagamento</Label>
+                                    <Input
+                                        type="text"
+                                        id="payment_condition"
+                                        value={data.payment_condition}
+                                        onChange={(e) => setData('payment_condition', e.target.value)}
+                                        placeholder="Ex.: 28/35 dias"
                                     />
                                 </div>
                                 <div className="flex flex-col justify-center gap-1">

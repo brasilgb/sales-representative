@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductRequest;
 use App\Models\Product;
+use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -50,6 +51,11 @@ class ProductController extends Controller
     {
         $data = $request->all();
         $request->validated();
+        $productExists = Product::where('reference', $data['reference'])->exists();
+
+        if (! $productExists) {
+            PlanLimits::forTenant()->ensureCanCreate('products');
+        }
 
         // $product = Product::updateOrCreate(
         //     [

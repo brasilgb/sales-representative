@@ -66,6 +66,11 @@ class User extends Authenticatable
         return $this->hasMany(Customer::class);
     }
 
+    public function visits(): HasMany
+    {
+        return $this->hasMany(Visit::class);
+    }
+
     public function regions(): BelongsToMany
     {
         return $this->belongsToMany(Region::class)->withTimestamps();

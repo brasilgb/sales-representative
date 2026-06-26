@@ -5,6 +5,7 @@ import { Link, usePage } from '@inertiajs/react';
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const { othersetting } = usePage().props as any;
     const disableParts = !othersetting?.enableparts ? 'parts' : '';
+    const isActive = (active?: string) => active?.split('|').some((pattern) => route().current(pattern)) ?? false;
     
     return (
             <SidebarMenu>
@@ -13,7 +14,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                     (
                         <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton  
-                            asChild isActive={route().current(item.active ?? '')}
+                            asChild isActive={isActive(item.active)}
                             tooltip={{ children: item.title }}
                         >
                             <Link href={item.href} prefetch>

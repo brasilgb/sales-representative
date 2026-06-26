@@ -11,10 +11,19 @@ import { useState } from "react";
 export default function CreatePlan() {
   const [open, setOpen] = useState(false)
 
-  const { data, setData, post, progress, processing, reset, errors } = useForm({
+  const { data, setData, post, transform, progress, processing, reset, errors } = useForm({
     name: '',
     slug: '',
-    description: ''
+    description: '',
+    price: '0',
+    trial_days: '14',
+    max_users: '',
+    max_customers: '',
+    max_products: '',
+    max_orders_per_month: '',
+    max_visits_per_month: '',
+    features_text: '',
+    is_public: true,
   });
 
   const handleSlug = (slug: any) => {
@@ -25,6 +34,10 @@ export default function CreatePlan() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    transform((data: any) => ({
+      ...data,
+      features: data.features_text.split(',').map((feature: string) => feature.trim()).filter(Boolean),
+    }));
     post(route('admin.plans.store'), {
       onSuccess: () => {
         reset()
@@ -76,6 +89,36 @@ export default function CreatePlan() {
               onChange={(e) => setData('description', e.target.value)}
             />
             {errors.description && <div className="text-red-500 text-sm">{errors.description}</div>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-2">
+              <Label htmlFor="price">Preço</Label>
+              <Input id="price" type="number" step="0.01" value={data.price} onChange={(e) => setData('price', e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="trial_days">Trial</Label>
+              <Input id="trial_days" type="number" value={data.trial_days} onChange={(e) => setData('trial_days', e.target.value)} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {['max_users', 'max_customers', 'max_products', 'max_orders_per_month', 'max_visits_per_month'].map((field) => (
+              <div key={field} className="grid gap-2">
+                <Label htmlFor={field}>{field.replaceAll('_', ' ')}</Label>
+                <Input id={field} type="number" value={(data as any)[field]} onChange={(e) => setData(field as any, e.target.value)} placeholder="Ilimitado" />
+              </div>
+            ))}
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="features_text">Recursos</Label>
+            <Input
+              id="features_text"
+              value={data.features_text}
+              onChange={(e) => setData('features_text', e.target.value)}
+              placeholder="agenda,team,commercial_conditions"
+            />
           </div>
 
           <DialogFooter className="gap-2">

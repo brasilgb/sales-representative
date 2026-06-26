@@ -25,6 +25,16 @@ class PlanRequest extends FormRequest
             'name' => 'required',
             'slug' => 'required',
             'description' => 'required',
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'trial_days' => ['nullable', 'integer', 'min:0'],
+            'max_users' => ['nullable', 'integer', 'min:1'],
+            'max_customers' => ['nullable', 'integer', 'min:1'],
+            'max_products' => ['nullable', 'integer', 'min:1'],
+            'max_orders_per_month' => ['nullable', 'integer', 'min:1'],
+            'max_visits_per_month' => ['nullable', 'integer', 'min:1'],
+            'features' => ['nullable', 'array'],
+            'features.*' => ['string', 'max:80'],
+            'is_public' => ['nullable', 'boolean'],
         ];
     }
 

@@ -4,6 +4,8 @@ import type { Config } from 'ziggy-js';
 export interface Auth {
     user: User;
     canManageTeam: boolean;
+    planFeatures: string[];
+    subscriptionBlockedReason?: string | null;
 }
 
 export interface BreadcrumbItem {

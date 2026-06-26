@@ -33,4 +33,14 @@ class Region extends Model
     {
         return $this->hasMany(Customer::class);
     }
+
+    public function commercialConditions(): HasMany
+    {
+        return $this->hasMany(CommercialCondition::class);
+    }
+
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class);
+    }
 }

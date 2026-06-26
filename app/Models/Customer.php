@@ -61,6 +61,21 @@ class Customer extends Model
         return $this->hasOne(Order::class)->latestOfMany();
     }
 
+    public function visits(): HasMany
+    {
+        return $this->hasMany(Visit::class);
+    }
+
+    public function latestVisit(): HasOne
+    {
+        return $this->hasOne(Visit::class)->latestOfMany();
+    }
+
+    public function commercialConditions(): HasMany
+    {
+        return $this->hasMany(CommercialCondition::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

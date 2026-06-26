@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 use App\Models\Admin\Setting;
+use App\Support\PlanLimits;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,6 +40,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        $planLimits = $request->user()?->tenant_id ? PlanLimits::forTenant($request->user()->tenant) : null;
 
         return [
             ...parent::share($request),
@@ -52,6 +54,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'canManageTeam' => $request->user()?->canManageTeam() ?? false,
+                'planFeatures' => $planLimits?->plan()?->features ?? [],
+                'subscriptionBlockedReason' => $planLimits?->subscriptionBlockedReason(),
             ],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),

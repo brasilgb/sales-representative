@@ -6,31 +6,43 @@ use App\Traits\Tenantable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Order extends Model
+class Visit extends Model
 {
     use Tenantable;
 
     protected $fillable = [
-        'user_id',
         'customer_id',
-        'commercial_condition_id',
-        'order_number',
-        'flex',
-        'discount',
-        'total',
+        'user_id',
+        'scheduled_at',
+        'check_in_at',
+        'check_in_latitude',
+        'check_in_longitude',
+        'check_out_at',
+        'check_out_latitude',
+        'check_out_longitude',
         'status',
-        'payment_condition',
-        'commission_percentage',
-        'commission_amount',
+        'result',
+        'no_sale_reason',
+        'next_visit_at',
+        'notes',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'scheduled_at' => 'datetime',
+            'check_in_at' => 'datetime',
+            'check_out_at' => 'datetime',
+            'next_visit_at' => 'datetime',
+        ];
+    }
 
     protected static function booted(): void
     {
-        static::creating(function (Order $order) {
-            if (auth()->hasUser() && $order->user_id === null) {
-                $order->user_id = auth()->id();
+        static::creating(function (Visit $visit) {
+            if (auth()->hasUser() && $visit->user_id === null) {
+                $visit->user_id = auth()->id();
             }
         });
     }
@@ -40,19 +52,9 @@ class Order extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function orderItems(): HasMany
-    {
-        return $this->hasMany(OrderItem::class);
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function commercialCondition(): BelongsTo
-    {
-        return $this->belongsTo(CommercialCondition::class);
     }
 
     public function scopeVisibleTo(Builder $query, ?User $user = null): Builder

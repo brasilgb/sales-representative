@@ -104,6 +104,14 @@ Criterios de aceite:
 
 Objetivo: registrar o trabalho de campo e melhorar cobertura da carteira.
 
+Status atual:
+- Agenda de visitas criada com listagem por dia.
+- Visitas podem ser agendadas para cliente e vendedor.
+- Check-in e check-out registram data, hora e geolocalizacao quando o navegador permitir.
+- Visita registra resultado, motivo sem venda, proxima visita e observacoes.
+- Agenda lista clientes sem visita recente por janela configuravel.
+- Perfil do cliente mostra historico de visitas e ultimos pedidos.
+
 Escopo:
 - Criar agenda de visitas.
 - Registrar check-in/check-out.
@@ -125,6 +133,14 @@ Criterios de aceite:
 ## Etapa 5 - Condicoes Comerciais, Descontos E Comissoes
 
 Objetivo: controlar regras comerciais comuns em vendas B2B.
+
+Status atual:
+- Condicoes comerciais podem ser configuradas por regra global, cliente, regiao ou tipo de estabelecimento.
+- A regra define ajuste de preco, desconto maximo, pedido minimo, prazo de pagamento e percentual de comissao.
+- Pedido rapido exibe a condicao aplicada, ajusta preco dos produtos e alerta restricoes antes da finalizacao.
+- Backend bloqueia desconto acima do permitido, pedido abaixo do minimo e preco divergente da condicao aplicada.
+- Pedido salva condicao comercial, prazo de pagamento, percentual e valor de comissao prevista.
+- Relatorio de comissoes mostra valores previstos, realizados e cancelados por periodo.
 
 Escopo:
 - Tabela de preco por cliente, regiao ou tipo de cliente.
@@ -148,6 +164,13 @@ Criterios de aceite:
 
 Objetivo: aumentar recorrencia e reduzir clientes esquecidos.
 
+Status atual:
+- Painel de inteligencia lista clientes sem compra ha 30, 45 e 60 dias.
+- Sugestoes de recompra usam o ultimo pedido do cliente como base objetiva.
+- Relatorio de mix por cliente mostra produtos comprados e oportunidades do catalogo ainda nao compradas.
+- Campanhas comerciais podem ser criadas por produto, marca, categoria ou regiao.
+- Painel acompanha aderencia de campanhas por pedidos, clientes impactados e faturamento no periodo.
+
 Escopo:
 - Identificar clientes inativos.
 - Sugerir recompra baseada no historico.
@@ -168,6 +191,14 @@ Criterios de aceite:
 ## Etapa 7 - Dashboards E Relatorios
 
 Objetivo: dar visibilidade gerencial para vendedor solo e equipes.
+
+Status atual:
+- Dashboard principal passou a aceitar filtros por periodo, vendedor, regiao e categoria.
+- KPIs exibem vendas, ticket medio, pedidos, clientes ativos, clientes inativos e flex.
+- Gestor visualiza ranking de vendedores por vendas, pedidos e ticket medio.
+- Dashboard mostra produtos mais vendidos e quebras por status, regiao, marca e categoria.
+- Pedidos recentes respeitam os filtros aplicados.
+- Relatorio CSV exporta os pedidos filtrados do dashboard.
 
 Escopo:
 - Vendas por periodo.
@@ -192,6 +223,16 @@ Criterios de aceite:
 ## Etapa 8 - Planos SaaS, Billing E Onboarding
 
 Objetivo: preparar comercializacao como SaaS.
+
+Status atual:
+- Planos SaaS ganharam preco, trial, limites de usuarios, clientes, produtos, pedidos mensais, visitas mensais e recursos habilitados.
+- Migration cria os planos Solo, Equipe, Pro e Enterprise com limites iniciais.
+- Tela de assinatura no app mostra plano atual, vencimento, uso dos limites e troca de plano para o dono da conta.
+- Onboarding inicial coleta dados essenciais da empresa e bloqueia o app enquanto estiver pendente.
+- Middleware bloqueia acesso operacional quando assinatura esta vencida, inativa ou inadimplente.
+- Criacao de vendedores, clientes, produtos, pedidos e visitas respeita limites do plano.
+- Recursos Pro como condicoes comerciais, comissoes, inteligencia e campanhas respeitam habilitacao do plano.
+- Admin SaaS pode configurar limites e recursos nos planos.
 
 Escopo:
 - Planos por limite de usuarios e recursos.

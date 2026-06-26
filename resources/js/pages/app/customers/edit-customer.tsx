@@ -1,5 +1,6 @@
 import AlertSuccess from '@/components/app-alert-success';
 import { Icon } from '@/components/icon';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +9,8 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskCep, maskCpfCnpj, maskPhone, unMask } from '@/Utils/mask';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft, Save, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Plus, Save, ShoppingCart, Users } from 'lucide-react';
+import moment from 'moment';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -33,6 +35,19 @@ const establishmentTypes = [
     { value: 'distribuidor', label: 'Distribuidor' },
     { value: 'outro', label: 'Outro' },
 ];
+
+const visitStatusLabels: Record<string, string> = {
+    scheduled: 'Agendada',
+    checked_in: 'Em visita',
+    completed: 'Concluída',
+    canceled: 'Cancelada',
+};
+
+const visitResultLabels: Record<string, string> = {
+    sold: 'Com venda',
+    no_sale: 'Sem venda',
+    follow_up: 'Retorno futuro',
+};
 
 export default function EditCustomer({ customer, regions }: any) {
     const { flash } = usePage().props as any;
@@ -99,7 +114,20 @@ export default function EditCustomer({ customer, regions }: any) {
                         </Link>
                     </Button>
                 </div>
-                <div></div>
+                <div className="flex gap-2">
+                    <Button variant="secondary" asChild>
+                        <Link href={route('app.visits.create', { customer_id: customer.id })}>
+                            <CalendarDays className="h-4 w-4" />
+                            <span>Agendar visita</span>
+                        </Link>
+                    </Button>
+                    <Button asChild>
+                        <Link href={route('app.orders.create', { customer_id: customer.id })}>
+                            <ShoppingCart className="h-4 w-4" />
+                            <span>Novo pedido</span>
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
             <div className="p-4">
@@ -303,6 +331,82 @@ export default function EditCustomer({ customer, regions }: any) {
                             </Button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <div className="grid gap-4 p-4 pt-0 lg:grid-cols-2">
+                <div className="rounded-lg border">
+                    <div className="flex items-center justify-between border-b p-4">
+                        <div className="flex items-center gap-2">
+                            <CalendarDays className="h-5 w-5" />
+                            <h3 className="font-semibold">Histórico de visitas</h3>
+                        </div>
+                        <Button asChild size="sm" variant="secondary">
+                            <Link href={route('app.visits.create', { customer_id: customer.id })}>
+                                <Plus className="h-4 w-4" />
+                                <span>Agendar</span>
+                            </Link>
+                        </Button>
+                    </div>
+                    <div className="divide-y">
+                        {customer.visits?.length > 0 ? (
+                            customer.visits.map((visit: any) => (
+                                <div key={visit.id} className="p-4">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <div className="font-medium">{moment(visit.scheduled_at).format('DD/MM/YYYY HH:mm')}</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <Badge variant={visit.status === 'canceled' ? 'destructive' : 'secondary'}>
+                                                {visitStatusLabels[visit.status] ?? visit.status}
+                                            </Badge>
+                                            {visit.result && <Badge variant="outline">{visitResultLabels[visit.result] ?? visit.result}</Badge>}
+                                        </div>
+                                    </div>
+                                    <div className="mt-1 text-sm text-muted-foreground">
+                                        {visit.user?.name ?? 'Vendedor não informado'}
+                                        {visit.check_in_at ? ` | Check-in ${moment(visit.check_in_at).format('DD/MM/YYYY HH:mm')}` : ''}
+                                    </div>
+                                    {visit.notes && <div className="mt-2 text-sm">{visit.notes}</div>}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-4 text-sm text-muted-foreground">Nenhuma visita registrada para este cliente.</div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="rounded-lg border">
+                    <div className="flex items-center justify-between border-b p-4">
+                        <div className="flex items-center gap-2">
+                            <ShoppingCart className="h-5 w-5" />
+                            <h3 className="font-semibold">Últimos pedidos</h3>
+                        </div>
+                        <Button asChild size="sm" variant="secondary">
+                            <Link href={route('app.orders.create', { customer_id: customer.id })}>
+                                <Plus className="h-4 w-4" />
+                                <span>Novo</span>
+                            </Link>
+                        </Button>
+                    </div>
+                    <div className="divide-y">
+                        {customer.orders?.length > 0 ? (
+                            customer.orders.map((order: any) => (
+                                <div key={order.id} className="flex items-center justify-between gap-3 p-4">
+                                    <div>
+                                        <div className="font-medium">Pedido #{order.order_number}</div>
+                                        <div className="text-sm text-muted-foreground">{moment(order.created_at).format('DD/MM/YYYY')}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="font-medium">R$ {Number(order.total ?? 0).toFixed(2).replace('.', ',')}</div>
+                                        <Button asChild size="sm" variant="link" className="px-0">
+                                            <Link href={route('app.orders.edit', order.id)}>Ver pedido</Link>
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-4 text-sm text-muted-foreground">Nenhum pedido registrado para este cliente.</div>
+                        )}
+                    </div>
                 </div>
             </div>
         </AppLayout>

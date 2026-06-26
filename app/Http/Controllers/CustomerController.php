@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CustomerRequest;
 use App\Models\Customer;
 use App\Models\Region;
+use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -63,6 +64,8 @@ class CustomerController extends Controller
      */
     public function store(CustomerRequest $request): RedirectResponse
     {
+        PlanLimits::forTenant()->ensureCanCreate('customers');
+
         $data = $request->all();
         $request->validated();
         Customer::create($data);
@@ -76,6 +79,11 @@ class CustomerController extends Controller
     public function show(Customer $customer)
     {
         $this->authorizeVisibleCustomer($customer);
+        $customer->load([
+            'region',
+            'visits' => fn ($query) => $query->with('user')->latest('scheduled_at')->limit(10),
+            'orders' => fn ($query) => $query->latest()->limit(10),
+        ]);
 
         return Inertia::render('app/customers/edit-customer', [
             'customer' => $customer,

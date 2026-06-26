@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AppUserRequest;
 use App\Models\Region;
 use App\Models\User;
+use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -61,6 +62,7 @@ class UserController extends Controller
     public function store(AppUserRequest $request): RedirectResponse
     {
         abort_unless($request->user()->canManageTeam(), 403);
+        PlanLimits::forTenant()->ensureCanCreate('users');
 
         $data = $request->validated();
         $regions = $data['regions'] ?? [];

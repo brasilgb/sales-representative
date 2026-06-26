@@ -35,6 +35,11 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class);
+    }
+
     public function orders(): BelongsToMany
     {
         return $this->belongsToMany(Order::class, 'order_items')

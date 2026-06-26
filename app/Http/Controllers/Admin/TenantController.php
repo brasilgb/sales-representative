@@ -37,15 +37,8 @@ class TenantController extends Controller
     {
         $data = $request->all();
         $request->validated();
-        // Adiciona a data de expiração com base no plano
         if (isset($data['plan'])) {
-            $days = match ((int) $data['plan']) {
-                1 => 30,  // Exemplo: plano com id 1 tem 30 dias
-                2 => 30,  // Exemplo: plano com id 1 tem 30 dias
-                3 => 90,  // Exemplo: plano com id 2 tem 90 dias
-                4 => 180, // Exemplo: plano com id 3 tem 180 dias
-                default => null,
-            };
+            $days = Plan::find($data['plan'])?->trial_days;
 
             if ($days) {
                 $data['expiration_date'] = Carbon::now()->addDays($days);
@@ -80,13 +73,7 @@ class TenantController extends Controller
     {
         $data = $request->validated();
         if (isset($data['plan'])) {
-            $days = match ((int) $data['plan']) {
-                1 => 30,  // Exemplo: plano com id 1 tem 30 dias
-                2 => 30,  // Exemplo: plano com id 1 tem 30 dias
-                3 => 90,  // Exemplo: plano com id 2 tem 90 dias
-                4 => 180, // Exemplo: plano com id 3 tem 180 dias
-                default => null,
-            };
+            $days = Plan::find($data['plan'])?->trial_days;
 
             if ($days) {
                 $data['expiration_date'] = Carbon::now()->addDays($days);
