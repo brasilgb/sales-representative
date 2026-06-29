@@ -2,12 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Admin\Setting;
+use App\Support\PlanLimits;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
-use App\Models\Admin\Setting;
-use App\Support\PlanLimits;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -53,7 +53,10 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                'isSeller' => $request->user()?->isSeller() ?? false,
                 'canManageTeam' => $request->user()?->canManageTeam() ?? false,
+                'canManageSellers' => $request->user()?->canManageSellers() ?? false,
+                'companyLogo' => $request->user()?->tenant?->logo_url,
                 'planFeatures' => $planLimits?->plan()?->features ?? [],
                 'subscriptionBlockedReason' => $planLimits?->subscriptionBlockedReason(),
             ],

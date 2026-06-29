@@ -82,6 +82,14 @@ class PlanLimits
 
     public function subscriptionBlockedReason(): ?string
     {
+        if ($this->tenant->isOnTrial()) {
+            return null;
+        }
+
+        if ($this->tenant->trial_ends_at && ! $this->tenant->payment) {
+            return 'Período de teste expirado';
+        }
+
         if (! $this->tenant->payment) {
             return 'Pagamento pendente';
         }

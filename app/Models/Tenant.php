@@ -2,19 +2,26 @@
 
 namespace App\Models;
 
+use App\Models\Admin\Period;
+use App\Models\Admin\Plan;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Admin\Plan;
 
 class Tenant extends Model
 {
+    protected $appends = ['logo_url'];
+
+    public const TRIAL_DAYS = 14;
+
     public const PLAN_INDIVIDUAL = 'individual';
 
     public const PLAN_TEAM = 'team';
 
     protected $fillable = [
         'company',
+        'logo',
         'cnpj',
         'phone',
         'whatsapp',
@@ -27,11 +34,12 @@ class Tenant extends Model
         'complement',
         'number',
         'plan',
+        'billing_period_id',
         'status',
         'payment',
         'observations',
         'expiration_date',
-        'onboarding_completed_at',
+        'trial_ends_at',
         'plan_type',
         'owner_user_id',
     ];
@@ -41,7 +49,7 @@ class Tenant extends Model
         return [
             'payment' => 'boolean',
             'expiration_date' => 'date',
-            'onboarding_completed_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
         ];
     }
 
@@ -63,5 +71,20 @@ class Tenant extends Model
     public function planModel(): BelongsTo
     {
         return $this->belongsTo(Plan::class, 'plan');
+    }
+
+    public function billingPeriod(): BelongsTo
+    {
+        return $this->belongsTo(Period::class, 'billing_period_id');
+    }
+
+    public function isOnTrial(): bool
+    {
+        return $this->trial_ends_at !== null && $this->trial_ends_at->isFuture();
+    }
+
+    protected function logoUrl(): Attribute
+    {
+        return Attribute::get(fn () => $this->logo ? asset('storage/'.$this->logo) : null);
     }
 }

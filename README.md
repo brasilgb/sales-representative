@@ -4,6 +4,33 @@
 
 - [Roadmap SaaS Pet B2B](docs/roadmap-saas-pet.md)
 
+## Root User
+
+O usuario root nao pode ser criado pelo cadastro publico. Para cria-lo, execute:
+
+```bash
+php artisan sales:create-root
+```
+
+O comando solicita nome, e-mail, senha e confirmacao. Apenas um usuario root pode existir.
+
+## Cobranca Pix
+
+A assinatura usa Pix pelo Mercado Pago. Configure no ambiente:
+
+```env
+MP_ACCESS_TOKEN=
+MP_WEBHOOK_SECRET=
+```
+
+No painel do Mercado Pago, cadastre o evento de pagamentos para:
+
+```text
+https://seu-dominio.com/api/webhooks/mercadopago
+```
+
+A assinatura somente e ativada quando o webhook assinado confirmar o pagamento como `approved`.
+
 ## Introduction
 
 Our React starter kit provides a robust, modern starting point for building Laravel applications with a React frontend using [Inertia](https://inertiajs.com).

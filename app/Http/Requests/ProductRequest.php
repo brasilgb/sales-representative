@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,34 +15,42 @@ class ProductRequest extends FormRequest
     {
         return true;
     }
- 
+
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
-        $productId = $this->input('reference');
-        
+        $tenantId = $this->user()?->tenant_id;
+        $productId = $this->route('product')?->id;
+
         return [
-            'name'  => 'required',
-            'reference'   => ($this->getMethod() == 'POST') ? ['required', Rule::unique('products', 'reference')->ignore($productId, 'reference')] : 'required|unique:products,reference,' . $this->product->id,
+            'name' => ['required', 'string', 'max:50'],
+            'reference' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('products', 'reference')->ignore($productId)->where('tenant_id', $tenantId),
+            ],
             'barcode' => ['nullable', 'string', 'max:80'],
-            'description' => 'required',
+            'description' => ['required', 'string', 'max:50'],
             'species' => ['nullable', 'string', 'max:30'],
             'category' => ['nullable', 'string', 'max:60'],
             'brand' => ['nullable', 'string', 'max:80'],
             'line' => ['nullable', 'string', 'max:80'],
             'package_size' => ['nullable', 'string', 'max:50'],
-            'unity' => 'required',
-            'measure' => 'required',
-            'price' => 'required',
-            'quantity' => ($this->getMethod() == 'POST') ? 'required' : 'nullable',
-            'min_quantity' => ($this->getMethod() == 'POST') ? 'required' : 'nullable',
+            'unity' => ['required', 'string', 'max:20'],
+            'measure' => ['required', 'integer', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'quantity' => $this->isMethod('post') ? ['required', 'integer', 'min:0'] : ['nullable', 'integer', 'min:0'],
+            'min_quantity' => $this->isMethod('post') ? ['required', 'integer', 'min:0'] : ['nullable', 'integer', 'min:0'],
+            'enabled' => ['required', 'boolean'],
+            'observations' => ['nullable', 'string'],
         ];
     }
-    
+
     public function attributes(): array
     {
         return [

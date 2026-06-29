@@ -1,133 +1,113 @@
-import { Button } from "@/components/ui/button";
-import { createSlug } from "@/Utils/mask";
-import { useForm } from "@inertiajs/react";
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label";
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { maskMoney, maskMoneyDot } from '@/Utils/mask';
+import { useForm } from '@inertiajs/react';
 import { Edit, Save } from 'lucide-react';
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+import { FormEvent, useState } from 'react';
+
+type PriceField = 'monthly_price' | 'quarterly_price' | 'semiannual_price';
 
 export default function EditPlan({ plan }: any) {
-  const [open, setOpen] = useState(false)
-
-  const { data, setData, patch, transform, progress, processing, reset, errors } = useForm({
-    name: plan.name,
-    slug: plan.slug,
-    description: plan.description,
-    price: plan.price ?? '0',
-    trial_days: plan.trial_days ?? '14',
-    max_users: plan.max_users ?? '',
-    max_customers: plan.max_customers ?? '',
-    max_products: plan.max_products ?? '',
-    max_orders_per_month: plan.max_orders_per_month ?? '',
-    max_visits_per_month: plan.max_visits_per_month ?? '',
-    features_text: (plan.features ?? []).join(','),
-    is_public: plan.is_public ?? true,
-  });
-
-  const handleSlug = (slug: any) => {
-    const creSlug: any = createSlug(slug);
-    setData('name', slug);
-    setData('slug', creSlug);
-  };
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    transform((data: any) => ({
-      ...data,
-      features: data.features_text.split(',').map((feature: string) => feature.trim()).filter(Boolean),
-    }));
-    patch(route('admin.plans.update', plan.id), {
-      onSuccess: () => setOpen(false),
+    const [open, setOpen] = useState(false);
+    const periodPrice = (months: number) => plan.periods?.find((period: any) => Number(period.interval_count) === months)?.price ?? '0.00';
+    const { data, setData, patch, processing, errors } = useForm({
+        name: plan.name,
+        account_type: plan.account_type,
+        description: plan.description,
+        monthly_price: periodPrice(1),
+        quarterly_price: periodPrice(3),
+        semiannual_price: periodPrice(6),
     });
-  }
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2 bg-orange-500 hover:bg-orange-600 text-white">
-          <Edit className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Cadastrar um plano</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Nome</Label>
-            <Input
-              type="text"
-              id="name"
-              value={data.name}
-              onChange={(e) => handleSlug(e.target.value)}
-            />
-            {errors.name && <div className="text-red-500 text-sm">{errors.name}</div>}
-          </div>
+    const updatePrice = (field: PriceField, value: string) => {
+        setData(field, maskMoneyDot(value) ?? '0.00');
+    };
 
-          <div className="grid gap-2">
-            <Label htmlFor="slug">Slug</Label>
-            <Input
-              type="text"
-              id="slug"
-              value={data.slug}
-              onChange={(e) => setData('slug', e.target.value)}
-            />
-            {errors.slug && <div className="text-red-500 text-sm">{errors.slug}</div>}
-          </div>
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        patch(route('admin.plans.update', plan.id), {
+            preserveScroll: true,
+            onSuccess: () => setOpen(false),
+        });
+    };
 
-          <div className="md:col-span-2 grid gap-2">
-            <Label htmlFor="description">Descrição</Label>
-            <Textarea
-              id="description"
-              value={data.description}
-              onChange={(e) => setData('description', e.target.value)}
-            />
-            {errors.description && <div className="text-red-500 text-sm">{errors.description}</div>}
-          </div>
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button size="icon" className="bg-orange-500 text-white hover:bg-orange-600" aria-label={`Editar ${plan.name}`}>
+                    <Edit className="h-4 w-4" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[620px]">
+                <DialogHeader>
+                    <DialogTitle>Editar plano</DialogTitle>
+                </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
-              <Label htmlFor="price">Preço</Label>
-              <Input id="price" type="number" step="0.01" value={data.price} onChange={(e) => setData('price', e.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="trial_days">Trial</Label>
-              <Input id="trial_days" type="number" value={data.trial_days} onChange={(e) => setData('trial_days', e.target.value)} />
-            </div>
-          </div>
+                <form onSubmit={handleSubmit} autoComplete="off" className="space-y-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label htmlFor={`name-${plan.id}`}>Nome do plano</Label>
+                            <Input id={`name-${plan.id}`} value={data.name} onChange={(event) => setData('name', event.target.value)} />
+                            {errors.name && <div className="text-sm text-red-500">{errors.name}</div>}
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor={`account-type-${plan.id}`}>Tipo de conta</Label>
+                            <select
+                                id={`account-type-${plan.id}`}
+                                value={data.account_type}
+                                onChange={(event) => setData('account_type', event.target.value)}
+                                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                            >
+                                <option value="individual">Vendedor individual</option>
+                                <option value="team">Equipe</option>
+                            </select>
+                            {errors.account_type && <div className="text-sm text-red-500">{errors.account_type}</div>}
+                        </div>
+                    </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            {['max_users', 'max_customers', 'max_products', 'max_orders_per_month', 'max_visits_per_month'].map((field) => (
-              <div key={field} className="grid gap-2">
-                <Label htmlFor={field}>{field.replaceAll('_', ' ')}</Label>
-                <Input id={field} type="number" value={(data as any)[field]} onChange={(e) => setData(field as any, e.target.value)} placeholder="Ilimitado" />
-              </div>
-            ))}
-          </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor={`description-${plan.id}`}>Descrição</Label>
+                        <Textarea id={`description-${plan.id}`} value={data.description} onChange={(event) => setData('description', event.target.value)} />
+                        {errors.description && <div className="text-sm text-red-500">{errors.description}</div>}
+                    </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="features_text">Recursos</Label>
-            <Input
-              id="features_text"
-              value={data.features_text}
-              onChange={(e) => setData('features_text', e.target.value)}
-              placeholder="agenda,team,commercial_conditions"
-            />
-          </div>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        {([
+                            ['monthly_price', 'Mensal'],
+                            ['quarterly_price', 'Trimestral'],
+                            ['semiannual_price', 'Semestral'],
+                        ] as const).map(([field, label]) => (
+                            <div key={field} className="grid gap-2">
+                                <Label htmlFor={`${field}-${plan.id}`}>{label}</Label>
+                                <Input
+                                    id={`${field}-${plan.id}`}
+                                    inputMode="decimal"
+                                    value={maskMoney(data[field]) ?? ''}
+                                    onChange={(event) => updatePrice(field, event.target.value)}
+                                />
+                                {errors[field] && <div className="text-sm text-red-500">{errors[field]}</div>}
+                            </div>
+                        ))}
+                    </div>
 
-          <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={processing}>
-              <Save />
-              Salvar
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog >
-  )
+                    <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+                        Sem limites por plano. Trial de 14 dias e permissões são definidos automaticamente pelo tipo de conta.
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                            Cancelar
+                        </Button>
+                        <Button type="submit" disabled={processing}>
+                            <Save className="h-4 w-4" />
+                            Salvar
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
 }

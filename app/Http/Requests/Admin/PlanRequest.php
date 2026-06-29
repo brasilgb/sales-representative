@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PlanRequest extends FormRequest
 {
@@ -17,24 +19,17 @@ class PlanRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'name' => 'required',
-            'slug' => 'required',
-            'description' => 'required',
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'trial_days' => ['nullable', 'integer', 'min:0'],
-            'max_users' => ['nullable', 'integer', 'min:1'],
-            'max_customers' => ['nullable', 'integer', 'min:1'],
-            'max_products' => ['nullable', 'integer', 'min:1'],
-            'max_orders_per_month' => ['nullable', 'integer', 'min:1'],
-            'max_visits_per_month' => ['nullable', 'integer', 'min:1'],
-            'features' => ['nullable', 'array'],
-            'features.*' => ['string', 'max:80'],
-            'is_public' => ['nullable', 'boolean'],
+            'name' => ['required', 'string', 'max:255'],
+            'account_type' => ['required', Rule::in(['individual', 'team'])],
+            'description' => ['required', 'string', 'max:500'],
+            'monthly_price' => ['required', 'numeric', 'min:0'],
+            'quarterly_price' => ['required', 'numeric', 'min:0'],
+            'semiannual_price' => ['required', 'numeric', 'min:0'],
         ];
     }
 
@@ -43,6 +38,10 @@ class PlanRequest extends FormRequest
         return [
             'name' => 'nome',
             'description' => 'descrição',
+            'account_type' => 'tipo de conta',
+            'monthly_price' => 'valor mensal',
+            'quarterly_price' => 'valor trimestral',
+            'semiannual_price' => 'valor semestral',
         ];
     }
 }

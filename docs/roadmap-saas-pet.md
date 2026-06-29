@@ -2,6 +2,27 @@
 
 Este documento orienta a evolucao do sistema para um SaaS de forca de vendas B2B para vendedores de alimentos, insumos e produtos para caes e gatos. O publico principal sao vendedores solos e equipes comerciais que visitam petshops, lojas veterinarias, agropecuarias, banho e tosa e estabelecimentos similares.
 
+Ultima revisao: 29/06/2026.
+
+## Situacao Atual
+
+O produto ja possui uma base funcional que cobre as oito etapas originais. Isso nao significa que todas estejam prontas para producao: parte dos criterios ainda precisa de validacao automatizada, acabamento de UX ou integracoes externas.
+
+Legenda:
+- Implementado: fluxo principal existe no sistema.
+- Parcial: fluxo principal existe, mas ha entregaveis ou criterios pendentes.
+- Pendente: ainda nao ha implementacao identificada.
+
+Resumo:
+- Etapa 1 - Fundacao SaaS e dominio pet: parcial.
+- Etapa 2 - Catalogo e pedidos B2B: parcial.
+- Etapa 3 - Carteira, regioes e equipe: implementado.
+- Etapa 4 - Agenda, visitas e roteirizacao: implementado.
+- Etapa 5 - Condicoes comerciais, descontos e comissoes: parcial.
+- Etapa 6 - Inteligencia comercial e recompra: parcial.
+- Etapa 7 - Dashboards e relatorios: parcial.
+- Etapa 8 - Planos SaaS e billing: parcial.
+
 ## Visao Do Produto
 
 O sistema deve deixar de ser apenas um CRUD comercial generico e passar a operar como um CRM de campo especializado em vendas recorrentes para o mercado pet.
@@ -22,6 +43,12 @@ Proposta central:
 ## Etapa 1 - Fundacao SaaS E Dominio Pet
 
 Objetivo: ajustar o produto para falar a linguagem do mercado pet B2B.
+
+Status atual:
+- Clientes possuem tipo de estabelecimento, regiao, contato, WhatsApp e observacoes comerciais.
+- Produtos possuem especie, categoria, marca, linha, embalagem/peso e SKU.
+- Os principais menus e fluxos usam a linguagem de pedidos, equipe, carteira e visitas.
+- Pendente consolidar a documentacao do modelo de dados e concluir uma revisao de consistencia da UX dos CRUDs.
 
 Escopo:
 - Revisar textos de menus, titulos e labels para o dominio pet.
@@ -83,6 +110,7 @@ Status atual:
 - Carteira exibida por vendedor e calculada pela soma dos clientes das regioes atribuidas.
 - Menu interno passou a expor "Equipe" e renomeou "Ordens de servico" para "Pedidos".
 - Vendedores sem permissao gerencial continuam restritos a propria carteira e regioes atribuidas.
+- Planos do tipo Vendedor individual nao exibem nem autorizam cadastro de vendedores; planos do tipo Equipe liberam a gestao da equipe.
 
 Escopo:
 - Atribuir regioes a vendedores.
@@ -220,69 +248,102 @@ Criterios de aceite:
 - O gestor compara desempenho entre vendedores.
 - Os principais indicadores podem ser filtrados por periodo.
 
-## Etapa 8 - Planos SaaS, Billing E Onboarding
+## Etapa 8 - Planos SaaS E Billing
 
 Objetivo: preparar comercializacao como SaaS.
 
 Status atual:
-- Planos SaaS ganharam preco, trial, limites de usuarios, clientes, produtos, pedidos mensais, visitas mensais e recursos habilitados.
-- Migration cria os planos Solo, Equipe, Pro e Enterprise com limites iniciais.
-- Tela de assinatura no app mostra plano atual, vencimento, uso dos limites e troca de plano para o dono da conta.
-- Onboarding inicial coleta dados essenciais da empresa e bloqueia o app enquanto estiver pendente.
+- Planos SaaS nao possuem limites quantitativos; as permissoes estruturais sao derivadas do tipo de conta.
+- Existem dois tipos de plano: Vendedor individual e Equipe, e o root admin pode cadastrar ofertas dentro desses tipos.
+- Cada nivel possui valores mensal, trimestral e semestral configuraveis.
+- Tela de assinatura mostra plano e periodo atuais, vencimento e troca de plano para o dono da conta.
+- Cadastro publico permite escolher somente Vendedor individual ou Equipe, sem expor valores; ao fim do trial, a assinatura solicita a escolha do plano e do ciclo mensal, trimestral ou semestral. O fluxo sempre cria a empresa com seu usuario proprietario e nao permite criar root admin.
+- Toda nova empresa inicia com 14 dias gratuitos registrados em `trial_ends_at`, independentemente do plano e periodo escolhidos; telefone e WhatsApp sao obrigatorios no cadastro.
+- Dados cadastrais sao mantidos em Configuracoes > Dados da empresa, sem uma etapa separada de onboarding.
 - Middleware bloqueia acesso operacional quando assinatura esta vencida, inativa ou inadimplente.
-- Criacao de vendedores, clientes, produtos, pedidos e visitas respeita limites do plano.
+- Cadastro de vendedores e recursos de regioes respeitam o tipo Individual ou Equipe.
+- Gestao de vendedores segue CRUD em telas separadas: tabela paginada, cadastro e edicao; a conta individual acessa diretamente Meu usuario.
 - Recursos Pro como condicoes comerciais, comissoes, inteligencia e campanhas respeitam habilitacao do plano.
-- Admin SaaS pode configurar limites e recursos nos planos.
+- Root admin cadastra e edita nome, descricao, tipo de conta e os tres valores de cada plano; trial de 14 dias e permissoes estruturais sao aplicados automaticamente.
+- Menu Configuracoes separa Meu usuario, Dados da empresa e Outras configuracoes; permite foto do usuario e logotipo da empresa, enquanto a ultima tela concentra licenca e aparencia do sistema.
+- Saldo Flex e unico por empresa; geracao soma credito, desconto consome apenas o saldo disponivel e cancelamento ou exclusao estorna a movimentacao.
+- Pedidos validam no servidor preco ajustado, desconto maximo, pedido minimo, prazo, comissao e total dos itens; a prioridade das condicoes comerciais possui cobertura automatizada.
+- Cobranca de assinatura via Pix Mercado Pago gera QR Code e copia-e-cola; a licenca so e ativada por webhook assinado e idempotente apos status aprovado.
 
 Escopo:
-- Planos por limite de usuarios e recursos.
-- Onboarding inicial guiado.
+- Planos por tipo de conta e ciclo de pagamento.
 - Controle de assinatura.
 - Bloqueio por inadimplencia ou plano expirado.
 
 Sugestao de planos:
-- Solo: 1 vendedor, clientes, produtos, pedidos e agenda simples.
+- Vendedor unico: 1 vendedor, clientes, produtos, pedidos e agenda simples.
 - Equipe: multiplos vendedores, regioes, metas e permissoes.
-- Pro: comissoes, campanhas, tabela de preco, importacao e relatorios avancados.
-- Enterprise: integracoes, API, customizacoes e suporte dedicado.
+- Periodos disponiveis para ambos: mensal, trimestral e semestral.
 
 Entregaveis:
 - Tela de escolha/gestao de plano.
-- Fluxo inicial: empresa, produtos, regioes, clientes e vendedores.
-- Limites por plano.
+- Configuracao da empresa centralizada na tela Dados da empresa.
+- Valores mensal, trimestral e semestral por plano.
 - Tela de assinatura bloqueada/expirada.
 
 Criterios de aceite:
 - Uma nova empresa consegue iniciar uso sem configuracao manual do suporte.
-- O sistema respeita limites de plano.
+- O sistema respeita as permissoes do tipo de conta.
 - O admin SaaS consegue gerenciar tenants e assinaturas.
 
 ## Backlog Tecnico Transversal
 
-- Garantir isolamento multi-tenant em todas as queries.
-- Padronizar permissoes por papel.
-- Criar testes de Feature para fluxos criticos.
-- Criar seeds com dados realistas do mercado pet.
-- Melhorar responsividade mobile para uso em campo.
-- Implementar importacao CSV/Excel de clientes e produtos.
-- Preparar auditoria de alteracoes em pedidos, clientes e precos.
-- Avaliar integracoes futuras: ERP, emissao fiscal, WhatsApp, mapas e gateways de pagamento.
+- [ ] Auditar o isolamento multi-tenant em controllers, relacionamentos, rotas e API. Em andamento: clientes, produtos e pedidos revisados.
+- [x] Criar testes de Feature para isolamento entre tenants usando o banco MySQL exclusivo de testes.
+- [ ] Criar testes de Feature para clientes, produtos, pedidos, visitas e permissoes.
+- [ ] Criar testes para permissoes por tipo de plano, trial e bloqueio de assinatura.
+- [ ] Padronizar autorizacao por policies ou gates, reduzindo verificacoes dispersas nos controllers.
+- [ ] Criar factories e seeds com dados realistas do mercado pet.
+- [ ] Revisar responsividade mobile dos fluxos usados em campo.
+- [ ] Implementar importacao CSV/Excel de clientes e produtos.
+- [ ] Implementar auditoria de alteracoes em pedidos, clientes, condicoes comerciais e precos.
+- [ ] Avaliar integracoes futuras: ERP, emissao fiscal, WhatsApp, mapas e gateways de pagamento.
 
-## Ordem Recomendada
+## Pendencias Funcionais Identificadas
 
-1. Etapa 1: dominio pet e dados fundamentais.
-2. Etapa 2: pedido B2B rapido.
-3. Etapa 3: equipe, regioes e carteira.
-4. Etapa 4: visitas e agenda.
-5. Etapa 5: condicoes comerciais e comissoes.
-6. Etapa 6: recompra e inteligencia comercial.
-7. Etapa 7: dashboards e relatorios.
-8. Etapa 8: billing, planos e onboarding.
+- [ ] Definir e implementar metas comerciais por vendedor e periodo.
+- [ ] Permitir comissao por produto, categoria ou marca, alem da regra comercial geral.
+- [ ] Evoluir a sugestao de recompra para usar media e frequencia do historico.
+- [ ] Concluir o fluxo compartilhavel do pedido por WhatsApp.
+- [ ] Ampliar exportacoes alem do CSV de pedidos do dashboard.
+- [x] Centralizar as informacoes cadastrais em Dados da empresa, sem bloqueio de onboarding.
+- [x] Integrar cobranca Pix Mercado Pago e ativacao por webhook assinado.
+- [ ] Definir se o MVP controla estoque real ou somente catalogo e preco.
+- [ ] Definir se o envio de pedidos sera apenas interno ou integrado a cliente, fornecedor ou ERP.
 
-## Proxima Decisao
+## Proximo Ciclo Recomendado - Confiabilidade Do MVP
 
-Antes de implementar a Etapa 1, definir:
-- Quais campos de cliente sao obrigatorios no primeiro MVP.
-- Quais categorias de produto serao padrao.
-- Se o sistema vai trabalhar com estoque real ou apenas catalogo/preco no inicio.
-- Se pedidos serao apenas internos ou tambem enviados automaticamente ao cliente/fornecedor.
+Objetivo: tornar os fluxos ja implementados seguros para validacao com os primeiros usuarios.
+
+Prioridade 1 - Seguranca e isolamento:
+- Auditar todas as consultas multi-tenant, inclusive API e rotas com model binding.
+- Garantir que um tenant nunca visualize ou altere dados de outro tenant.
+- Cobrir os cenarios com testes automatizados.
+
+Prioridade 2 - Fluxos comerciais criticos:
+- Testar criacao e repeticao de pedido, descontos, pedido minimo e calculo de comissao.
+- Testar carteira por regiao, permissoes de vendedor e operacoes de visita.
+- Testar permissoes por tipo de conta, trial e bloqueios de assinatura.
+
+Prioridade 3 - Operacao piloto:
+- Criar seeds demonstrativos do mercado pet.
+- Revisar as telas de pedido, cliente, agenda e check-in em dispositivos moveis.
+- Documentar configuracao inicial e roteiro de homologacao.
+
+Prioridade 4 - Fechamento das lacunas do MVP:
+- Implementar metas comerciais.
+- Concluir compartilhamento de pedido.
+- Decidir o escopo de estoque e integracoes antes de expandir o dominio.
+
+## Criterio Para Encerrar O Proximo Ciclo
+
+- Suite automatizada cobrindo os fluxos comerciais e SaaS criticos.
+- Isolamento multi-tenant validado por testes negativos.
+- Jornada principal utilizavel em celular sem bloqueios de layout.
+- Ambiente demonstrativo populado com dados coerentes do mercado pet.
+- Checklist de homologacao executado para dono da conta, admin e vendedor.

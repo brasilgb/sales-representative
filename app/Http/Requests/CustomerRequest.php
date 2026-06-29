@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,23 +15,30 @@ class CustomerRequest extends FormRequest
     {
         return true;
     }
- 
+
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         $tenantId = $this->user()?->tenant_id;
         $customerId = $this->route('customer')?->id;
+        $regionRule = Rule::exists('regions', 'id')->where(function ($query) use ($tenantId) {
+            $query->where('tenant_id', $tenantId);
+
+            if (! $this->user()?->canManageTeam()) {
+                $query->whereIn('id', $this->user()->regions()->pluck('regions.id'));
+            }
+        });
 
         return [
             'region_id' => [
                 'required',
-                Rule::exists('regions', 'id')->where('tenant_id', $tenantId),
+                $regionRule,
             ],
-            'name' => 'required',
+            'name' => ['required', 'string', 'max:255'],
             'establishment_type' => ['nullable', 'string', 'max:50'],
             'cnpj' => [
                 'required',
@@ -39,15 +47,27 @@ class CustomerRequest extends FormRequest
             ],
             'email' => [
                 'required',
+                'email',
                 Rule::unique('customers', 'email')->ignore($customerId)->where('tenant_id', $tenantId),
             ],
-            'phone' => 'required',
+            'phone' => ['required', 'string', 'max:50'],
+            'zip_code' => ['nullable', 'string', 'max:20'],
+            'state' => ['nullable', 'string', 'max:20'],
+            'city' => ['nullable', 'string', 'max:50'],
+            'district' => ['nullable', 'string', 'max:50'],
+            'street' => ['nullable', 'string', 'max:80'],
+            'complement' => ['nullable', 'string', 'max:80'],
+            'number' => ['nullable', 'string', 'max:20'],
+            'contactname' => ['nullable', 'string', 'max:50'],
+            'whatsapp' => ['nullable', 'string', 'max:50'],
+            'contactphone' => ['nullable', 'string', 'max:50'],
+            'observations' => ['nullable', 'string'],
             'preferred_visit_days' => ['nullable', 'string', 'max:120'],
             'preferred_visit_time' => ['nullable', 'string', 'max:80'],
             'commercial_notes' => ['nullable', 'string'],
         ];
     }
-    
+
     public function attributes(): array
     {
         return [

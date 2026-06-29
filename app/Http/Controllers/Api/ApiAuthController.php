@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\ApiBaseController as BaseController;
+use App\Models\Admin\Period;
 use App\Models\Admin\Plan;
 use App\Models\Tenant;
 use App\Models\User;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class ApiAuthController extends BaseController
@@ -30,16 +32,37 @@ class ApiAuthController extends BaseController
                 'cnpj' => 'required|cnpj|unique:tenants',
                 'company' => 'required',
                 'name' => 'required',
+                'phone' => 'required|string|max:20',
+                'whatsapp' => 'required|string|max:20',
                 'email' => 'required|email|unique:users',
                 'password' => 'required',
                 'password_confirmation' => 'required|same:password',
                 'device_name' => 'required',
-                'plan_type' => 'required|in:individual,team',
+                'plan_type' => 'nullable|required_without:plan_id|in:individual,team',
+                'plan_id' => [
+                    'nullable',
+                    'required_without:plan_type',
+                    Rule::exists('plans', 'id')->where(fn ($query) => $query
+                        ->where('is_public', true)
+                        ->whereIn('account_type', [Tenant::PLAN_INDIVIDUAL, Tenant::PLAN_TEAM])),
+                ],
+                'billing_period_id' => [
+                    'nullable',
+                    'required_with:plan_id',
+                    Rule::exists('periods', 'id')->where(fn ($query) => $query
+                        ->where('plan_id', $request->input('plan_id'))
+                        ->where('interval', 'month')
+                        ->whereIn('interval_count', [1, 3, 6])),
+                ],
             ],
             [],
             [
                 'company' => 'Razão social',
+                'phone' => 'Telefone',
+                'whatsapp' => 'WhatsApp',
                 'plan_type' => 'Tipo de conta',
+                'plan_id' => 'Plano',
+                'billing_period_id' => 'Período de pagamento',
             ]
         );
 
@@ -48,19 +71,48 @@ class ApiAuthController extends BaseController
         }
 
         [$tenant, $user] = DB::transaction(function () use ($request) {
+            if ($request->filled('plan_id')) {
+                $plan = Plan::where('is_public', true)
+                    ->whereIn('account_type', [Tenant::PLAN_INDIVIDUAL, Tenant::PLAN_TEAM])
+                    ->findOrFail($request->integer('plan_id'));
+                $period = Period::where('plan_id', $plan->id)
+                    ->where('interval', 'month')
+                    ->whereIn('interval_count', [1, 3, 6])
+                    ->findOrFail($request->integer('billing_period_id'));
+            } else {
+                $accountType = $request->plan_type === Tenant::PLAN_INDIVIDUAL ? Tenant::PLAN_INDIVIDUAL : Tenant::PLAN_TEAM;
+                $plan = Plan::with(['periods' => fn ($query) => $query->where('interval_count', 1)])
+                    ->where('is_public', true)
+                    ->where('account_type', $accountType)
+                    ->orderBy('price')
+                    ->firstOrFail();
+                $period = null;
+            }
+
+            $planType = $plan->account_type;
+            $trialEndsAt = now()->addDays(Tenant::TRIAL_DAYS);
+
             $tenant = Tenant::create([
                 'company' => $request->company,
                 'cnpj' => $request->cnpj,
                 'email' => $request->email,
+                'phone' => $request->phone,
+                'whatsapp' => $request->whatsapp,
                 'status' => 1,
-                'plan' => Plan::query()->value('id'),
-                'plan_type' => $request->plan_type,
+                'payment' => false,
+                'expiration_date' => $trialEndsAt,
+                'trial_ends_at' => $trialEndsAt,
+                'plan' => $plan->id,
+                'billing_period_id' => $period?->id,
+                'plan_type' => $planType,
             ]);
 
             $user = User::create([
                 'tenant_id' => $tenant->id,
                 'name' => $request->name,
                 'email' => $request->email,
+                'telephone' => $request->phone,
+                'whatsapp' => $request->whatsapp,
                 'status' => 1,
                 'roles' => User::ROLE_OWNER,
                 'password' => bcrypt($request->password),

@@ -14,17 +14,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
-    // Códigos secretos
-    protected const SUPERUSER_COMPANY_CODE = 'super-company-megb-admin';
-
-    protected const SUPERUSER_CNPJ_CODE = '0D82457BF990DE04D1F8F98AC7BFE7DC';
-
     /**
      * Show the registration page.
      */
@@ -35,69 +29,58 @@ class RegisteredUserController extends Controller
 
     /**
      * Handle an incoming registration request.
-     *
-     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
-        $isSuperUserRegistration = $request->company === self::SUPERUSER_COMPANY_CODE && $request->cnpj === self::SUPERUSER_CNPJ_CODE;
-        $superuserExists = User::whereNull('tenant_id')->exists();
-
-        $rules = [
+        $data = $request->validate([
             'name' => 'required|string|max:255',
+            'company' => 'required|string|max:255|unique:tenants,company',
+            'cnpj' => 'required|string|cnpj|unique:tenants,cnpj',
+            'phone' => 'required|string|max:20',
+            'whatsapp' => 'required|string|max:20',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'account_type' => ['required', Rule::in([Tenant::PLAN_INDIVIDUAL, Tenant::PLAN_TEAM])],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ];
-
-        if ($isSuperUserRegistration) {
-            if ($superuserExists) {
-                return back()->withErrors(['company' => 'Já existe um superusuário registrado no sistema.']);
-            }
-        } else {
-            $rules['company'] = 'required|string|max:255|unique:'.Tenant::class;
-            $rules['cnpj'] = 'required|string|cnpj|unique:'.Tenant::class;
-            $rules['plan_type'] = ['required', Rule::in([Tenant::PLAN_INDIVIDUAL, Tenant::PLAN_TEAM])];
-        }
-        $aliases = [
+        ], [], [
             'name' => 'Nome',
             'email' => 'E-mail',
             'password' => 'Senha',
             'company' => 'Razão Social',
             'cnpj' => 'CNPJ',
-            'plan_type' => 'Tipo de conta',
-        ];
+            'phone' => 'Telefone',
+            'whatsapp' => 'WhatsApp',
+            'account_type' => 'Tipo de conta',
+        ]);
 
-        $request->validate($rules, [], $aliases);
+        [$tenant, $user] = DB::transaction(function () use ($data) {
+            $planType = $data['account_type'];
+            $plan = Plan::where('is_public', true)
+                ->where('account_type', $planType)
+                ->orderBy('price')
+                ->firstOrFail();
+            $trialEndsAt = now()->addDays(Tenant::TRIAL_DAYS);
 
-        if ($isSuperUserRegistration) {
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'tenant_id' => null,
-                'status' => 1,
-            ]);
-
-            event(new Registered($user));
-            Auth::login($user);
-
-            return redirect()->route('admin.dashboard');
-        }
-
-        [$tenant, $user] = DB::transaction(function () use ($request) {
             $tenant = Tenant::create([
-                'company' => $request->company,
-                'cnpj' => $request->cnpj,
-                'email' => $request->email,
+                'company' => $data['company'],
+                'cnpj' => $data['cnpj'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'whatsapp' => $data['whatsapp'],
                 'status' => 1,
-                'plan' => Plan::query()->value('id'),
-                'plan_type' => $request->plan_type,
+                'payment' => false,
+                'expiration_date' => $trialEndsAt,
+                'trial_ends_at' => $trialEndsAt,
+                'plan' => $plan->id,
+                'billing_period_id' => null,
+                'plan_type' => $planType,
             ]);
 
             $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'telephone' => $data['phone'],
+                'whatsapp' => $data['whatsapp'],
+                'password' => Hash::make($data['password']),
                 'tenant_id' => $tenant->id,
                 'roles' => User::ROLE_OWNER,
                 'status' => 1,
@@ -111,10 +94,8 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
-        if (Auth::user() && Auth::user()->tenant_id === null) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        return redirect()->route('app.dashboard');
+        return redirect()
+            ->route('app.dashboard')
+            ->with('message', 'Conta criada com sucesso! Seu período de teste foi iniciado.');
     }
 }

@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
 use App\Models\CommercialCondition;
+use App\Models\Customer;
 use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
+use App\Support\FlexBalance;
 use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -71,15 +73,27 @@ class OrderController extends Controller
     {
         PlanLimits::forTenant()->ensureCanCreate('orders_month');
 
-        $otherData = $request->all();
+        $tenantId = $request->user()->tenant_id;
+        $customerRule = Rule::exists('customers', 'id')->where(function ($query) use ($request, $tenantId) {
+            $query->where('tenant_id', $tenantId);
+
+            if (! $request->user()->canManageTeam()) {
+                $query->whereIn('region_id', $request->user()->regions()->pluck('regions.id'));
+            }
+        });
         $validatedData = $request->validate([
-            'customer_id' => ['required', 'exists:customers,id'],
+            'customer_id' => ['required', $customerRule],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.product_id' => [
+                'required',
+                Rule::exists('products', 'id')->where('tenant_id', $tenantId),
+            ],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'gt:0'], // 'gt:0' é uma boa adição
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.name' => ['required', 'string'], // min:0 não é necessário aqui
             'items.*.total' => ['required', 'numeric', 'min:0'],
+            'flex' => ['nullable', 'numeric', 'min:0'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_condition' => ['nullable', 'string', 'max:120'],
         ]);
 
@@ -101,8 +115,8 @@ class OrderController extends Controller
                 $subtotal += $expectedPrice * (int) $item['quantity'];
             }
 
-            $flexAmount = (float) ($otherData['flex'] ?? 0);
-            $discountAmount = (float) ($otherData['discount'] ?? 0);
+            $flexAmount = (float) ($validatedData['flex'] ?? 0);
+            $discountAmount = (float) ($validatedData['discount'] ?? 0);
             $total = max($subtotal + $flexAmount - $discountAmount, 0);
 
             if ($commercialCondition) {
@@ -141,7 +155,7 @@ class OrderController extends Controller
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'name' => $item['name'],
-                    'total' => $item['total'],
+                    'total' => round((float) $item['price'] * (int) $item['quantity'], 2),
                 ];
             })->toArray();
 
@@ -167,14 +181,7 @@ class OrderController extends Controller
             }
             // --- FIM DA NOVA LÓGICA ---
 
-            // 4. Lógica para o Flex (mantida como estava)
-            $flexBalance = Flex::firstOrCreate(['value' => 0]);
-            if ($flexAmount > 0) {
-                $flexBalance->increment('value', $flexAmount);
-            }
-            if ($discountAmount > 0) {
-                $flexBalance->decrement('value', $discountAmount);
-            }
+            FlexBalance::apply($flexAmount, $discountAmount);
 
             DB::commit();
 
@@ -247,16 +254,19 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Itera sobre os itens do pedido para devolver ao estoque
-            foreach ($order->orderItems as $item) {
-                // Encontra o produto e trava a linha para evitar problemas de concorrência
-                $product = Product::lockForUpdate()->find($item->product_id);
+            if ($order->status !== '4') {
+                foreach ($order->orderItems as $item) {
+                    // Encontra o produto e trava a linha para evitar problemas de concorrência
+                    $product = Product::lockForUpdate()->find($item->product_id);
 
-                // Se o produto ainda existir, incrementa o estoque
-                if ($product) {
-                    // Substitua 'stock' pelo nome da sua coluna de estoque
-                    $product->increment('quantity', $item->quantity);
+                    // Se o produto ainda existir, incrementa o estoque
+                    if ($product) {
+                        // Substitua 'stock' pelo nome da sua coluna de estoque
+                        $product->increment('quantity', $item->quantity);
+                    }
                 }
+
+                FlexBalance::reverse((float) $order->flex, (float) $order->discount);
             }
 
             // 2. Deleta os registros de order_items primeiro
@@ -275,11 +285,16 @@ class OrderController extends Controller
         }
     }
 
-    public function setValueStatusOrder(Request $request, $orderid)
+    public function setValueStatusOrder(Request $request, Order $order)
     {
-        abort_unless(Order::visibleTo()->whereKey($orderid)->exists(), 404);
+        $this->authorizeVisibleOrder($order);
+        $validated = $request->validate(['status' => ['required', Rule::in(['1', '2', '3', '4'])]]);
 
-        Order::where('id', $orderid)->update(['status' => $request->status]);
+        if ($validated['status'] === '4') {
+            return $this->cancelOrder($order);
+        }
+
+        $order->update(['status' => $validated['status']]);
 
         return response()->json([
             'success' => true,
@@ -314,16 +329,7 @@ class OrderController extends Controller
                 }
             }
 
-            $flexBalance = Flex::firstOrCreate(['value' => 0]);
-            $flexAmount = (float) ($order->flex ?? 0);
-            $discountAmount = (float) ($order->discount ?? 0);
-
-            if ($flexAmount > 0) {
-                $flexBalance->increment('value', $flexAmount);
-            }
-            if ($discountAmount > 0) {
-                $flexBalance->decrement('value', $discountAmount);
-            }
+            FlexBalance::reverse((float) $order->flex, (float) $order->discount);
 
             // 2. Atualiza o status do pedido para 'cancelado'
             $order::where('id', $order->id)->update(['status' => '4']);
@@ -342,8 +348,8 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ocorreu um erro ao cancelar o pedido.',
-            ], 500); // 500 Internal Server Error
+                'message' => $e->getMessage(),
+            ], 409);
         }
     }
 

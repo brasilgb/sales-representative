@@ -50,6 +50,7 @@ export default function EditTenant({ plans, tenant }: any) {
         complement: tenant?.complement,
         number: tenant?.number,
         plan: tenant?.plan,
+        billing_period_id: tenant?.billing_period_id,
         status: tenant?.status,
         payment: tenant?.payment,
         observations: tenant?.observations,
@@ -76,9 +77,18 @@ export default function EditTenant({ plans, tenant }: any) {
             .catch((error) => console.error(error));
     };
 
+    const selectedPlan = plans.find((plan: any) => plan.id == data.plan);
+    const billingPeriods = (selectedPlan?.periods ?? []).map((period: any) => ({
+        value: period.id,
+        label: `${period.name} - R$ ${Number(period.price).toFixed(2).replace('.', ',')}`,
+    }));
+
     const changePlan = (selected: any) => {
-        setData('plan', selected?.value);
+        const plan = plans.find((item: any) => item.id == selected?.value);
+        setData((current: any) => ({ ...current, plan: selected?.value, billing_period_id: plan?.periods?.[0]?.id ?? '' }));
     };
+
+    const changeBillingPeriod = (selected: any) => setData('billing_period_id', selected?.value);
 
     const changeStatus = (selected: any) => {
         setData('status', selected?.value);
@@ -295,7 +305,19 @@ export default function EditTenant({ plans, tenant }: any) {
                                 <InputError className="mt-2" message={errors.plan} />
                             </div>
 
-                            <div className="md:col-span-2 grid gap-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor="billing_period_id">Período</Label>
+                                <Select
+                                    value={billingPeriods.find((period: any) => period.value == data.billing_period_id) ?? null}
+                                    options={billingPeriods}
+                                    onChange={changeBillingPeriod}
+                                    placeholder="Selecione o período"
+                                    className="shadow-xs h-9 rounded-md border border-gray-300 p-0 text-gray-700"
+                                />
+                                <InputError className="mt-2" message={(errors as any).billing_period_id} />
+                            </div>
+
+                            <div className="grid gap-2">
                                 <Label htmlFor="status">Status</Label>
                                 <Select
                                     defaultValue={defaultStatusSaas}

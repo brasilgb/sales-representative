@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Tenant;
-use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TenantRequest;
-use Illuminate\Http\RedirectResponse;
+use App\Models\Admin\Period;
 use App\Models\Admin\Plan;
+use App\Models\Tenant;
+use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 
 class TenantController extends Controller
@@ -18,6 +19,7 @@ class TenantController extends Controller
     public function index()
     {
         $tenants = Tenant::paginate(11);
+
         return Inertia::render('admin/tenants/index', ['tenants' => $tenants]);
     }
 
@@ -26,7 +28,8 @@ class TenantController extends Controller
      */
     public function create()
     {
-        $plans = Plan::get();
+        $plans = Plan::with('periods')->where('is_public', true)->get();
+
         return Inertia::render('admin/tenants/create-tenant', ['plans' => $plans]);
     }
 
@@ -38,14 +41,18 @@ class TenantController extends Controller
         $data = $request->all();
         $request->validated();
         if (isset($data['plan'])) {
-            $days = Plan::find($data['plan'])?->trial_days;
+            $plan = Plan::find($data['plan']);
+            $period = Period::where('plan_id', $plan?->id)->find($data['billing_period_id']);
 
-            if ($days) {
-                $data['expiration_date'] = Carbon::now()->addDays($days);
+            if ($period) {
+                $data['expiration_date'] = Carbon::now()->addMonths((int) $period->interval_count);
             }
+
+            $data['plan_type'] = $plan?->account_type;
         }
 
         Tenant::create($data);
+
         return redirect()->route('admin.tenants.index')->with('success', 'Empresa cadastrado com sucesso!');
     }
 
@@ -54,7 +61,8 @@ class TenantController extends Controller
      */
     public function show(Tenant $tenant)
     {
-        $plans = Plan::get();
+        $plans = Plan::with('periods')->where('is_public', true)->get();
+
         return Inertia::render('admin/tenants/edit-tenant', ['tenant' => $tenant, 'plans' => $plans]);
     }
 
@@ -73,13 +81,17 @@ class TenantController extends Controller
     {
         $data = $request->validated();
         if (isset($data['plan'])) {
-            $days = Plan::find($data['plan'])?->trial_days;
+            $plan = Plan::find($data['plan']);
+            $period = Period::where('plan_id', $plan?->id)->find($data['billing_period_id']);
 
-            if ($days) {
-                $data['expiration_date'] = Carbon::now()->addDays($days);
+            if ($period) {
+                $data['expiration_date'] = Carbon::now()->addMonths((int) $period->interval_count);
             }
+
+            $data['plan_type'] = $plan?->account_type;
         }
         $tenant->update($data);
+
         return redirect()->route('admin.tenants.show', ['tenant' => $tenant->id])->with('success', 'Empresa atualizada com sucess!');
     }
 
@@ -89,6 +101,7 @@ class TenantController extends Controller
     public function destroy(Tenant $tenant)
     {
         $tenant->delete();
+
         return redirect()->route('admin.tenants.index')->with('success', 'Empresa excluída com sucesso!');
     }
 }

@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card"
 import { Users, Package, ShoppingCart, FileText, Smartphone, Cloud } from "lucide-react"
 
 const features = [
@@ -36,28 +35,26 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="recursos" className="border-b border-border bg-muted/30 py-20 md:py-32">
+    <section id="recursos" className="border-b border-border bg-muted/30 py-16 md:py-24">
       <div className="container mx-auto px-4">
-        <div className="mx-auto mb-16 max-w-3xl text-center">
+        <div className="mx-auto mb-12 max-w-3xl text-center">
           <h2 className="mb-4 text-3xl font-bold tracking-tight text-balance md:text-5xl">
-            Tudo que você precisa para vender mais
+            Tudo que a operação comercial usa todos os dias
           </h2>
           <p className="text-lg text-muted-foreground text-balance">
-            Recursos completos para gerenciar seu negócio de forma profissional
+            Recursos agrupados por fluxo de trabalho, com ícones padronizados e leitura rápida.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
-            <Card key={index} className="border-border bg-card transition-all hover:shadow-lg">
-              <CardContent className="p-6">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <feature.icon className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="mb-2 text-xl font-semibold">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
-              </CardContent>
-            </Card>
+            <div key={index} className="rounded-lg border border-border bg-card p-6 transition-colors hover:bg-accent/50">
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-md bg-accent">
+                <feature.icon className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
+              <p className="text-sm leading-6 text-muted-foreground">{feature.description}</p>
+            </div>
           ))}
         </div>
       </div>

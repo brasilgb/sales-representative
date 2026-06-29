@@ -10,6 +10,13 @@ class Flex extends Model
     use Tenantable;
 
     protected $fillable = [
-        'value'
+        'value',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'value' => 'decimal:2',
+        ];
+    }
 }

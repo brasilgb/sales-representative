@@ -66,8 +66,7 @@ class CustomerController extends Controller
     {
         PlanLimits::forTenant()->ensureCanCreate('customers');
 
-        $data = $request->all();
-        $request->validated();
+        $data = $request->validated();
         Customer::create($data);
 
         return redirect()->route('app.customers.index')->with('success', 'Cliente cadastrado com sucesso!');
@@ -106,8 +105,7 @@ class CustomerController extends Controller
     {
         $this->authorizeVisibleCustomer($customer);
 
-        $data = $request->all();
-        $request->validated();
+        $data = $request->validated();
         $customer->update($data);
 
         return redirect()->route('app.customers.show', ['customer' => $customer->id])->with('success', 'Cliente alterado com sucesso!');

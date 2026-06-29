@@ -7,11 +7,12 @@ use App\Models\Customer;
 use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
+use App\Support\FlexBalance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 
 class ApiOrderController extends Controller
 {
@@ -51,15 +52,27 @@ class ApiOrderController extends Controller
      */
     public function store(Request $request)
     {
-        $otherData = $request->all();
+        $tenantId = $request->user()->tenant_id;
+        $customerRule = Rule::exists('customers', 'id')->where(function ($query) use ($request, $tenantId) {
+            $query->where('tenant_id', $tenantId);
+
+            if (! $request->user()->canManageTeam()) {
+                $query->whereIn('region_id', $request->user()->regions()->pluck('regions.id'));
+            }
+        });
         $validatedData = $request->validate([
-            'customer_id' => ['required', 'exists:customers,id'],
+            'customer_id' => ['required', $customerRule],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.product_id' => [
+                'required',
+                Rule::exists('products', 'id')->where('tenant_id', $tenantId),
+            ],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'gt:0'], // 'gt:0' é uma boa adição
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.name' => ['required', 'string'], // min:0 não é necessário aqui
             'items.*.total' => ['required', 'numeric', 'min:0'],
+            'flex' => ['nullable', 'numeric', 'min:0'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         try {
@@ -67,13 +80,19 @@ class ApiOrderController extends Controller
 
             DB::beginTransaction();
 
+            $flexAmount = (float) ($validatedData['flex'] ?? 0);
+            $discountAmount = (float) ($validatedData['discount'] ?? 0);
+            $subtotal = collect($validatedData['items'])
+                ->sum(fn (array $item) => (float) $item['price'] * (int) $item['quantity']);
+            $total = max($subtotal + $flexAmount - $discountAmount, 0);
+
             // 1. Criação do Pedido principal
             $order = Order::create([
                 'customer_id' => $validatedData['customer_id'],
                 'order_number' => Order::exists() ? Order::latest()->first()->order_number + 1 : 1,
-                'flex' => $otherData['flex'] ?? '0',
-                'discount' => $otherData['discount'] ?? '0',
-                'total' => $otherData['total'],
+                'flex' => $flexAmount,
+                'discount' => $discountAmount,
+                'total' => $total,
                 'status' => 1,
             ]);
 
@@ -84,7 +103,7 @@ class ApiOrderController extends Controller
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'name' => $item['name'],
-                    'total' => $item['total'],
+                    'total' => round((float) $item['price'] * (int) $item['quantity'], 2),
                 ];
             })->toArray();
 
@@ -110,28 +129,7 @@ class ApiOrderController extends Controller
             }
             // --- FIM DA NOVA LÓGICA ---
 
-            // 4. Lógica para o Flex por tenant
-            $tenantId = null;
-            $user = Auth::user();
-            if ($user) {
-                $tenantId = $user->tenant_id;
-            } elseif (function_exists('checkTenantId') && checkTenantId()) {
-                $tenantId = session('tenant_id');
-            }
-            $flexBalance = Flex::firstOrCreate([
-                'tenant_id' => $tenantId,
-            ], [
-                'value' => 0,
-            ]);
-            $flexAmount = (float) ($otherData['flex'] ?? 0);
-            $discountAmount = (float) ($otherData['discount'] ?? 0);
-
-            if ($flexAmount > 0) {
-                $flexBalance->increment('value', $flexAmount);
-            }
-            if ($discountAmount > 0) {
-                $flexBalance->decrement('value', $discountAmount);
-            }
+            FlexBalance::apply($flexAmount, $discountAmount);
 
             DB::commit();
 
@@ -155,15 +153,15 @@ class ApiOrderController extends Controller
 
         $products = Product::all();
         $customers = Customer::visibleTo()->get();
-        $flex = Flex::first()->value;
-        $order = Order::visibleTo()->with('customer.region')->with('orderItems')->orderBy('id', 'DESC')->first();
+        $flex = Flex::first()?->value ?? 0;
+        $order->load('customer.region', 'orderItems');
 
         return response()->json([
             'order' => $order,
             'products' => $products,
             'customers' => $customers,
             'flex' => $flex,
-            'orderitems' => $order->orderItems(),
+            'orderitems' => $order->orderItems,
         ]);
     }
 
@@ -188,7 +186,29 @@ class ApiOrderController extends Controller
      */
     public function destroy(Order $order)
     {
-        //
+        $this->authorizeVisibleOrder($order);
+
+        try {
+            DB::beginTransaction();
+
+            if ($order->status !== '4') {
+                foreach ($order->orderItems as $item) {
+                    Product::lockForUpdate()->find($item->product_id)?->increment('quantity', $item->quantity);
+                }
+
+                FlexBalance::reverse((float) $order->flex, (float) $order->discount);
+            }
+            $order->orderItems()->delete();
+            $order->delete();
+
+            DB::commit();
+
+            return response()->json(['message' => 'Pedido excluído com sucesso.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json(['message' => $e->getMessage()], 409);
+        }
     }
 
     public function getFlex()
@@ -219,11 +239,16 @@ class ApiOrderController extends Controller
         return response()->json($orderData);
     }
 
-    public function setValueStatusOrderApp(Request $request, $orderid)
+    public function setValueStatusOrderApp(Request $request, Order $order)
     {
-        abort_unless(Order::visibleTo()->whereKey($orderid)->exists(), 404);
+        $this->authorizeVisibleOrder($order);
+        $validated = $request->validate(['status' => ['required', Rule::in(['1', '2', '3', '4'])]]);
 
-        Order::where('id', $orderid)->update(['status' => $request->status]);
+        if ($validated['status'] === '4') {
+            return $this->cancelOrderApp($order);
+        }
+
+        $order->update(['status' => $validated['status']]);
 
         return response()->json([
             'success' => true,
@@ -258,16 +283,7 @@ class ApiOrderController extends Controller
                 }
             }
 
-            $flexBalance = Flex::firstOrCreate(['value' => 0]);
-            $flexAmount = (float) ($order->flex ?? 0);
-            $discountAmount = (float) ($order->discount ?? 0);
-
-            if ($flexAmount > 0) {
-                $flexBalance->increment('value', $flexAmount);
-            }
-            if ($discountAmount > 0) {
-                $flexBalance->decrement('value', $discountAmount);
-            }
+            FlexBalance::reverse((float) $order->flex, (float) $order->discount);
 
             // 2. Atualiza o status do pedido para 'cancelado'
             $order::where('id', $order->id)->update(['status' => '4']);
@@ -286,8 +302,8 @@ class ApiOrderController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ocorreu um erro ao cancelar o pedido.',
-            ], 500); // 500 Internal Server Error
+                'message' => $e->getMessage(),
+            ], 409);
         }
     }
 

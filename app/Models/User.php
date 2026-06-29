@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Traits\Tenantable;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,6 +16,8 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
+    public const ROLE_ROOT = 99;
+
     public const ROLE_OWNER = 1;
 
     public const ROLE_SELLER = 2;
@@ -30,6 +33,7 @@ class User extends Authenticatable
     protected $fillable = [
         'tenant_id',
         'name',
+        'avatar',
         'email',
         'telephone',
         'whatsapp',
@@ -99,5 +103,21 @@ class User extends Authenticatable
     public function canManageTeam(): bool
     {
         return $this->isSuperAdmin() || $this->isOwner();
+    }
+
+    public function canManageSellers(): bool
+    {
+        if (! $this->tenant_id || ! $this->canManageTeam()) {
+            return false;
+        }
+
+        return $this->tenant?->planModel?->account_type === Tenant::PLAN_TEAM;
+    }
+
+    protected function avatar(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => $value ? asset('storage/'.$value) : null,
+        );
     }
 }

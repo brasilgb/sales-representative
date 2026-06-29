@@ -8,12 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
-import { maskCnpj } from '@/Utils/mask';
+import { maskCnpj, maskPhone } from '@/Utils/mask';
 
 type RegisterForm = {
     cnpj: string;
     company: string;
-    plan_type: 'individual' | 'team';
+    account_type: 'individual' | 'team';
+    phone: string;
+    whatsapp: string;
     name: string;
     email: string;
     password: string;
@@ -26,7 +28,9 @@ export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
         cnpj: '',
         company: '',
-        plan_type: 'individual',
+        account_type: 'individual',
+        phone: '',
+        whatsapp: '',
         name: '',
         email: '',
         password: '',
@@ -78,24 +82,38 @@ export default function Register() {
                         </div>
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor="plan_type">Tipo de conta</Label>
-                            <select
-                                id="plan_type"
-                                tabIndex={3}
-                                value={data.plan_type}
-                                onChange={(e) => setData('plan_type', e.target.value as 'individual' | 'team')}
-                                disabled={processing}
-                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm ring-offset-background transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <option value="individual">Vendedor independente</option>
-                                <option value="team">Equipe de vendedores</option>
-                            </select>
-                            <InputError message={errors.plan_type} className="mt-2" />
+                    <div className="space-y-3">
+                        <Label>Tipo de conta</Label>
+                        <div className="grid gap-3 md:grid-cols-2">
+                            {([
+                                {
+                                    value: 'individual',
+                                    name: 'Vendedor individual',
+                                    description: 'Para quem trabalha sozinho e administra a própria carteira.',
+                                },
+                                {
+                                    value: 'team',
+                                    name: 'Equipe',
+                                    description: 'Para empresas com múltiplos vendedores e gestão de equipe.',
+                                },
+                            ] as const).map((accountType) => (
+                                <button
+                                    key={accountType.value}
+                                    type="button"
+                                    disabled={processing}
+                                    onClick={() => setData('account_type', accountType.value)}
+                                    className={`rounded-lg border p-4 text-left transition-colors ${data.account_type === accountType.value ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:border-primary/50'}`}
+                                >
+                                    <div className="font-semibold">{accountType.name}</div>
+                                    <div className="mt-1 text-sm text-muted-foreground">{accountType.description}</div>
+                                </button>
+                            ))}
                         </div>
+                        <InputError message={errors.account_type} />
+                    </div>
 
-                        <div className="grid gap-2">
+                    <div className="grid gap-6 md:grid-cols-4">
+                        <div className="grid gap-2 md:col-span-2">
                             <Label htmlFor="name">Nome completo</Label>
                             <Input
                                 id="name"
@@ -109,10 +127,8 @@ export default function Register() {
                             />
                             <InputError message={errors.name} className="mt-2" />
                         </div>
-                    </div>
 
-                    <div className="grid gap-6 md:grid-cols-2">
-                        <div className="grid gap-2">
+                        <div className="grid gap-2 md:col-span-2">
                             <Label htmlFor="email">E-mail</Label>
                             <Input
                                 id="email"
@@ -126,6 +142,38 @@ export default function Register() {
                             />
                             <InputError message={errors.email} />
                         </div>
+
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label htmlFor="phone">Telefone *</Label>
+                            <Input
+                                id="phone"
+                                type="tel"
+                                tabIndex={6}
+                                autoComplete="tel"
+                                value={maskPhone(data.phone) ?? ''}
+                                onChange={(e) => setData('phone', e.target.value.replace(/\D/g, ''))}
+                                disabled={processing}
+                                placeholder="(11) 3333-4444"
+                                maxLength={15}
+                            />
+                            <InputError message={errors.phone} />
+                        </div>
+
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label htmlFor="whatsapp">WhatsApp *</Label>
+                            <Input
+                                id="whatsapp"
+                                type="tel"
+                                tabIndex={7}
+                                autoComplete="tel"
+                                value={maskPhone(data.whatsapp) ?? ''}
+                                onChange={(e) => setData('whatsapp', e.target.value.replace(/\D/g, ''))}
+                                disabled={processing}
+                                placeholder="(11) 99999-9999"
+                                maxLength={15}
+                            />
+                            <InputError message={errors.whatsapp} />
+                        </div>
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-end">
@@ -134,7 +182,7 @@ export default function Register() {
                             <Input
                                 id="password"
                                 type={showPassword ? 'text' : 'password'}
-                                tabIndex={6}
+                                tabIndex={8}
                                 autoComplete="new-password"
                                 value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
@@ -144,7 +192,7 @@ export default function Register() {
                             <InputError message={errors.password} />
                         </div>
 
-                        <Button type="button" variant="ghost" size="icon" onClick={() => setShowPassword(!showPassword)} tabIndex={8}>
+                        <Button type="button" variant="ghost" size="icon" onClick={() => setShowPassword(!showPassword)} tabIndex={10}>
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
 
@@ -153,7 +201,7 @@ export default function Register() {
                             <Input
                                 id="password_confirmation"
                                 type={showPassword ? 'text' : 'password'}
-                                tabIndex={7}
+                                tabIndex={9}
                                 autoComplete="new-password"
                                 value={data.password_confirmation}
                                 onChange={(e) => setData('password_confirmation', e.target.value)}
@@ -164,14 +212,14 @@ export default function Register() {
                         </div>
                     </div>
 
-                    <Button type="submit" className="mt-2 w-full" tabIndex={9} disabled={processing}>
+                    <Button type="submit" className="mt-2 w-full" tabIndex={11} disabled={processing}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                         {processing ? 'Cadastrando...' : 'Cadastrar'}
                     </Button>
 
                     <div className="text-center text-sm text-muted-foreground">
                         Já tem uma conta?{' '}
-                        <TextLink href={route('login')} tabIndex={10}>
+                        <TextLink href={route('login')} tabIndex={12}>
                             Entrar
                         </TextLink>
                     </div>

@@ -49,8 +49,7 @@ class ProductController extends Controller
      */
     public function store(ProductRequest $request): RedirectResponse
     {
-        $data = $request->all();
-        $request->validated();
+        $data = $request->validated();
         $productExists = Product::where('reference', $data['reference'])->exists();
 
         if (! $productExists) {
@@ -93,7 +92,7 @@ class ProductController extends Controller
             'price' => $data['price'],
             'min_quantity' => $data['min_quantity'],
             'enabled' => $data['enabled'],
-            'observations' => $data['observations'],
+            'observations' => $data['observations'] ?? null,
         ]);
         $product->quantity = ($product->quantity ?? 0) + $data['quantity'];
         $product->save();
@@ -122,10 +121,9 @@ class ProductController extends Controller
      */
     public function update(ProductRequest $request, Product $product): RedirectResponse
     {
-        $data = $request->all();
-        $request->validated();
-        $request['quantity'] = $product->quantity;
-        $request['min_quantity'] = $product->min_quantity;
+        $data = $request->validated();
+        $data['quantity'] = $product->quantity;
+        $data['min_quantity'] = $product->min_quantity;
         $product->update($data);
 
         return redirect()->route('app.products.show', ['product' => $product->id])->with('success', 'Produto alterado com sucesso!');

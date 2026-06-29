@@ -3,8 +3,9 @@ import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, BoxIcon, BrainCircuit, CalendarDays, CogIcon, CreditCard, Folder, HandCoins, LayoutGrid, MapPinned, ShoppingCartIcon, User2Icon, UserIcon, UsersIcon } from 'lucide-react';
+import { BoxIcon, BrainCircuit, CalendarDays, CogIcon, HandCoins, LayoutGrid, MapPinned, ShoppingCartIcon, UserIcon, UsersIcon } from 'lucide-react';
 import AppLogo from './app-logo';
+import NavMainCollapsible from './nav-main-collapsible';
 
 const appNavItems: NavItem[] = [
     {
@@ -56,19 +57,7 @@ const appNavItems: NavItem[] = [
         active: 'app.commercial-conditions.*|app.commissions.*',
     },
     {
-        title: 'Configurações',
-        href: route('app.settings.index'),
-        icon: CogIcon,
-        active: 'admin.settings.*',
-    },
-    {
-        title: 'Assinatura',
-        href: route('app.subscription.index'),
-        icon: CreditCard,
-        active: 'app.subscription.*',
-    },
-    {
-        title: 'Usuário',
+        title: 'Equipe',
         href: route('app.users.index'),
         icon: UserIcon,
         active: 'app.users.*',
@@ -90,11 +79,16 @@ const footerNavItems: NavItem[] = [
 
 export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
+    const canEditOwnUser = auth.isSeller || !auth.canManageSellers;
     const featureByTitle: Record<string, string> = {
         Condições: 'commercial_conditions',
         Inteligência: 'intelligence',
     };
     const visibleNavItems = appNavItems.filter((item) => {
+        if (item.title === 'Equipe' && !auth.canManageSellers) {
+            return false;
+        }
+
         if (['Regiões', 'Condições'].includes(item.title) && !auth.canManageTeam) {
             return false;
         }
@@ -103,6 +97,40 @@ export function AppSidebar() {
 
         return !requiredFeature || auth.planFeatures?.includes(requiredFeature);
     });
+    const settingsItems = [
+        {
+            title: 'Configurações',
+            url: '#',
+            icon: CogIcon,
+            isActive: Boolean(
+                route().current('app.company.*') ||
+                    (canEditOwnUser && route().current('app.users.*')) ||
+                    route().current('app.other-settings.*') ||
+                    route().current('app.subscription.*'),
+            ),
+            items: [
+                ...(canEditOwnUser
+                    ? [
+                          {
+                              title: 'Meu usuário',
+                              url: route('app.users.edit', auth.user.id),
+                              active: 'app.users.*',
+                          },
+                      ]
+                    : []),
+                {
+                    title: 'Dados da empresa',
+                    url: route('app.company.index'),
+                    active: 'app.company.*',
+                },
+                {
+                    title: 'Outras configurações',
+                    url: route('app.other-settings.index'),
+                    active: 'app.other-settings.*|app.subscription.*',
+                },
+            ],
+        },
+    ];
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -120,6 +148,7 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={visibleNavItems} />
+                <NavMainCollapsible items={settingsItems} />
             </SidebarContent>
 
             <SidebarFooter>

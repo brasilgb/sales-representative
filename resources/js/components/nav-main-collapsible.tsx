@@ -32,6 +32,8 @@ export default function NavMainCollapsible({
     }[]
   }[]
 }) {
+  const isActive = (active?: string) => active?.split('|').some((pattern) => route().current(pattern)) ?? false
+
   return (
       <SidebarMenu>
         {items.map((item) => (
@@ -55,7 +57,7 @@ export default function NavMainCollapsible({
                     <SidebarMenuSubItem key={subItem.title}>
                       <SidebarMenuSubButton 
                         asChild
-                        isActive={route().current(subItem.active ?? '')}
+                        isActive={isActive(subItem.active)}
                       >
                         <Link href={subItem.url}>
                           <span>{subItem.title}</span>

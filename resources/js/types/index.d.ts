@@ -3,7 +3,10 @@ import type { Config } from 'ziggy-js';
 
 export interface Auth {
     user: User;
+    isSeller: boolean;
     canManageTeam: boolean;
+    canManageSellers: boolean;
+    companyLogo?: string | null;
     planFeatures: string[];
     subscriptionBlockedReason?: string | null;
 }
@@ -60,6 +63,8 @@ export interface Tenant {
     complement: string;
     number: string;
     plan: string;
+    billing_period_id: number | null;
+    trial_ends_at: Date | null;
     status: string;
     payment: boolean;
     observations: string;

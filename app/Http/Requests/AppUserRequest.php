@@ -26,7 +26,10 @@ class AppUserRequest extends FormRequest
     {
         return [
             'name' => 'required',
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'email' => ($this->getMethod() == 'POST') ? 'required|email|unique:users' : 'required|email|unique:users,email,'.$this->user->id,
+            'telephone' => ['nullable', 'string', 'max:20'],
+            'whatsapp' => ['nullable', 'string', 'max:20'],
             'roles' => 'nullable|in:1,2',
             'status' => 'nullable',
             'regions' => ['nullable', 'array'],

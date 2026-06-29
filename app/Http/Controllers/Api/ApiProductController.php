@@ -12,9 +12,10 @@ class ApiProductController extends Controller
     public function getProductsForReference(Request $request)
     {
         $product = Product::where('reference', $request->reference)->first();
+
         return response()->json([
-            "success" => true,
-            "product" => $product
+            'success' => true,
+            'product' => $product,
         ]);
     }
 
@@ -25,7 +26,13 @@ class ApiProductController extends Controller
     {
         // The TenantScope will automatically filter customers by the current tenant.
         $products = Product::get();
+
         return response()->json($products);
+    }
+
+    public function show(Product $product)
+    {
+        return response()->json($product);
     }
 
     /**
@@ -88,7 +95,7 @@ class ApiProductController extends Controller
         // 1. Encontre o produto pela referência ou crie uma NOVA INSTÂNCIA (ainda não salva no banco)
         $product = Product::firstOrNew(
             [
-                'reference' => $validated['reference']
+                'reference' => $validated['reference'],
             ]
         );
 
@@ -108,7 +115,7 @@ class ApiProductController extends Controller
             'price' => $validated['price'],
             'min_quantity' => $validated['min_quantity'],
             'enabled' => $validated['enabled'],
-            'observations' => $validated['observations']
+            'observations' => $validated['observations'],
         ]);
 
         // 3. Agora, manipule a quantidade de forma inteligente
@@ -119,11 +126,10 @@ class ApiProductController extends Controller
 
         // 4. Salve o produto (seja ele novo ou uma atualização)
         $product->save();
-        
+
         // 5. Retorne a resposta. O Eloquent sabe se o modelo foi criado agora ou não.
         return response()->json($product, $product->wasRecentlyCreated ? 201 : 200);
     }
-
 
     /**
      * Store a newly created resource in storage or update an existing one.
@@ -168,5 +174,12 @@ class ApiProductController extends Controller
         $product->update($validated);
 
         return response()->json($product);
+    }
+
+    public function destroy(Product $product)
+    {
+        $product->delete();
+
+        return response()->noContent();
     }
 }

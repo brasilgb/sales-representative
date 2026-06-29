@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TenantRequest extends FormRequest
 {
@@ -17,16 +19,20 @@ class TenantRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'company' => 'required',
-            'cnpj' => ($this->getMethod() == 'POST') ? 'required|cpf_ou_cnpj|unique:tenants' : 'required|cpf_ou_cnpj|unique:tenants,cnpj,' . $this->tenant->id,
+            'cnpj' => ($this->getMethod() == 'POST') ? 'required|cpf_ou_cnpj|unique:tenants' : 'required|cpf_ou_cnpj|unique:tenants,cnpj,'.$this->tenant->id,
             'email' => 'required',
             'phone' => 'required',
-            'plan' => 'required',
+            'plan' => ['required', Rule::exists('plans', 'id')->where(fn ($query) => $query->where('is_public', true))],
+            'billing_period_id' => [
+                'required',
+                Rule::exists('periods', 'id')->where(fn ($query) => $query->where('plan_id', $this->input('plan'))),
+            ],
             'status' => 'required',
         ];
     }
@@ -40,6 +46,7 @@ class TenantRequest extends FormRequest
             'phone' => 'e-mail',
             'status' => 'status',
             'plan' => 'plano',
+            'billing_period_id' => 'periodo de cobranca',
         ];
     }
 }

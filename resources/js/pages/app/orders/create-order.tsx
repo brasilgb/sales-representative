@@ -80,6 +80,9 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
     const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.quantity * Number(item.price), 0), [items]);
     const flexAmount = Number(data.flex || 0);
     const discountAmount = Number(data.discount || 0);
+    const availableFlex = Number(flex?.value ?? 0);
+    const resultingFlex = availableFlex + flexAmount - discountAmount;
+    const insufficientFlex = resultingFlex < 0;
     const commercialTotal = Math.max(subtotal + flexAmount - discountAmount, 0);
     const discountPercentage = subtotal > 0 ? (discountAmount / subtotal) * 100 : 0;
     const maxDiscountPercentage = Number(selectedCondition?.max_discount_percentage ?? 0);
@@ -316,19 +319,20 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                                 </div>
                             )}
 
-                            {(discountPercentage > maxDiscountPercentage || commercialTotal < minimumOrderAmount) && selectedCondition && (
+                            {((discountPercentage > maxDiscountPercentage || commercialTotal < minimumOrderAmount) && selectedCondition) || insufficientFlex ? (
                                 <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
                                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                                     <div>
-                                        {discountPercentage > maxDiscountPercentage && (
+                                        {selectedCondition && discountPercentage > maxDiscountPercentage && (
                                             <div>Desconto atual de {discountPercentage.toFixed(2)}% acima do limite permitido.</div>
                                         )}
-                                        {commercialTotal < minimumOrderAmount && (
+                                        {selectedCondition && commercialTotal < minimumOrderAmount && (
                                             <div>Total comercial abaixo do pedido mínimo desta condição.</div>
                                         )}
+                                        {insufficientFlex && <div>O desconto excede o saldo Flex disponível.</div>}
                                     </div>
                                 </div>
-                            )}
+                            ) : null}
 
                             <div className="grid gap-4 md:grid-cols-6">
                                 <div className="flex flex-col justify-center gap-1">
@@ -338,7 +342,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                                     </Badge>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="flex">Flex</Label>
+                                    <Label htmlFor="flex">Geração de Flex</Label>
                                     <Input
                                         type="text"
                                         id="flex"
@@ -373,12 +377,16 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                                     <span className="text-sm text-muted-foreground">Total comercial</span>
                                     <strong>R$ {maskMoney(commercialTotal.toFixed(2))}</strong>
                                 </div>
+                                <div className="flex flex-col justify-center gap-1">
+                                    <span className="text-sm text-muted-foreground">Saldo após o pedido</span>
+                                    <strong className={insufficientFlex ? 'text-red-600' : ''}>R$ {maskMoney(Math.max(resultingFlex, 0).toFixed(2))}</strong>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
 
                     <div className="flex justify-end">
-                        <Button type="submit" disabled={processing || items.length === 0}>
+                        <Button type="submit" disabled={processing || items.length === 0 || insufficientFlex}>
                             Finalizar pedido
                         </Button>
                     </div>

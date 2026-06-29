@@ -55,10 +55,10 @@ export function Header() {
                 </nav>
 
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" className="hidden md:inline-flex">
+                    <Button asChild variant="ghost" className="hidden md:inline-flex">
                         <Link href={route('app.dashboard')}>Entrar</Link>
                     </Button>
-                    <Button variant="default">
+                    <Button asChild variant="default">
                         <Link href={route('register')}>Começar Grátis</Link>
                     </Button>
                     {/* botao menu mobile */}
@@ -78,29 +78,32 @@ export function Header() {
             </div>
 
             {isMenuOpen && (
-                <div className="container mx-auto px-4 pb-4 md:hidden">
-                    <nav className="flex flex-col gap-4">
+                <div className="container mx-auto border-t border-border px-4 py-4 md:hidden">
+                    <nav className="flex flex-col gap-3">
                         <a
                             href="#recursos"
-                            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                            className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                             onClick={handleLinkClick}
                         >
                             Recursos
                         </a>
                         <a
                             href="#beneficios"
-                            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                            className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                             onClick={handleLinkClick}
                         >
                             Benefícios
                         </a>
                         <a
                             href="#precos"
-                            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                            className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                             onClick={handleLinkClick}
                         >
                             Preços
                         </a>
+                        <Button asChild variant="outline" className="mt-2 justify-center">
+                            <Link href={route('app.dashboard')} onClick={handleLinkClick}>Entrar</Link>
+                        </Button>
                     </nav>
                 </div>
             )}
