@@ -102,6 +102,36 @@ function isolationCondition(array $attributes = []): CommercialCondition
     ], $attributes));
 }
 
+test('visit form lists active sellers from the tenant', function () {
+    $tenant = isolationTenant('31');
+    $owner = isolationOwner($tenant, '31');
+    $activeSeller = User::withoutGlobalScopes()->create([
+        'tenant_id' => $tenant->id,
+        'name' => 'Vendedor ativo',
+        'email' => 'seller31@example.com',
+        'password' => 'password',
+        'roles' => User::ROLE_SELLER,
+        'status' => true,
+    ]);
+    User::withoutGlobalScopes()->create([
+        'tenant_id' => $tenant->id,
+        'name' => 'Vendedor inativo',
+        'email' => 'inactive31@example.com',
+        'password' => 'password',
+        'roles' => User::ROLE_SELLER,
+        'status' => false,
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('app.visits.create'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('app/visits/create-visit')
+            ->has('users', 2)
+            ->where('users.0.id', $owner->id)
+            ->where('users.1.id', $activeSeller->id));
+});
+
 test('tenant cannot read records from another tenant in web routes', function () {
     $tenantA = isolationTenant('1');
     $tenantB = isolationTenant('2');

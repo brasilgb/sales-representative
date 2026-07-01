@@ -110,7 +110,7 @@ class DashboardController extends Controller
     {
         return [
             'users' => auth()->user()->canManageTeam()
-                ? User::where('tenant_id', auth()->user()->tenant_id)->where('status', 'active')->orderBy('name')->get(['id', 'name'])
+                ? User::where('tenant_id', auth()->user()->tenant_id)->where('status', true)->orderBy('name')->get(['id', 'name'])
                 : collect([auth()->user()]),
             'regions' => auth()->user()->canManageTeam()
                 ? Region::where('status', true)->orderBy('name')->get(['id', 'name'])

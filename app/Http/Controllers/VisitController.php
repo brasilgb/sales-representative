@@ -175,7 +175,7 @@ class VisitController extends Controller
         }
 
         return User::where('tenant_id', $request->user()->tenant_id)
-            ->where('status', 'active')
+            ->where('status', true)
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
     }
