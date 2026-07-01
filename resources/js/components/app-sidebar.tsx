@@ -28,6 +28,36 @@ const appNavItems: NavItem[] = [
         active: 'app.dashboard',
     },
     {
+        title: 'Regiões',
+        href: route('app.regions.index'),
+        icon: MapPinned,
+        active: 'app.regions.*',
+    },
+    {
+        title: 'Equipe',
+        href: route('app.users.index'),
+        icon: UserIcon,
+        active: 'app.users.*',
+    },
+    {
+        title: 'Clientes',
+        href: route('app.customers.index'),
+        icon: UsersIcon,
+        active: 'app.customers.*',
+    },
+    {
+        title: 'Produtos',
+        href: route('app.products.index'),
+        icon: BoxIcon,
+        active: 'app.products.*',
+    },
+    {
+        title: 'Condições',
+        href: route('app.commercial-conditions.index'),
+        icon: HandCoins,
+        active: 'app.commercial-conditions.*|app.commissions.*',
+    },
+    {
         title: 'Pedidos',
         href: route('app.orders.index'),
         icon: ShoppingCartIcon,
@@ -40,40 +70,10 @@ const appNavItems: NavItem[] = [
         active: 'app.visits.*',
     },
     {
-        title: 'Produtos',
-        href: route('app.products.index'),
-        icon: BoxIcon,
-        active: 'app.products.*',
-    },
-    {
-        title: 'Clientes',
-        href: route('app.customers.index'),
-        icon: UsersIcon,
-        active: 'app.customers.*',
-    },
-    {
         title: 'Inteligência',
         href: route('app.intelligence.index'),
         icon: BrainCircuit,
         active: 'app.intelligence.*|app.campaigns.*',
-    },
-    {
-        title: 'Regiões',
-        href: route('app.regions.index'),
-        icon: MapPinned,
-        active: 'app.regions.*',
-    },
-    {
-        title: 'Condições',
-        href: route('app.commercial-conditions.index'),
-        icon: HandCoins,
-        active: 'app.commercial-conditions.*|app.commissions.*',
-    },
-    {
-        title: 'Equipe',
-        href: route('app.users.index'),
-        icon: UserIcon,
-        active: 'app.users.*',
     },
 ];
 

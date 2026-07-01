@@ -1,11 +1,14 @@
 import { Button } from "@/components/ui/button"
 import { BrandHorizontalLogo } from "@/components/brand-logo"
-import { Link } from "@inertiajs/react"
+import { type SharedData } from "@/types"
+import { Link, usePage } from "@inertiajs/react"
 import { Menu, X } from "lucide-react"
 import { useState } from "react"
 
 export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const { auth } = usePage<SharedData>().props
+    const dashboardRoute = auth.user?.tenant_id === null ? 'admin.dashboard' : 'app.dashboard'
 
     const handleMenuToggle = () => {
         setIsMenuOpen(!isMenuOpen)
@@ -47,12 +50,25 @@ export function Header() {
                 </nav>
 
                 <div className="flex items-center gap-4">
-                    <Button asChild variant="ghost" className="hidden md:inline-flex">
-                        <Link href={route('app.dashboard')}>Entrar</Link>
-                    </Button>
-                    <Button asChild variant="default">
-                        <Link href={route('register')}>Começar Grátis</Link>
-                    </Button>
+                    {auth.user ? (
+                        <div className="hidden items-center gap-3 md:flex">
+                            <span className="max-w-40 truncate text-sm font-medium text-foreground" title={auth.user.name}>
+                                {auth.user.name}
+                            </span>
+                            <Button asChild variant="default">
+                                <Link href={route(dashboardRoute)}>Acessar painel</Link>
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <Button asChild variant="ghost" className="hidden md:inline-flex">
+                                <Link href={route('login')}>Entrar</Link>
+                            </Button>
+                            <Button asChild variant="default">
+                                <Link href={route('register')}>Começar Grátis</Link>
+                            </Button>
+                        </>
+                    )}
                     {/* botao menu mobile */}
                     <Button
                         variant="ghost"
@@ -93,9 +109,20 @@ export function Header() {
                         >
                             Preços
                         </a>
-                        <Button asChild variant="outline" className="mt-2 justify-center">
-                            <Link href={route('app.dashboard')} onClick={handleLinkClick}>Entrar</Link>
-                        </Button>
+                        {auth.user ? (
+                            <div className="mt-2 flex flex-col gap-2 border-t border-border pt-4">
+                                <span className="truncate px-2 text-sm font-medium text-foreground" title={auth.user.name}>
+                                    {auth.user.name}
+                                </span>
+                                <Button asChild variant="default" className="justify-center">
+                                    <Link href={route(dashboardRoute)} onClick={handleLinkClick}>Acessar painel</Link>
+                                </Button>
+                            </div>
+                        ) : (
+                            <Button asChild variant="outline" className="mt-2 justify-center">
+                                <Link href={route('login')} onClick={handleLinkClick}>Entrar</Link>
+                            </Button>
+                        )}
                     </nav>
                 </div>
             )}

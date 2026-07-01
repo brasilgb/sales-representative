@@ -1,0 +1,1 @@
+import{d as a}from"./app-CBQqro1n.js";const o=typeof window<"u"?window.location.origin:"http://localhost:8000",t=a.create({baseURL:new URL("/api/",o).toString(),headers:{"Content-Type":"application/json"}}),n=a.create({baseURL:new URL("/app/",o).toString(),headers:{"Content-Type":"application/json"}});export{n as a,t as b};
