@@ -71,14 +71,13 @@ function unMask(value: string) {
     }
 }
 
-function maskMoney(value: string) {
-    if (value) {
-        var valorAlterado = value;
+function maskMoney(value: string | number | null | undefined) {
+    if (value !== null && value !== undefined && value !== '') {
+        var valorAlterado = typeof value === 'number' ? value.toFixed(2) : String(value);
         valorAlterado = valorAlterado.replace(/\D/g, ""); // Remove todos os não dígitos
         valorAlterado = valorAlterado.replace(/(\d+)(\d{2})$/, "$1,$2"); // Adiciona a parte de centavos
         valorAlterado = valorAlterado.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Adiciona pontos a cada três dígitos
-        valorAlterado = valorAlterado;
-        return value = valorAlterado;
+        return valorAlterado;
     }
 }
 

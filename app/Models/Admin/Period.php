@@ -16,6 +16,13 @@ class Period extends Model
         'price'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+        ];
+    }
+
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
