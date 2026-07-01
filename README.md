@@ -1,4 +1,6 @@
-# Laravel + React Starter Kit
+# VetorPet
+
+SaaS de vendas em campo para distribuidores e representantes de suprimentos para pet shops e clínicas veterinárias. Reúne carteira de clientes, catálogo, agenda de visitas, pedidos, condições comerciais, comissões e gestão de equipe no web e Android.
 
 ## Product Roadmap
 

@@ -4,27 +4,27 @@ import { CheckCircle2, Clock, MonitorSmartphone, Shield, Smartphone, TrendingUp,
 const benefits = [
   {
     icon: TrendingUp,
-    stat: "3x",
-    label: "Mais produtividade",
-    description: "Aumente suas vendas com processos otimizados",
+    stat: "Campo",
+    label: "Rotina organizada",
+    description: "Agenda, carteira e pedidos reunidos para o vendedor",
   },
   {
     icon: Clock,
-    stat: "5h",
-    label: "Economizadas por semana",
-    description: "Automatize tarefas repetitivas",
+    stat: "Gestão",
+    label: "Visão da equipe",
+    description: "Acompanhe regiões, vendedores e resultados no painel web",
   },
   {
     icon: Zap,
-    stat: "100%",
-    label: "Sincronizado",
-    description: "Dados sempre atualizados em tempo real",
+    stat: "Web + App",
+    label: "Dados sincronizados",
+    description: "A mesma operação disponível para gestão e vendas em campo",
   },
   {
     icon: Shield,
-    stat: "99.9%",
-    label: "Disponibilidade",
-    description: "Sistema confiável e seguro",
+    stat: "SaaS",
+    label: "Operação por empresa",
+    description: "Dados separados por conta, equipe e carteira comercial",
   },
 ]
 
@@ -71,7 +71,7 @@ export function BenefitsSection() {
               </p>
               <ul className="space-y-3">
                 {[
-                  "Cadastre clientes e produtos em qualquer dispositivo",
+                  "Administre clientes e catálogo pelo painel web",
                   "Crie pedidos rapidamente no celular durante visitas",
                   "Gere relatórios completos na versão web",
                 ].map((item) => (

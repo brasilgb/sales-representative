@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Manual de uso do VetorPet para gestores, administradores e vendedores.">
+    <title>Manual do Usuário — VetorPet</title>
+    <style>
+        :root { --bg:#eaf1f8; --paper:#fff; --ink:#142033; --muted:#607089; --line:#d9e2ee; --brand:#0b8fc5; --brand-dark:#153d69; --brand-soft:#e0f5fd; --accent:#17b88a; --nav:#0b1220; --shadow:0 18px 55px rgba(15,34,58,.13); }
+        * { box-sizing:border-box; }
+        html { scroll-behavior:smooth; }
+        body { margin:0; color:var(--ink); background:radial-gradient(circle at 90% 0,rgba(34,184,240,.15),transparent 30%),linear-gradient(180deg,#f5f9fd,var(--bg)); font-family:Inter,"Segoe UI",sans-serif; }
+        button,input { font:inherit; }
+        a { color:var(--brand); }
+        .layout { display:grid; grid-template-columns:320px minmax(0,1fr); min-height:100vh; }
+        .sidebar { position:sticky; top:0; height:100vh; overflow:auto; padding:26px 22px 38px; color:#fff; background:linear-gradient(180deg,rgba(21,61,105,.75),transparent 40%),var(--nav); }
+        .brand { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+        .brand img { width:46px; height:46px; object-fit:contain; }
+        .brand-name { font-size:1.45rem; font-weight:850; letter-spacing:-.02em; }
+        .brand-name span { color:#22b8f0; }
+        .sidebar-intro { margin:0 0 18px; color:rgba(255,255,255,.68); font-size:.9rem; line-height:1.55; }
+        .meta,.search { margin-bottom:16px; padding:14px; border:1px solid rgba(255,255,255,.13); border-radius:14px; background:rgba(255,255,255,.055); }
+        .meta { font-size:.82rem; line-height:1.6; color:rgba(255,255,255,.7); }
+        .meta strong { color:#fff; }
+        .search label { display:block; margin-bottom:8px; font-size:.82rem; font-weight:800; }
+        .search input { width:100%; min-height:43px; padding:0 11px; color:#fff; border:1px solid rgba(255,255,255,.18); border-radius:10px; outline:none; background:rgba(255,255,255,.09); }
+        .search input:focus { border-color:#5dd4ff; box-shadow:0 0 0 3px rgba(34,184,240,.18); }
+        .search input::placeholder { color:rgba(255,255,255,.48); }
+        .search-status { min-height:20px; margin-top:8px; color:rgba(255,255,255,.68); font-size:.76rem; }
+        .search-actions { display:flex; gap:7px; margin-top:8px; }
+        .search-actions button { flex:1; min-height:35px; color:#fff; border:1px solid rgba(255,255,255,.14); border-radius:9px; cursor:pointer; background:rgba(255,255,255,.08); }
+        .search-actions button:disabled { opacity:.4; cursor:not-allowed; }
+        .toc-title { margin:20px 10px 8px; color:rgba(255,255,255,.48); font-size:.7rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+        .toc { display:grid; gap:3px; }
+        .toc a { padding:9px 11px; color:rgba(255,255,255,.74); border-left:3px solid transparent; border-radius:0 9px 9px 0; text-decoration:none; font-size:.84rem; line-height:1.3; transition:.2s; }
+        .toc a:hover,.toc a.active { color:#fff; border-left-color:#22b8f0; background:rgba(34,184,240,.12); }
+        .mobile-toggle { display:none; position:fixed; z-index:30; top:14px; left:14px; min-height:44px; padding:0 14px; color:#fff; border:1px solid rgba(255,255,255,.2); border-radius:10px; background:var(--nav); box-shadow:0 8px 24px rgba(0,0,0,.25); }
+        .main { min-width:0; padding:42px 34px 80px; }
+        .paper { max-width:1050px; margin:auto; padding:42px; border:1px solid var(--line); border-radius:25px; background:var(--paper); box-shadow:var(--shadow); }
+        .hero { padding:30px; border:1px solid #cce3ef; border-radius:21px; background:linear-gradient(135deg,var(--brand-soft),#f8fffd); }
+        .eyebrow { margin:0 0 9px; color:var(--brand); font-size:.75rem; font-weight:850; letter-spacing:.12em; text-transform:uppercase; }
+        .hero h1 { margin:0 0 12px; color:var(--brand-dark); font-size:clamp(2rem,5vw,3.25rem); line-height:1.05; letter-spacing:-.04em; }
+        .hero p { max-width:760px; margin:0; color:var(--muted); font-size:1.02rem; line-height:1.7; }
+        .quick-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px; }
+        .quick { padding:15px; border:1px solid var(--line); border-radius:13px; background:#fff; }
+        .quick strong { display:block; margin-bottom:4px; color:var(--brand-dark); font-size:.88rem; }
+        .quick span { color:var(--muted); font-size:.78rem; line-height:1.45; }
+        section { scroll-margin-top:26px; padding-top:40px; }
+        section + section { margin-top:34px; border-top:1px solid var(--line); }
+        section h2 { margin:0 0 16px; color:var(--brand-dark); font-size:1.65rem; letter-spacing:-.025em; }
+        section h3 { margin:25px 0 9px; color:var(--ink); font-size:1.08rem; }
+        section p,section li { color:#4f6077; line-height:1.75; }
+        section ul,section ol { padding-left:24px; }
+        section li + li { margin-top:6px; }
+        .steps { list-style:none; padding:0; counter-reset:step; }
+        .steps li { position:relative; min-height:42px; padding-left:48px; counter-increment:step; }
+        .steps li::before { content:counter(step); position:absolute; left:0; top:1px; display:grid; width:30px; height:30px; place-items:center; color:#fff; border-radius:9px; background:var(--brand); font-weight:850; }
+        .callout { margin:18px 0; padding:15px 17px; border-left:4px solid var(--brand); border-radius:0 12px 12px 0; background:var(--brand-soft); color:#36546b; line-height:1.65; }
+        .callout.success { border-left-color:var(--accent); background:#e7faf4; }
+        .role-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+        .role { padding:17px; border:1px solid var(--line); border-radius:14px; background:#f9fbfd; }
+        .role strong { color:var(--brand-dark); }
+        .role p { margin:7px 0 0; font-size:.88rem; line-height:1.55; }
+        kbd { padding:2px 7px; color:#fff; border-radius:5px; background:var(--nav); font-size:.78rem; }
+        mark.search-hit { padding:0 .08em; color:#152235; border-radius:3px; background:#ffe082; }
+        mark.search-hit.active { background:#ffad32; outline:2px solid rgba(255,173,50,.3); }
+        .top-actions { display:flex; justify-content:flex-end; gap:9px; margin-bottom:16px; }
+        .top-actions a,.top-actions button { min-height:40px; padding:0 13px; color:var(--brand-dark); border:1px solid var(--line); border-radius:9px; cursor:pointer; background:#fff; text-decoration:none; }
+        footer { margin-top:45px; padding-top:24px; color:var(--muted); border-top:1px solid var(--line); font-size:.85rem; text-align:center; }
+        @media (max-width:900px) { .layout{display:block}.sidebar{position:fixed;z-index:25;left:0;transform:translateX(-105%);width:min(88vw,340px);transition:transform .25s}.sidebar.open{transform:none}.mobile-toggle{display:block}.main{padding:72px 14px 45px}.paper{padding:24px 18px;border-radius:18px}.quick-grid,.role-grid{grid-template-columns:1fr}.top-actions{flex-wrap:wrap}.hero{padding:23px 19px} }
+        @media print { .sidebar,.mobile-toggle,.top-actions{display:none!important}.layout{display:block}.main,.paper{padding:0}.paper{border:0;box-shadow:none}section{break-inside:avoid}body{background:#fff} }
+    </style>
+</head>
+<body>
+<button class="mobile-toggle" id="menuButton" aria-controls="sidebar" aria-expanded="false">☰ Índice</button>
+<div class="layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand"><img src="/images/logo.png" alt=""><div class="brand-name">Vetor<span>Pet</span></div></div>
+        <p class="sidebar-intro">Manual operacional para distribuidores, gestores e vendedores de suprimentos pet.</p>
+        <div class="meta"><div><strong>Versão do manual</strong>30 de junho de 2026</div><div><strong>Canais</strong>Painel web e aplicativo Android</div></div>
+        <div class="search">
+            <label for="manualSearch">Pesquisar no manual</label>
+            <input id="manualSearch" type="search" placeholder="Ex.: pedido, visita, comissão" autocomplete="off">
+            <div class="search-status" id="searchStatus">Digite ao menos 2 caracteres.</div>
+            <div class="search-actions"><button id="previousHit" disabled>Anterior</button><button id="nextHit" disabled>Próximo</button></div>
+        </div>
+        <div class="toc-title">Índice</div>
+        <nav class="toc" id="toc" aria-label="Índice do manual">
+            <a href="#visao-geral">1. Visão geral</a><a href="#acesso-perfis">2. Acesso e perfis</a><a href="#primeiros-passos">3. Primeiros passos</a>
+            <a href="#clientes">4. Clientes</a><a href="#produtos">5. Produtos</a><a href="#regioes">6. Regiões</a><a href="#condicoes">7. Condições comerciais</a>
+            <a href="#equipe">8. Equipe de vendas</a><a href="#visitas">9. Agenda de visitas</a><a href="#pedidos">10. Pedidos</a>
+            <a href="#inteligencia">11. Campanhas e inteligência</a><a href="#comissoes">12. Comissões</a><a href="#dashboard">13. Dashboard e relatórios</a>
+            <a href="#aplicativo">14. Aplicativo Android</a><a href="#assinatura">15. Assinatura</a><a href="#seguranca">16. Segurança</a><a href="#problemas">17. Solução de problemas</a>
+        </nav>
+    </aside>
+    <main class="main">
+        <div class="top-actions"><a href="/">Voltar ao site</a><button type="button" onclick="window.print()">Imprimir / salvar PDF</button></div>
+        <article class="paper" id="manualContent">
+            <header class="hero">
+                <p class="eyebrow">Central de ajuda</p><h1>Manual do VetorPet</h1>
+                <p>Aprenda a preparar a operação no painel web e a executar vendas em campo pelo aplicativo. Use o índice ou pesquise uma palavra para ir direto ao assunto.</p>
+                <div class="quick-grid"><div class="quick"><strong>Administrador</strong><span>Configura empresa, equipe, carteira, catálogo e regras comerciais.</span></div><div class="quick"><strong>Vendedor</strong><span>Consulta agenda e produtos, seleciona clientes e registra pedidos.</span></div><div class="quick"><strong>Operação individual</strong><span>Uma pessoa administra o painel e também vende pelo aplicativo.</span></div></div>
+            </header>
+
+            <section id="visao-geral"><h2>1. Visão geral</h2><p>O VetorPet organiza a venda de suprimentos para pet shops e clínicas veterinárias. O sistema é dividido em dois ambientes complementares:</p><ul><li><strong>Painel web:</strong> administração de clientes, produtos, regiões, equipe, condições comerciais, campanhas e relatórios.</li><li><strong>Aplicativo Android:</strong> operação do vendedor, com agenda, consulta de produtos e emissão de pedidos.</li></ul><div class="callout success"><strong>Regra prática:</strong> prepare os dados no painel; execute a visita e a venda no aplicativo.</div></section>
+
+            <section id="acesso-perfis"><h2>2. Acesso e perfis</h2><div class="role-grid"><div class="role"><strong>Administrador da equipe</strong><p>Cadastra e mantém os dados da operação, acompanha resultados e gerencia usuários.</p></div><div class="role"><strong>Vendedor de equipe</strong><p>Usa os dados preparados pelo administrador e atua principalmente no aplicativo.</p></div><div class="role"><strong>Vendedor individual</strong><p>Administra seus próprios cadastros no painel web e usa o app durante as vendas.</p></div></div><h3>Entrar</h3><ol class="steps"><li>Acesse o endereço do VetorPet ou abra o aplicativo.</li><li>Informe o e-mail e a senha cadastrados.</li><li>Use <strong>Esqueci minha senha</strong> caso não consiga acessar.</li></ol><p>Não compartilhe credenciais. Cada integrante da equipe deve usar sua própria conta.</p></section>
+
+            <section id="primeiros-passos"><h2>3. Primeiros passos</h2><p>Antes de liberar o aplicativo aos vendedores, recomendamos esta ordem:</p><ol class="steps"><li>Revise os dados da empresa.</li><li>Cadastre regiões e vendedores.</li><li>Importe ou cadastre clientes e produtos.</li><li>Configure condições comerciais e comissões.</li><li>Associe clientes à região e ao vendedor responsável.</li><li>Programe as primeiras visitas.</li><li>Peça ao vendedor para entrar no aplicativo e atualizar os dados.</li></ol></section>
+
+            <section id="clientes"><h2>4. Clientes</h2><p>Clientes representam os pet shops, clínicas e demais compradores atendidos pela operação.</p><h3>Cadastrar no painel</h3><ol class="steps"><li>Abra <strong>Clientes</strong> e escolha <strong>Novo cliente</strong>.</li><li>Informe identificação, CNPJ, contato e endereço.</li><li>Defina região, vendedor e condição comercial quando aplicável.</li><li>Salve e confirme se o cliente aparece na carteira correta.</li></ol><div class="callout">No aplicativo não existe cadastro independente de clientes. O vendedor busca e seleciona um cliente já cadastrado ao iniciar um pedido.</div></section>
+
+            <section id="produtos"><h2>5. Produtos</h2><p>O catálogo pode reunir rações, petiscos, medicamentos, higiene, acessórios e outros suprimentos.</p><h3>Informações importantes</h3><ul><li>Nome e referência para facilitar a busca.</li><li>Marca e categoria para organização e campanhas.</li><li>Preço-base usado nas regras comerciais.</li><li>Quantidade e estoque de referência.</li><li>Status ativo para disponibilizar o item na operação.</li></ul><p>O aplicativo oferece apenas consulta ao catálogo e seleção do produto dentro do pedido. Inclusões e alterações são feitas no painel web.</p></section>
+
+            <section id="regioes"><h2>6. Regiões</h2><p>Regiões organizam a cobertura comercial e ajudam a distribuir clientes, vendedores, visitas e campanhas. Cadastre nomes claros, como cidade, rota ou zona de atendimento, e desative regiões que não são mais utilizadas.</p></section>
+
+            <section id="condicoes"><h2>7. Condições comerciais</h2><p>As condições comerciais controlam como os valores são aplicados ao cliente. Elas podem definir ajuste de preço, prazo de pagamento, limites e regras relacionadas à comissão.</p><ol class="steps"><li>Crie a condição no painel.</li><li>Revise percentuais e limites.</li><li>Associe a condição aos clientes correspondentes.</li><li>Faça um pedido de teste antes de liberar a equipe.</li></ol><div class="callout"><strong>Importante:</strong> o servidor recalcula e valida os valores do pedido. O valor exibido no aplicativo não substitui essa validação.</div></section>
+
+            <section id="equipe"><h2>8. Equipe de vendas</h2><p>No formato de equipe, o administrador cria os usuários e mantém a estrutura comercial. O vendedor não precisa cadastrar clientes ou produtos no aplicativo.</p><ul><li>Use um e-mail individual por vendedor.</li><li>Associe corretamente regiões e carteiras.</li><li>Desative o acesso de quem saiu da equipe.</li><li>Revise as permissões antes de entregar as credenciais.</li></ul></section>
+
+            <section id="visitas"><h2>9. Agenda de visitas</h2><p>As visitas são planejadas no painel web e executadas pelo vendedor no aplicativo.</p><h3>No painel web</h3><ol class="steps"><li>Abra <strong>Visitas</strong> e programe data, horário, cliente e vendedor.</li><li>Adicione observações úteis para o atendimento.</li><li>Confirme se a visita aparece na data esperada.</li></ol><h3>No aplicativo</h3><ol class="steps"><li>Abra a aba <strong>Agenda</strong>.</li><li>Navegue entre os dias pelas setas.</li><li>Toque em check-in ao iniciar e check-out ao concluir a visita.</li></ol><p>O registro de localização depende da permissão do aparelho e deve ser utilizado de forma compatível com as regras da empresa e a legislação aplicável.</p></section>
+
+            <section id="pedidos"><h2>10. Pedidos</h2><h3>Registrar pelo aplicativo</h3><ol class="steps"><li>Abra a aba <strong>Pedidos</strong>.</li><li>Toque no botão azul <strong>Adicionar pedido</strong>.</li><li>Toque em <strong>Selecionar cliente</strong> e pesquise por nome ou CNPJ.</li><li>Selecione um produto, informe a quantidade e toque em <strong>Adicionar ao pedido</strong>.</li><li>Repita para os demais itens.</li><li>Revise resumo, flex e desconto.</li><li>Toque em <strong>Finalizar pedido</strong> e aguarde a confirmação.</li></ol><h3>Acompanhar pedidos</h3><p>A lista permite buscar por número ou cliente, consultar detalhes e visualizar o status. Alterações de status devem refletir o processo real da operação.</p><div class="callout success">Só considere o pedido enviado depois de visualizar a mensagem de sucesso. Em falha de rede, confira a lista antes de tentar novamente.</div></section>
+
+            <section id="inteligencia"><h2>11. Campanhas e inteligência</h2><p>Campanhas ajudam o gestor a registrar objetivos por período e direcionar esforços por produto, marca, categoria ou região. A área de inteligência consolida dados comerciais para identificar clientes, produtos e oportunidades que merecem atenção.</p></section>
+
+            <section id="comissoes"><h2>12. Comissões</h2><p>Configure percentuais e regras no painel antes do início do período comercial. A comissão é calculada a partir dos pedidos e das condições válidas. Sempre revise cancelamentos, descontos e regras internas antes de fechar o resultado do vendedor.</p></section>
+
+            <section id="dashboard"><h2>13. Dashboard e relatórios</h2><p>O dashboard oferece uma visão rápida da operação. Use os relatórios para aprofundar a análise por período, vendedor, cliente, produto e pedido.</p><ul><li>Compare períodos equivalentes.</li><li>Confira filtros antes de interpretar totais.</li><li>Investigue pedidos cancelados ou fora do padrão.</li><li>Exporte ou imprima documentos quando necessário.</li></ul></section>
+
+            <section id="aplicativo"><h2>14. Aplicativo Android</h2><p>O app foi desenhado como ferramenta operacional de vendas. Sua navegação principal possui:</p><ul><li><strong>Início:</strong> resumo da atividade e pedidos recentes.</li><li><strong>Pedidos:</strong> consulta e registro de vendas.</li><li><strong>Agenda:</strong> execução das visitas programadas.</li><li><strong>Produtos:</strong> consulta ao catálogo.</li></ul><h3>Atualizar informações</h3><p>Use o gesto de puxar a lista para baixo quando disponível. O aparelho precisa alcançar a API da empresa pela internet ou rede configurada.</p><h3>Permissões</h3><p>Autorize localização quando ela for necessária ao check-in. O aplicativo não deve ser usado para cadastros administrativos da equipe.</p></section>
+
+            <section id="assinatura"><h2>15. Assinatura</h2><p>O acesso aos recursos depende do plano e da situação da assinatura. O painel informa período de avaliação, vencimento e opções disponíveis. Pagamentos processados por terceiros podem levar alguns instantes para serem confirmados.</p></section>
+
+            <section id="seguranca"><h2>16. Segurança e privacidade</h2><ul><li>Use senhas exclusivas e não compartilhe contas.</li><li>Mantenha o Android e o aplicativo atualizados.</li><li>Bloqueie a tela do aparelho usado em campo.</li><li>Cadastre somente dados necessários à relação comercial.</li><li>Revogue rapidamente o acesso de usuários desligados.</li></ul><p>Consulte também a <a href="/privacidade">Política de Privacidade</a> e os <a href="/termos">Termos de Uso</a>.</p></section>
+
+            <section id="problemas"><h2>17. Solução de problemas</h2><h3>Não consigo entrar</h3><p>Confira e-mail, senha e conexão. Use a recuperação de senha. Se a conta estiver inativa ou a assinatura vencida, procure o administrador.</p><h3>Cliente ou produto não aparece</h3><p>Confirme no painel se o cadastro está ativo e associado corretamente. Atualize a lista no aplicativo e tente novamente.</p><h3>Pedido não foi enviado</h3><p>Verifique internet, itens, cliente, limites e condições comerciais. Não repita o envio sem conferir a lista de pedidos.</p><h3>Visita não aparece</h3><p>Confira data, vendedor responsável e status no painel. Navegue até o dia correto no aplicativo.</p><h3>O teclado cobre um campo</h3><p>Role a tela enquanto o teclado estiver aberto. Se necessário, feche e reabra a tela após atualizar o aplicativo.</p><div class="callout">Ao pedir suporte, informe usuário, horário, tela, ação realizada e mensagem apresentada. Não envie sua senha.</div></section>
+
+            <footer>VetorPet — vendas de suprimentos para pet shops e clínicas • contato@vetorpet.com.br</footer>
+        </article>
+    </main>
+</div>
+<script>
+(() => {
+    const sidebar = document.getElementById('sidebar');
+    const menuButton = document.getElementById('menuButton');
+    const input = document.getElementById('manualSearch');
+    const content = document.getElementById('manualContent');
+    const status = document.getElementById('searchStatus');
+    const previous = document.getElementById('previousHit');
+    const next = document.getElementById('nextHit');
+    const links = [...document.querySelectorAll('.toc a')];
+    let hits = [], active = -1;
+
+    menuButton.addEventListener('click', () => {
+        const open = sidebar.classList.toggle('open');
+        menuButton.setAttribute('aria-expanded', String(open));
+    });
+    links.forEach(link => link.addEventListener('click', () => sidebar.classList.remove('open')));
+
+    const clearHits = () => {
+        content.querySelectorAll('mark.search-hit').forEach(mark => mark.replaceWith(document.createTextNode(mark.textContent)));
+        content.normalize(); hits = []; active = -1; previous.disabled = next.disabled = true;
+    };
+    const selectHit = index => {
+        if (!hits.length) return;
+        hits.forEach(hit => hit.classList.remove('active'));
+        active = (index + hits.length) % hits.length;
+        hits[active].classList.add('active');
+        hits[active].scrollIntoView({ behavior:'smooth', block:'center' });
+        status.textContent = `${active + 1} de ${hits.length} resultado(s)`;
+    };
+    const search = () => {
+        clearHits();
+        const query = input.value.trim();
+        if (query.length < 2) { status.textContent = 'Digite ao menos 2 caracteres.'; return; }
+        const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escaped, 'gi');
+        const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, { acceptNode: node => node.parentElement.closest('script,style,mark') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+        const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(node => {
+            const text = node.nodeValue; if (!regex.test(text)) { regex.lastIndex = 0; return; } regex.lastIndex = 0;
+            const fragment = document.createDocumentFragment(); let last = 0;
+            text.replace(regex, (match, offset) => { fragment.append(text.slice(last, offset)); const mark = document.createElement('mark'); mark.className = 'search-hit'; mark.textContent = match; fragment.append(mark); last = offset + match.length; return match; });
+            fragment.append(text.slice(last)); node.replaceWith(fragment);
+        });
+        hits = [...content.querySelectorAll('mark.search-hit')]; previous.disabled = next.disabled = !hits.length;
+        if (hits.length) selectHit(0); else status.textContent = 'Nenhum resultado encontrado.';
+    };
+    input.addEventListener('input', search);
+    input.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); selectHit(active + (event.shiftKey ? -1 : 1)); } });
+    previous.addEventListener('click', () => selectHit(active - 1)); next.addEventListener('click', () => selectHit(active + 1));
+
+    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        links.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${entry.target.id}`));
+    }), { rootMargin:'-15% 0px -70% 0px' });
+    document.querySelectorAll('section[id]').forEach(section => observer.observe(section));
+})();
+</script>
+</body>
+</html>

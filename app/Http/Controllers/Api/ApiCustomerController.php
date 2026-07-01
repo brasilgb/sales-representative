@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CommercialCondition;
 use App\Models\Customer;
 use App\Models\Region;
 use Illuminate\Http\Request;
@@ -16,7 +17,11 @@ class ApiCustomerController extends Controller
     public function index()
     {
         // The TenantScope will automatically filter customers by the current tenant.
-        $customers = Customer::visibleTo()->with('region')->get();
+        $customers = Customer::visibleTo()->with('region')->get()
+            ->each(fn (Customer $customer) => $customer->setAttribute(
+                'commercial_condition',
+                CommercialCondition::resolveForCustomer($customer)
+            ));
 
         return response()->json($customers);
     }
@@ -26,6 +31,8 @@ class ApiCustomerController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorizeCatalogManagement($request);
+
         $customerId = $request->input('id');
         $tenantId = auth()->user()->tenant_id;
 
@@ -89,6 +96,7 @@ class ApiCustomerController extends Controller
     public function show(Customer $customer)
     {
         $this->authorizeVisibleCustomer($customer);
+        $customer->setAttribute('commercial_condition', CommercialCondition::resolveForCustomer($customer));
 
         // The TenantScope already ensures that the customer belongs to the correct tenant
         // because of the route model binding. If it doesn't, a 404 will be thrown.
@@ -100,6 +108,7 @@ class ApiCustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
+        $this->authorizeCatalogManagement($request);
         $this->authorizeVisibleCustomer($customer);
 
         // The TenantScope ensures this customer belongs to the current tenant.
@@ -153,8 +162,9 @@ class ApiCustomerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Customer $customer)
+    public function destroy(Request $request, Customer $customer)
     {
+        $this->authorizeCatalogManagement($request);
         $this->authorizeVisibleCustomer($customer);
 
         // The TenantScope ensures this customer belongs to the current tenant.
@@ -166,6 +176,11 @@ class ApiCustomerController extends Controller
     private function authorizeVisibleCustomer(Customer $customer): void
     {
         abort_unless(Customer::visibleTo()->whereKey($customer->id)->exists(), 404);
+    }
+
+    private function authorizeCatalogManagement(Request $request): void
+    {
+        abort_unless($request->user()?->canManageCatalog(), 403, 'Os cadastros da equipe são gerenciados pelo administrador.');
     }
 
     private function resolveRegionId(Request $request, ?int $regionId): ?int

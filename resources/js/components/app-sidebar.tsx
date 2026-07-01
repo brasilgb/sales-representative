@@ -3,7 +3,20 @@ import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BoxIcon, BrainCircuit, CalendarDays, CogIcon, HandCoins, LayoutGrid, MapPinned, ShoppingCartIcon, UserIcon, UsersIcon } from 'lucide-react';
+import {
+    BookOpenText,
+    BoxIcon,
+    BrainCircuit,
+    CalendarDays,
+    CogIcon,
+    HandCoins,
+    LayoutGrid,
+    MapPinned,
+    MessageSquareMore,
+    ShoppingCartIcon,
+    UserIcon,
+    UsersIcon,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 import NavMainCollapsible from './nav-main-collapsible';
 
@@ -65,16 +78,18 @@ const appNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
-    // {
-    //     title: 'Repository',
-    //     href: 'https://github.com/laravel/react-starter-kit',
-    //     icon: Folder,
-    // },
-    // {
-    //     title: 'Documentation',
-    //     href: 'https://laravel.com/docs/starter-kits#react',
-    //     icon: BookOpen,
-    // },
+    {
+        title: 'Documentação',
+        href: '/documentation/manual-vetorpet.html',
+        icon: BookOpenText,
+        external: true,
+    },
+    {
+        title: 'Ajustes/Avaliações',
+        href: route('app.feedback.index'),
+        icon: MessageSquareMore,
+        active: 'app.feedback.*',
+    },
 ];
 
 export function AppSidebar() {
@@ -106,6 +121,7 @@ export function AppSidebar() {
                 route().current('app.company.*') ||
                     (canEditOwnUser && route().current('app.users.*')) ||
                     route().current('app.other-settings.*') ||
+                    route().current('app.auxiliary-apps.*') ||
                     route().current('app.subscription.*'),
             ),
             items: [
@@ -122,6 +138,11 @@ export function AppSidebar() {
                     title: 'Dados da empresa',
                     url: route('app.company.index'),
                     active: 'app.company.*',
+                },
+                {
+                    title: 'Aplicativos auxiliares',
+                    url: route('app.auxiliary-apps.index'),
+                    active: 'app.auxiliary-apps.*',
                 },
                 {
                     title: 'Outras configurações',

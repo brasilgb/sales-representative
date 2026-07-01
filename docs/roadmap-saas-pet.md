@@ -1,8 +1,8 @@
-# Roadmap SaaS Pet B2B
+# Roadmap VetorPet — SaaS Pet B2B
 
 Este documento orienta a evolucao do sistema para um SaaS de forca de vendas B2B para vendedores de alimentos, insumos e produtos para caes e gatos. O publico principal sao vendedores solos e equipes comerciais que visitam petshops, lojas veterinarias, agropecuarias, banho e tosa e estabelecimentos similares.
 
-Ultima revisao: 29/06/2026.
+Ultima revisao: 30/06/2026.
 
 ## Situacao Atual
 
@@ -17,7 +17,7 @@ Resumo:
 - Etapa 1 - Fundacao SaaS e dominio pet: parcial.
 - Etapa 2 - Catalogo e pedidos B2B: parcial.
 - Etapa 3 - Carteira, regioes e equipe: implementado.
-- Etapa 4 - Agenda, visitas e roteirizacao: implementado.
+- Etapa 4 - Agenda e visitas: implementado no web e no aplicativo.
 - Etapa 5 - Condicoes comerciais, descontos e comissoes: parcial.
 - Etapa 6 - Inteligencia comercial e recompra: parcial.
 - Etapa 7 - Dashboards e relatorios: parcial.
@@ -128,7 +128,7 @@ Criterios de aceite:
 - Um vendedor ve sua propria carteira quando nao tem permissao gerencial.
 - Um vendedor solo consegue usar o sistema sem precisar configurar equipe.
 
-## Etapa 4 - Agenda, Visitas E Roteirizacao
+## Etapa 4 - Agenda E Visitas
 
 Objetivo: registrar o trabalho de campo e melhorar cobertura da carteira.
 
@@ -139,6 +139,8 @@ Status atual:
 - Visita registra resultado, motivo sem venda, proxima visita e observacoes.
 - Agenda lista clientes sem visita recente por janela configuravel.
 - Perfil do cliente mostra historico de visitas e ultimos pedidos.
+- O aplicativo Android permite agendar, consultar e registrar check-in/check-out.
+- Otimizacao automatica de trajetos e mapas ficam fora do MVP.
 
 Escopo:
 - Criar agenda de visitas.
@@ -295,7 +297,8 @@ Criterios de aceite:
 
 - [ ] Auditar o isolamento multi-tenant em controllers, relacionamentos, rotas e API. Em andamento: clientes, produtos e pedidos revisados.
 - [x] Criar testes de Feature para isolamento entre tenants usando o banco MySQL exclusivo de testes.
-- [ ] Criar testes de Feature para clientes, produtos, pedidos, visitas e permissoes.
+- [x] Criar testes de Feature para os fluxos API de pedidos, visitas e permissoes do catalogo.
+- [ ] Ampliar os testes de Feature para os demais fluxos web de clientes e produtos.
 - [ ] Criar testes para permissoes por tipo de plano, trial e bloqueio de assinatura.
 - [ ] Padronizar autorizacao por policies ou gates, reduzindo verificacoes dispersas nos controllers.
 - [ ] Criar factories e seeds com dados realistas do mercado pet.
@@ -335,8 +338,9 @@ Prioridade 3 - Operacao piloto:
 - Revisar as telas de pedido, cliente, agenda e check-in em dispositivos moveis.
 - Documentar configuracao inicial e roteiro de homologacao.
 
-Prioridade 4 - Fechamento das lacunas do MVP:
-- Implementar metas comerciais.
+Prioridade 4 - Evolucao apos o MVP:
+- Implementar metas comerciais por vendedor e periodo.
+- Avaliar mapas e otimizacao automatica de trajetos.
 - Concluir compartilhamento de pedido.
 - Decidir o escopo de estoque e integracoes antes de expandir o dominio.
 

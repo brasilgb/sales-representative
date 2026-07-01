@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuxiliaryAppController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CommercialConditionController;
 use App\Http\Controllers\CompanyController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\SalesIntelligenceController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\TenantFeedbackEntryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VisitController;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +27,9 @@ Route::get('/subscription/payments/{paymentId}', [PaymentController::class, 'sta
 Route::get('/company', [CompanyController::class, 'index'])->name('company.index');
 Route::patch('/company', [CompanyController::class, 'update'])->name('company.update');
 Route::get('/other-settings', [OtherSettingController::class, 'index'])->name('other-settings.index');
+Route::get('/auxiliary-apps', [AuxiliaryAppController::class, 'index'])->name('auxiliary-apps.index');
+Route::get('/feedback', [TenantFeedbackEntryController::class, 'index'])->name('feedback.index');
+Route::post('/feedback', [TenantFeedbackEntryController::class, 'store'])->name('feedback.store');
 Route::resource('/customers', CustomerController::class);
 Route::resource('/regions', RegionController::class);
 Route::resource('/visits', VisitController::class);

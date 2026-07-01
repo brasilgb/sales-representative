@@ -27,6 +27,7 @@ export interface NavItem {
     icon?: LucideIcon | null;
     active?: string;
     enabled?: string;
+    external?: boolean;
 }
 
 export interface SharedData {
@@ -69,4 +70,4 @@ export interface Tenant {
     payment: boolean;
     observations: string;
     expiration_date: Date;
-} 
+}

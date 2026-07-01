@@ -7,6 +7,7 @@ use App\Models\Admin\Period;
 use App\Models\Admin\Plan;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\PlanLimits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -123,12 +124,6 @@ class ApiAuthController extends BaseController
             return [$tenant, $user];
         });
 
-        $success['token'] = $user->createToken($request->device_name)->plainTextToken;
-        $success['name'] = $user->name;
-        $success['cnpj'] = $tenant->cnpj;
-        $success['company'] = $tenant->company;
-
-        // return $this->sendResponse($success, 'Usuário registrado com sucesso.');
         return response()->json([
             'token' => $user->createToken($request->device_name)->plainTextToken,
         ]);
@@ -167,6 +162,17 @@ class ApiAuthController extends BaseController
             ]);
         }
 
+        if (! (bool) $user->status) {
+            throw ValidationException::withMessages([
+                'email' => ['Usuário inativo. Procure o administrador da equipe.'],
+            ]);
+        }
+
+        abort_unless($user->tenant_id, 403, 'Este usuário não possui acesso ao aplicativo de vendas.');
+
+        $blockedReason = PlanLimits::forTenant($user->tenant)->subscriptionBlockedReason();
+        abort_if($blockedReason, 402, $blockedReason.'. Regularize a assinatura para continuar.');
+
         return response()->json([
             'token' => $user->createToken($request->device_name)->plainTextToken,
         ]);
@@ -174,7 +180,16 @@ class ApiAuthController extends BaseController
 
     public function getUser(Request $request)
     {
-        return $request->user();
+        $user = $request->user()->loadMissing('tenant.planModel');
+
+        $accountType = $user->tenant?->planModel?->account_type ?? $user->tenant?->plan_type;
+        $canManageCatalog = $user->canManageCatalog();
+
+        $user->unsetRelation('tenant');
+        $user->setAttribute('account_type', $accountType);
+        $user->setAttribute('can_manage_catalog', $canManageCatalog);
+
+        return response()->json($user);
     }
 
     public function logOut(Request $request)

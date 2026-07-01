@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CommercialCondition;
 use App\Models\Customer;
 use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
 use App\Support\FlexBalance;
+use App\Support\PlanLimits;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +54,8 @@ class ApiOrderController extends Controller
      */
     public function store(Request $request)
     {
+        PlanLimits::forTenant()->ensureCanCreate('orders_month');
+
         $tenantId = $request->user()->tenant_id;
         $customerRule = Rule::exists('customers', 'id')->where(function ($query) use ($request, $tenantId) {
             $query->where('tenant_id', $tenantId);
@@ -68,64 +72,84 @@ class ApiOrderController extends Controller
                 Rule::exists('products', 'id')->where('tenant_id', $tenantId),
             ],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'gt:0'], // 'gt:0' é uma boa adição
-            'items.*.price' => ['required', 'numeric', 'min:0'],
-            'items.*.name' => ['required', 'string'], // min:0 não é necessário aqui
-            'items.*.total' => ['required', 'numeric', 'min:0'],
+            'items.*.price' => ['nullable', 'numeric', 'min:0'],
+            'items.*.name' => ['nullable', 'string'],
+            'items.*.total' => ['nullable', 'numeric', 'min:0'],
             'flex' => ['nullable', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
+            'payment_condition' => ['nullable', 'string', 'max:120'],
         ]);
 
         try {
-            abort_unless(Customer::visibleTo()->whereKey($validatedData['customer_id'])->exists(), 404);
+            $customer = Customer::visibleTo()->findOrFail($validatedData['customer_id']);
+            $commercialCondition = CommercialCondition::resolveForCustomer($customer);
 
             DB::beginTransaction();
 
             $flexAmount = (float) ($validatedData['flex'] ?? 0);
             $discountAmount = (float) ($validatedData['discount'] ?? 0);
-            $subtotal = collect($validatedData['items'])
-                ->sum(fn (array $item) => (float) $item['price'] * (int) $item['quantity']);
+            $subtotal = 0;
+            $orderItemsData = [];
+
+            foreach ($validatedData['items'] as $item) {
+                $product = Product::lockForUpdate()->findOrFail($item['product_id']);
+
+                if ($product->quantity < $item['quantity']) {
+                    throw new \Exception('Estoque insuficiente para o produto: '.$product->name);
+                }
+
+                $price = $commercialCondition
+                    ? $commercialCondition->adjustedPrice((float) $product->price)
+                    : (float) $product->price;
+                $itemTotal = round($price * (int) $item['quantity'], 2);
+                $subtotal += $itemTotal;
+
+                $orderItemsData[] = [
+                    'product_id' => $product->id,
+                    'quantity' => (int) $item['quantity'],
+                    'price' => $price,
+                    'name' => $product->name,
+                    'total' => $itemTotal,
+                ];
+            }
+
             $total = max($subtotal + $flexAmount - $discountAmount, 0);
+
+            if ($commercialCondition) {
+                $discountPercentage = $subtotal > 0 ? ($discountAmount / $subtotal) * 100 : 0;
+
+                if ($discountPercentage > (float) $commercialCondition->max_discount_percentage) {
+                    throw new \Exception('Desconto acima do limite permitido para este cliente.');
+                }
+
+                if ($total < (float) $commercialCondition->minimum_order_amount) {
+                    throw new \Exception('Pedido abaixo do valor mínimo da condição comercial.');
+                }
+            }
+
+            $commissionPercentage = (float) ($commercialCondition?->commission_percentage ?? 0);
+            $commissionAmount = round($total * ($commissionPercentage / 100), 2);
 
             // 1. Criação do Pedido principal
             $order = Order::create([
                 'customer_id' => $validatedData['customer_id'],
+                'commercial_condition_id' => $commercialCondition?->id,
                 'order_number' => Order::exists() ? Order::latest()->first()->order_number + 1 : 1,
                 'flex' => $flexAmount,
                 'discount' => $discountAmount,
                 'total' => $total,
                 'status' => 1,
+                'payment_condition' => $validatedData['payment_condition'] ?? $commercialCondition?->payment_terms,
+                'commission_percentage' => $commissionPercentage,
+                'commission_amount' => $commissionAmount,
             ]);
-
-            // 2. Preparar e criar os itens do pedido
-            $orderItemsData = collect($validatedData['items'])->map(function ($item) {
-                return [
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'name' => $item['name'],
-                    'total' => round((float) $item['price'] * (int) $item['quantity'], 2),
-                ];
-            })->toArray();
 
             $order->orderItems()->createMany($orderItemsData);
 
             // --- NOVO: LÓGICA PARA DECREMENTAR O ESTOQUE ---
             // 3. Iterar sobre os itens para validar o estoque e decrementar
-            foreach ($validatedData['items'] as $item) {
-                // Usamos lockForUpdate() para previnir 'race conditions',
-                // onde duas pessoas compram o último item ao mesmo tempo.
-                $product = Product::lockForUpdate()->findOrFail($item['product_id']);
-
-                // Verifica se a quantidade em estoque é suficiente
-                if ($product->quantity < $item['quantity']) {
-                    // Se não houver estoque, lança uma exceção.
-                    // Isso vai acionar o DB::rollBack() no bloco catch.
-                    throw new \Exception('Estoque insuficiente para o produto: '.$product->name);
-                }
-
-                // Decrementa o estoque. O método decrement() é atômico e seguro.
-                // Substitua 'stock' pelo nome real da sua coluna de estoque no banco de dados.
-                $product->decrement('quantity', $item['quantity']);
+            foreach ($orderItemsData as $item) {
+                Product::whereKey($item['product_id'])->decrement('quantity', $item['quantity']);
             }
             // --- FIM DA NOVA LÓGICA ---
 
@@ -133,7 +157,10 @@ class ApiOrderController extends Controller
 
             DB::commit();
 
-            return response()->json(['message' => 'Pedido criado com sucesso!'], 201);
+            return response()->json([
+                'message' => 'Pedido criado com sucesso!',
+                'order' => $order->load('customer.region', 'orderItems', 'commercialCondition'),
+            ], 201);
             // return redirect()->route('app.orders.index')->with('success', 'Pedido criado com sucesso!');
         } catch (\Exception $e) {
             DB::rollBack();

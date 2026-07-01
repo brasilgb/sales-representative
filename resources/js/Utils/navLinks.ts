@@ -1,5 +1,5 @@
 import { type NavItem } from '@/types';
-import { Building, Cog, Copyright, HandCoins, LayoutGrid, Link as linkmegb, MapPinned, Sparkles, UserCog, Users2, Wrench } from 'lucide-react';
+import { Building, Cog, Copyright, HandCoins, LayoutGrid, Link as LinkIcon, MapPinned, Sparkles, UserCog, Users2, Wrench } from 'lucide-react';
 
 const mainNavItems: NavItem[] = [
     {
@@ -91,9 +91,9 @@ const mainPlansItems = [
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'MEGB',
-        href: 'https://megb.com.br',
-        icon: linkmegb,
+        title: 'VetorPet',
+        href: 'https://vetorpet.com.br',
+        icon: LinkIcon,
     },
 ];
 

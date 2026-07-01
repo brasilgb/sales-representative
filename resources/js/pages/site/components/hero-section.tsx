@@ -22,11 +22,11 @@ export function HeroSection() {
                         </Badge>
 
                         <h1 className="mb-6 max-w-3xl text-4xl font-bold tracking-tight text-balance md:text-6xl">
-                            Venda, acompanhe pedidos e cuide da carteira em um só lugar
+                            Venda mais suprimentos para pet shops em um só lugar
                         </h1>
 
                         <p className="mb-8 max-w-xl text-lg leading-8 text-muted-foreground text-balance">
-                            O SalesEasy organiza clientes, produtos, visitas e relatórios para vendedores individuais e equipes comerciais que precisam de rotina leve e controle confiável.
+                            O VetorPet organiza pet shops, clínicas, catálogo, visitas e pedidos para distribuidores e representantes comerciais do mercado pet.
                         </p>
 
                         <div className="mb-8 flex flex-col gap-3 sm:flex-row">
@@ -78,7 +78,7 @@ export function HeroSection() {
                                         <div className="mb-5 flex items-center justify-between">
                                             <div>
                                                 <div className="text-sm font-semibold">Vendas por semana</div>
-                                                <div className="text-xs text-muted-foreground">Meta e pedidos sincronizados</div>
+                                                <div className="text-xs text-muted-foreground">Pedidos e desempenho comercial</div>
                                             </div>
                                             <TrendingUp className="h-5 w-5 text-[var(--chart-2)]" />
                                         </div>
@@ -93,7 +93,7 @@ export function HeroSection() {
                                     <div className="rounded-md border border-border bg-card p-4">
                                         <div className="mb-4 text-sm font-semibold">Próximas visitas</div>
                                         <div className="space-y-3">
-                                            {["Mercado Central", "Distribuidora Norte", "Casa Bella"].map((customer, index) => (
+                                            {["Pet Shop Central", "Clínica Vet Norte", "Casa do Pet"].map((customer, index) => (
                                                 <div key={customer} className="flex items-center gap-3">
                                                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent text-xs font-semibold text-primary">{index + 1}</span>
                                                     <div className="min-w-0">

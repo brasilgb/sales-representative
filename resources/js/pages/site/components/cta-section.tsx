@@ -8,7 +8,7 @@ export function CTASection() {
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-4xl rounded-lg border border-border bg-card px-6 py-12 text-center shadow-sm md:px-10">
           <h2 className="mb-6 text-3xl font-bold tracking-tight text-balance md:text-5xl">
-            Pronto para transformar suas vendas?
+            Pronto para organizar suas vendas para pet shops?
           </h2>
           <p className="mb-8 text-lg text-muted-foreground text-balance">
             Comece seu teste gratuito de 30 dias agora mesmo. Sem compromisso, sem cartão de crédito.
@@ -21,12 +21,12 @@ export function CTASection() {
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="bg-transparent text-base">
-              <a href="https://wa.me/5551995179173?text=Quero%20mais%20informações%20sobre%20SalesEasy">
+              <a href="https://wa.me/5551995179173?text=Quero%20mais%20informações%20sobre%20o%20VetorPet">
                 Falar com vendas
               </a>
             </Button>
           </div>
-          <p className="mt-6 text-sm text-muted-foreground">Vendedores e equipes comerciais já organizam a rotina com o SalesEasy.</p>
+          <p className="mt-6 text-sm text-muted-foreground">Distribuidores e representantes organizam a operação comercial com o VetorPet.</p>
         </div>
       </div>
     </section>

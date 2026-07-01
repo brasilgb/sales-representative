@@ -102,7 +102,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
                                             Todos os módulos inclusos
                                         </div>
                                         <p className="text-sm leading-6 text-muted-foreground">
-                                            A mesma experiência do SalesEasy, com clientes, produtos, pedidos, agenda, relatórios e recursos comerciais.
+                                            A experiência completa do VetorPet, com clientes, catálogo, pedidos, agenda, relatórios e recursos comerciais.
                                         </p>
                                     </div>
                                 </CardContent>
@@ -120,7 +120,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
                     <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h3 className="text-xl font-semibold">Módulos inclusos</h3>
-                            <p className="text-sm text-muted-foreground">Os recursos abaixo fazem parte da experiência do SalesEasy.</p>
+                            <p className="text-sm text-muted-foreground">Os recursos abaixo fazem parte da experiência do VetorPet.</p>
                         </div>
                         <Badge variant="secondary" className="w-fit gap-2">
                             <Infinity className="h-4 w-4" />

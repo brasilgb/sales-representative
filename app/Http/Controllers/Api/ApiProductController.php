@@ -73,6 +73,8 @@ class ApiProductController extends Controller
     //     return response()->json($product, $product->wasRecentlyCreated ? 201 : 200);
     public function store(Request $request)
     {
+        $this->authorizeCatalogManagement($request);
+
         $validated = $request->validate([
             'reference' => 'required',
             'barcode' => 'nullable|string|max:80',
@@ -136,6 +138,8 @@ class ApiProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
+        $this->authorizeCatalogManagement($request);
+
         $tenantId = auth()->user()->tenant_id;
         $validated = $request->validate([
             'reference' => ['required', Rule::unique('products')->ignore($product->id)->where('tenant_id', $tenantId)],
@@ -176,10 +180,16 @@ class ApiProductController extends Controller
         return response()->json($product);
     }
 
-    public function destroy(Product $product)
+    public function destroy(Request $request, Product $product)
     {
+        $this->authorizeCatalogManagement($request);
         $product->delete();
 
         return response()->noContent();
+    }
+
+    private function authorizeCatalogManagement(Request $request): void
+    {
+        abort_unless($request->user()?->canManageCatalog(), 403, 'Os cadastros da equipe são gerenciados pelo administrador.');
     }
 }

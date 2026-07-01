@@ -75,6 +75,11 @@ class User extends Authenticatable
         return $this->hasMany(Visit::class);
     }
 
+    public function tenantFeedbackEntries(): HasMany
+    {
+        return $this->hasMany(TenantFeedbackEntry::class);
+    }
+
     public function regions(): BelongsToMany
     {
         return $this->belongsToMany(Region::class)->withTimestamps();
@@ -112,6 +117,18 @@ class User extends Authenticatable
         }
 
         return $this->tenant?->planModel?->account_type === Tenant::PLAN_TEAM;
+    }
+
+    public function canManageCatalog(): bool
+    {
+        if ($this->isSuperAdmin() || $this->isOwner()) {
+            return true;
+        }
+
+        $accountType = $this->tenant?->planModel?->account_type
+            ?? $this->tenant?->plan_type;
+
+        return $this->isSeller() && $accountType === Tenant::PLAN_INDIVIDUAL;
     }
 
     protected function avatar(): Attribute
