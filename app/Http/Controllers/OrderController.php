@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Support\FlexBalance;
 use App\Support\PlanLimits;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -353,11 +354,31 @@ class OrderController extends Controller
         }
     }
 
-    public function orderReport()
+    public function orderReport(Request $request)
     {
-        $orders = Order::visibleTo()->with('customer.region', 'user')->get();
+        $validated = $request->validate([
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+        ]);
+        $startDate = isset($validated['start_date'])
+            ? Carbon::parse($validated['start_date'])->startOfDay()
+            : now()->startOfMonth();
+        $endDate = isset($validated['end_date'])
+            ? Carbon::parse($validated['end_date'])->endOfDay()
+            : now()->endOfDay();
+        $orders = Order::visibleTo()
+            ->with('customer.region', 'user')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->latest()
+            ->get();
 
-        return Inertia::render('app/orders/order-reports', ['orders' => $orders]);
+        return Inertia::render('app/orders/order-reports', [
+            'orders' => $orders,
+            'filters' => [
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+            ],
+        ]);
     }
     // public function orderDateReport($date)
     // {

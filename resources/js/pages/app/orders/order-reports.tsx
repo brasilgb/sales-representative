@@ -1,157 +1,133 @@
-import { Breadcrumbs } from '@/components/breadcrumbs'
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
-import AppLayout from '@/layouts/app-layout'
-import { BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react'
-import { ArrowLeft, CalendarDaysIcon, FileOutputIcon } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react';
-import moment from 'moment';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from '@/types';
 import { statusOrderByValue } from '@/Utils/functions';
 import { maskMoney } from '@/Utils/mask';
 import { PDFDownloadLink } from '@react-pdf/renderer';
+import { Head, Link, router } from '@inertiajs/react';
+import { ArrowLeft, CalendarDaysIcon, FileOutputIcon, Search } from 'lucide-react';
+import moment from 'moment';
+import { FormEvent, useMemo, useState } from 'react';
 import OrderReportPDF from './order-report-pdf';
-import { DatePicker } from '@/components/date-picker';
-
-
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: route('app.dashboard'),
-    },
-    {
-        title: 'Pedidos',
-        href: "#",
-    },
+    { title: 'Dashboard', href: route('app.dashboard') },
+    { title: 'Pedidos', href: route('app.orders.index') },
+    { title: 'Relatório', href: '#' },
 ];
 
-// Este componente para rendenizar tanto no navegador como em pdf
-export function Report({ orders, summaryData }: { orders: any[], summaryData: any }) {
+export function Report({ orders, summaryData }: { orders: any[]; summaryData: any }) {
     return (
-        <div className='p-4'>
-            <div className='border rounded-lg p-2'>
-                <div className='mt-4 flex items-center justify-between border rounded-md p-2'>
-                    <div>Flex: R$ {maskMoney(String(summaryData?.flex || '0.00'))}</div>
-                    <div>Descontos: R$ {maskMoney(String(summaryData?.discount || '0.00'))}</div>
-                    <div>Total: R$ {maskMoney(String(summaryData?.total || '0.00'))}</div>
+        <div className="p-4 pt-0">
+            <div className="rounded-lg border p-2">
+                <div className="m-2 flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:justify-between">
+                    <div>Pedidos: {orders.length}</div>
+                    <div>Flex: R$ {maskMoney(String(summaryData.flex))}</div>
+                    <div>Descontos: R$ {maskMoney(String(summaryData.discount))}</div>
+                    <div className="font-semibold">Total: R$ {maskMoney(String(summaryData.total))}</div>
                 </div>
-
                 <Table>
                     <TableHeader>
                         <TableRow>
                             <TableHead>Nº Pedido</TableHead>
+                            <TableHead>Emissão</TableHead>
                             <TableHead>Cliente</TableHead>
+                            <TableHead>Vendedor</TableHead>
                             <TableHead>Flex</TableHead>
                             <TableHead>Desconto</TableHead>
                             <TableHead>Total</TableHead>
-                            <TableHead></TableHead>
+                            <TableHead>Status</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {orders?.map((order: any) => (
+                        {orders.length > 0 ? orders.map((order: any) => (
                             <TableRow key={order.id}>
-                                <TableCell>{order.order_number}</TableCell>
-                                <TableCell>{order?.customer?.name}</TableCell>
-                                <TableCell>R$ {order.flex}</TableCell>
-                                <TableCell>R$ {order.discount}</TableCell>
-                                <TableCell>R$ {order.total}</TableCell>
-                                <TableCell>
-                                    {statusOrderByValue(order.status)}
-                                </TableCell>
+                                <TableCell>#{order.order_number}</TableCell>
+                                <TableCell>{moment(order.created_at).format('DD/MM/YYYY')}</TableCell>
+                                <TableCell>{order.customer?.name ?? '-'}</TableCell>
+                                <TableCell>{order.user?.name ?? '-'}</TableCell>
+                                <TableCell>R$ {maskMoney(order.flex ?? 0)}</TableCell>
+                                <TableCell>R$ {maskMoney(order.discount ?? 0)}</TableCell>
+                                <TableCell className="font-medium">R$ {maskMoney(order.total ?? 0)}</TableCell>
+                                <TableCell>{statusOrderByValue(order.status)}</TableCell>
                             </TableRow>
-                        ))}
+                        )) : (
+                            <TableRow><TableCell colSpan={8} className="h-20 text-center">Nenhum pedido encontrado no período.</TableCell></TableRow>
+                        )}
                     </TableBody>
                 </Table>
-
             </div>
         </div>
-    )
+    );
 }
 
-function OrderReports({ orders }: any) {
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-    const [reportData, setReportData] = useState<any[] | null>(null);
+export default function OrderReports({ orders, filters }: any) {
+    const [startDate, setStartDate] = useState(filters.start_date);
+    const [endDate, setEndDate] = useState(filters.end_date);
 
-    const handleFetchReport = (date: Date | undefined) => {
-        setSelectedDate(date);
-        if (date) {
-            const dataForDate = orders?.filter((order: any) =>
-                moment(order?.created_at).isSame(date, 'day')
-            );
-            setReportData(dataForDate || []);
-        } else {
-            setReportData([]);
-        }
+    const summaryData = useMemo(() => orders.reduce((summary: any, order: any) => ({
+        flex: summary.flex + Number(order.flex ?? 0),
+        discount: summary.discount + Number(order.discount ?? 0),
+        total: summary.total + Number(order.total ?? 0),
+    }), { flex: 0, discount: 0, total: 0 }), [orders]);
+
+    const document = useMemo(() => (
+        <OrderReportPDF data={orders} startDate={filters.start_date} endDate={filters.end_date} summaryData={summaryData} />
+    ), [orders, filters.start_date, filters.end_date, summaryData]);
+
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        router.get(route('app.orders.report'), { start_date: startDate, end_date: endDate }, { preserveState: true, replace: true });
     };
-
-    useEffect(() => {
-        handleFetchReport(selectedDate);
-    }, [orders]);
-
-    const summaryData = useMemo(() => {
-        if (!reportData) return { flex: '0.00', discount: '0.00', total: '0.00' };
-        const flex = parseFloat(reportData.reduce((sum, item) => parseFloat(sum) + parseFloat(item.flex), 0)).toFixed(2);
-        const discount = parseFloat(reportData.reduce((sum, item) => parseFloat(sum) + parseFloat(item.discount), 0)).toFixed(2);
-        const total = parseFloat(reportData.reduce((sum, item) => parseFloat(sum) + parseFloat(item.total), 0)).toFixed(2);
-        return { flex, discount, total };
-    }, [reportData]);
-
-    const documento = useMemo(() => {
-        if (!reportData) return null;
-        return <OrderReportPDF data={reportData} selectedDate={selectedDate} summaryData={summaryData} />;
-    }, [reportData, selectedDate, summaryData]);
 
     return (
         <AppLayout>
-            <Head title="Pedidos" />
-            <div className='flex items-center justify-between h-16 px-4'>
-                <div className='flex items-center gap-2'>
-                    <CalendarDaysIcon className='w-8 h-8' />
-                    <h2 className="text-xl font-semibold tracking-tight">Relatórios de Pedidos</h2>
+            <Head title="Relatório de pedidos" />
+            <div className="flex min-h-16 flex-col justify-between gap-3 px-4 py-3 sm:flex-row sm:items-center">
+                <div className="flex items-center gap-2">
+                    <CalendarDaysIcon className="h-8 w-8" />
+                    <div>
+                        <h2 className="text-xl font-semibold tracking-tight">Relatório de pedidos</h2>
+                        <p className="text-sm text-muted-foreground">Consulte as vendas emitidas em um intervalo de datas.</p>
+                    </div>
                 </div>
-                <div>
-                    <Breadcrumbs breadcrumbs={breadcrumbs} />
-                </div>
+                <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
 
-            <div className='flex items-center justify-between p-4'>
-                <div>
-                    <Button variant={'default'} asChild>
-                        <Link
-                            href={route('app.orders.index')}
-                        >
-                            <ArrowLeft h-4 w-4 />
-                            <span>Voltar</span>
-                        </Link>
+            <div className="m-4 flex flex-col gap-3 rounded-lg border p-4 lg:flex-row lg:items-end lg:justify-between">
+                <form onSubmit={submit} className="grid gap-3 sm:grid-cols-[180px_180px_auto]">
+                    <div className="grid gap-2">
+                        <Label htmlFor="start_date">Data inicial</Label>
+                        <Input id="start_date" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="end_date">Data final</Label>
+                        <Input id="end_date" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
+                    </div>
+                    <Button type="submit"><Search className="h-4 w-4" />Consultar</Button>
+                </form>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button variant="outline" asChild>
+                        <Link href={route('app.orders.index')}><ArrowLeft className="h-4 w-4" />Voltar</Link>
                     </Button>
-                </div>
-
-                {documento && (
-                    <PDFDownloadLink document={documento} fileName={`relatorio-de-pedidos.pdf`} key={selectedDate?.getTime()}>
-                        {({ loading }) =>
-                            loading ? (
-                                <Button variant={'default'} disabled >Gerando PDF...</Button>
-                            ) : (
-                                <Button variant={'default'} ><FileOutputIcon /> Gerar Relatório PDF</Button>
-                            )
-                        }
+                    <PDFDownloadLink document={document} fileName={`pedidos-${filters.start_date}-a-${filters.end_date}.pdf`}>
+                        {({ loading }) => (
+                            <Button disabled={loading || orders.length === 0} className="w-full">
+                                <FileOutputIcon className="h-4 w-4" />{loading ? 'Gerando PDF...' : 'Gerar PDF'}
+                            </Button>
+                        )}
                     </PDFDownloadLink>
-                )}
-
-            </div>
-
-            <div className='flex items-center justify-between px-4'>
-                <div className='flex items-center gap-4'>
-                    <span>Pedidos emitidos em: {moment(selectedDate).format('DD/MM/YYYY')}</span>
                 </div>
-                <DatePicker date={selectedDate} setDate={setSelectedDate} onDateSelect={handleFetchReport} />
             </div>
 
-            {reportData && <Report orders={reportData} summaryData={summaryData} />}
-
-        </AppLayout >
-    )
+            <div className="px-4 pb-3 text-sm text-muted-foreground">
+                Período: <strong className="text-foreground">{moment(filters.start_date).format('DD/MM/YYYY')} a {moment(filters.end_date).format('DD/MM/YYYY')}</strong>
+            </div>
+            <Report orders={orders} summaryData={summaryData} />
+        </AppLayout>
+    );
 }
-
-export default OrderReports

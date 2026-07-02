@@ -4,6 +4,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
+    BarChart3,
     BookOpenText,
     BoxIcon,
     BrainCircuit,
@@ -55,7 +56,13 @@ const appNavItems: NavItem[] = [
         title: 'Condições',
         href: route('app.commercial-conditions.index'),
         icon: HandCoins,
-        active: 'app.commercial-conditions.*|app.commissions.*',
+        active: 'app.commercial-conditions.*',
+    },
+    {
+        title: 'Comissões',
+        href: route('app.commissions.index'),
+        icon: BarChart3,
+        active: 'app.commissions.*',
     },
     {
         title: 'Pedidos',
@@ -97,6 +104,7 @@ export function AppSidebar() {
     const canEditOwnUser = auth.isSeller || !auth.canManageSellers;
     const featureByTitle: Record<string, string> = {
         Condições: 'commercial_conditions',
+        Comissões: 'commissions',
         Inteligência: 'intelligence',
     };
     const visibleNavItems = appNavItems.filter((item) => {

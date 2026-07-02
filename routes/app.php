@@ -38,6 +38,7 @@ Route::patch('/visits/{visit}/check-out', [VisitController::class, 'checkOut'])-
 Route::get('/intelligence', [SalesIntelligenceController::class, 'index'])->name('intelligence.index');
 Route::resource('/campaigns', CampaignController::class);
 Route::get('/commissions', [CommercialConditionController::class, 'commissions'])->name('commissions.index');
+Route::get('/commissions/report', [CommercialConditionController::class, 'commissionReport'])->name('commissions.report');
 Route::resource('/commercial-conditions', CommercialConditionController::class);
 Route::resource('/orders', OrderController::class);
 Route::get('/report', [OrderController::class, 'orderReport'])->name('orders.report');

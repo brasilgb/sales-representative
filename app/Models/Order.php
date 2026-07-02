@@ -63,12 +63,6 @@ class Order extends Model
             return $query;
         }
 
-        $regionIds = $user->regions()->pluck('regions.id');
-
-        if ($regionIds->isEmpty()) {
-            return $query->whereRaw('1 = 0');
-        }
-
-        return $query->whereHas('customer', fn (Builder $query) => $query->whereIn('region_id', $regionIds));
+        return $query->where('user_id', $user->id);
     }
 }

@@ -70,13 +70,13 @@ const styles = StyleSheet.create({
     }
 });
 
-export default function OrderReportPDF({ data, selectedDate, summaryData }: any) {
+export default function OrderReportPDF({ data, startDate, endDate, summaryData }: any) {
     return (
         <Document>
             <Page size="A4" style={styles.page}>
                 <View style={styles.header}>
                     <Text style={styles.title}>Relatório de Pedidos</Text>
-                    <Text>Pedidos emitidos em: {moment(selectedDate).format('DD/MM/YYYY')}</Text>
+                    <Text>Período: {moment(startDate).format('DD/MM/YYYY')} a {moment(endDate).format('DD/MM/YYYY')}</Text>
                 </View>
 
                 <View style={styles.summary}>
@@ -106,7 +106,7 @@ export default function OrderReportPDF({ data, selectedDate, summaryData }: any)
                     ) : (
                         <View style={styles.tableRow}>
                             <View style={{...styles.tableCol, width: '100%', textAlign: 'center'}}>
-                                <Text style={styles.tableCell}>Nenhum pedido encontrado para esta data.</Text>
+                                <Text style={styles.tableCell}>Nenhum pedido encontrado para este período.</Text>
                             </View>
                         </View>
                     )}

@@ -247,15 +247,22 @@ class ApiOrderController extends Controller
 
     public function getDateOrders(Request $request)
     {
-        $request->validate([
-            'date' => 'required|date',
+        $validated = $request->validate([
+            'date' => ['nullable', 'date', 'required_without_all:start_date,end_date'],
+            'start_date' => ['nullable', 'date', 'required_with:end_date'],
+            'end_date' => ['nullable', 'date', 'required_with:start_date', 'after_or_equal:start_date'],
         ]);
 
-        $startDate = $request->input('date');
-        $sumFlex = Order::visibleTo()->whereDate('created_at', $startDate)->sum('flex');
-        $sumDiscount = Order::visibleTo()->whereDate('created_at', $startDate)->sum('discount');
-        $sumTotal = Order::visibleTo()->whereDate('created_at', $startDate)->sum('total');
-        $orders = Order::visibleTo()->with('customer.region')->whereDate('created_at', $startDate)->get();
+        $startDate = $validated['start_date'] ?? $validated['date'];
+        $endDate = $validated['end_date'] ?? $validated['date'];
+        $periodQuery = Order::visibleTo()->whereBetween('created_at', [
+            Carbon::parse($startDate)->startOfDay(),
+            Carbon::parse($endDate)->endOfDay(),
+        ]);
+        $sumFlex = (clone $periodQuery)->sum('flex');
+        $sumDiscount = (clone $periodQuery)->sum('discount');
+        $sumTotal = (clone $periodQuery)->sum('total');
+        $orders = (clone $periodQuery)->with('customer.region')->latest()->get();
         $orderData = [
             'orders' => $orders,
             'sumFlex' => $sumFlex,
