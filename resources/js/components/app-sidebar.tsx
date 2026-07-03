@@ -10,6 +10,7 @@ import {
     BrainCircuit,
     CalendarDays,
     CogIcon,
+    ReceiptText,
     HandCoins,
     LayoutGrid,
     MapPinned,
@@ -75,6 +76,12 @@ const appNavItems: NavItem[] = [
         href: route('app.visits.index'),
         icon: CalendarDays,
         active: 'app.visits.*',
+    },
+    {
+        title: 'Despesas',
+        href: route('app.expenses.index'),
+        icon: ReceiptText,
+        active: 'app.expenses.*',
     },
     {
         title: 'Inteligência',

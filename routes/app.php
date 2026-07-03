@@ -6,6 +6,7 @@ use App\Http\Controllers\CommercialConditionController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OtherSettingController;
 use App\Http\Controllers\PaymentController;
@@ -33,6 +34,7 @@ Route::post('/feedback', [TenantFeedbackEntryController::class, 'store'])->name(
 Route::resource('/customers', CustomerController::class);
 Route::resource('/regions', RegionController::class);
 Route::resource('/visits', VisitController::class);
+Route::resource('/expenses', ExpenseController::class);
 Route::patch('/visits/{visit}/check-in', [VisitController::class, 'checkIn'])->name('visits.check-in');
 Route::patch('/visits/{visit}/check-out', [VisitController::class, 'checkOut'])->name('visits.check-out');
 Route::get('/intelligence', [SalesIntelligenceController::class, 'index'])->name('intelligence.index');

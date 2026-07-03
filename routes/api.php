@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\ApiCustomerController;
+use App\Http\Controllers\Api\ApiExpenseController;
 use App\Http\Controllers\Api\ApiHomeController;
 use App\Http\Controllers\Api\ApiOrderController;
 use App\Http\Controllers\Api\ApiProductController;
@@ -28,6 +29,7 @@ Route::middleware(['auth:sanctum', AppApiAccessMiddleware::class])->group(functi
     Route::apiResource('/orders', ApiOrderController::class);
     Route::apiResource('/products', ApiProductController::class);
     Route::apiResource('/visits', ApiVisitController::class);
+    Route::apiResource('/expenses', ApiExpenseController::class);
     Route::patch('/visits/{visit}/check-in', [ApiVisitController::class, 'checkIn']);
     Route::patch('/visits/{visit}/check-out', [ApiVisitController::class, 'checkOut']);
     Route::get('/getproducts/{reference}', [ApiProductController::class, 'getProductsForReference']);
