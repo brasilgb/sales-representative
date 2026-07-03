@@ -6,6 +6,7 @@ use App\Traits\Tenantable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -28,7 +29,15 @@ class Product extends Model
         'min_quantity',
         'enabled',
         'observations',
+        'image_path',
     ];
+
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image_path ? Storage::disk('public')->url($this->image_path) : null;
+    }
 
     public function OrderItem(): HasMany
     {
@@ -43,6 +52,6 @@ class Product extends Model
     public function orders(): BelongsToMany
     {
         return $this->belongsToMany(Order::class, 'order_items')
-                    ->withPivot('quantity', 'price');
+            ->withPivot('quantity', 'price');
     }
 }

@@ -48,6 +48,8 @@ class ProductRequest extends FormRequest
             'min_quantity' => $this->isMethod('post') ? ['required', 'integer', 'min:0'] : ['nullable', 'integer', 'min:0'],
             'enabled' => ['required', 'boolean'],
             'observations' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
+            'remove_image' => ['nullable', 'boolean'],
         ];
     }
 
@@ -68,6 +70,7 @@ class ProductRequest extends FormRequest
             'price' => 'preço',
             'quantity' => 'quantidade',
             'min_quantity' => 'quantidade mínima',
+            'image' => 'imagem',
         ];
     }
 }

@@ -10,7 +10,7 @@ import { BreadcrumbItem } from '@/types';
 import { maskMoney, maskMoneyDot } from '@/Utils/mask';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft, BoxIcon, Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -49,7 +49,7 @@ const categoryOptions = [
 export default function CreateProduct({ product }: any) {
     const { flash } = usePage().props as any;
 
-    const { data, setData, patch, progress, processing, reset, errors } = useForm({
+    const { data, setData, post, progress, processing, reset, errors } = useForm({
         name: product.name,
         reference: product.reference,
         barcode: product.barcode ?? '',
@@ -66,11 +66,20 @@ export default function CreateProduct({ product }: any) {
         min_quantity: product.min_quantity,
         enabled: product.enabled,
         observations: product.observations,
+        image: null as File | null,
+        remove_image: false as boolean,
+        _method: 'patch',
     });
+
+    const imagePreview = useMemo(() => (data.image ? URL.createObjectURL(data.image) : product.image_url), [data.image, product.image_url]);
+
+    useEffect(() => () => {
+        if (data.image && imagePreview) URL.revokeObjectURL(imagePreview);
+    }, [data.image, imagePreview]);
 
     const handleSubmit = async (e: any) => {
         e.preventDefault();
-        patch(route('app.products.update', product.id));
+        post(route('app.products.update', product.id), { forceFormData: true });
     };
 
     useEffect(() => {
@@ -127,6 +136,29 @@ export default function CreateProduct({ product }: any) {
                                 <Input type="text" id="name" value={data.name} onChange={(e) => setData('name', e.target.value)} />
                                 {errors.name && <div className="text-sm text-red-500">{errors.name}</div>}
                             </div>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="image">Imagem do produto</Label>
+                            <Input
+                                type="file"
+                                id="image"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={(e) => {
+                                    setData('image', e.target.files?.[0] ?? null);
+                                    setData('remove_image', false);
+                                }}
+                            />
+                            <p className="text-xs text-muted-foreground">JPG, PNG ou WebP, com no máximo 2 MB.</p>
+                            {imagePreview && !data.remove_image && (
+                                <div className="flex items-end gap-3">
+                                    <img src={imagePreview} alt={product.name} className="h-32 w-32 rounded-md border object-cover" />
+                                    <Button type="button" variant="outline" onClick={() => { setData('image', null); setData('remove_image', true); }}>
+                                        Remover imagem
+                                    </Button>
+                                </div>
+                            )}
+                            {errors.image && <div className="text-sm text-red-500">{errors.image}</div>}
                         </div>
 
                         <div className="mt-4 grid gap-4 md:grid-cols-5">

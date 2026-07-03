@@ -8,6 +8,7 @@ use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -50,6 +51,8 @@ class ProductController extends Controller
     public function store(ProductRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $image = $request->file('image');
+        unset($data['image'], $data['remove_image']);
         $productExists = Product::where('reference', $data['reference'])->exists();
 
         if (! $productExists) {
@@ -95,6 +98,14 @@ class ProductController extends Controller
             'observations' => $data['observations'] ?? null,
         ]);
         $product->quantity = ($product->quantity ?? 0) + $data['quantity'];
+        if ($image) {
+            $oldImagePath = $product->image_path;
+            $product->image_path = $image->store('products', 'public');
+
+            if ($oldImagePath) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
+        }
         $product->save();
 
         return redirect()->route('app.products.index')->with('success', 'Produto cadastrado com sucesso!');
@@ -122,9 +133,23 @@ class ProductController extends Controller
     public function update(ProductRequest $request, Product $product): RedirectResponse
     {
         $data = $request->validated();
+        $image = $request->file('image');
+        $removeImage = (bool) ($data['remove_image'] ?? false);
+        unset($data['image'], $data['remove_image']);
         $data['quantity'] = $product->quantity;
         $data['min_quantity'] = $product->min_quantity;
         $product->update($data);
+
+        if ($image || $removeImage) {
+            $oldImagePath = $product->image_path;
+
+            $product->image_path = $image?->store('products', 'public');
+            $product->save();
+
+            if ($oldImagePath) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
+        }
 
         return redirect()->route('app.products.show', ['product' => $product->id])->with('success', 'Produto alterado com sucesso!');
     }
@@ -134,6 +159,10 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        if ($product->image_path) {
+            Storage::disk('public')->delete($product->image_path);
+        }
+
         $product->delete();
 
         return redirect()->route('app.products.index')->with('success', 'Produto excluido com sucesso!');

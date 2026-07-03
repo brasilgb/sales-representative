@@ -91,10 +91,19 @@ export default function Products({ products }: any) {
                                 products?.data?.map((product: any) => (
                                     <TableRow key={product.id}>
                                         <TableCell>
-                                            <div className="space-y-1">
-                                                <div className="font-medium">{product.name}</div>
-                                                <div className="text-xs text-muted-foreground">
-                                                    {[product.reference, product.barcode].filter(Boolean).join(' | ') || 'Sem referência'}
+                                            <div className="flex items-center gap-3">
+                                                {product.image_url ? (
+                                                    <img src={product.image_url} alt={product.name} className="h-12 w-12 shrink-0 rounded-md border object-cover" />
+                                                ) : (
+                                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border bg-muted">
+                                                        <BoxIcon className="h-5 w-5 text-muted-foreground" />
+                                                    </div>
+                                                )}
+                                                <div className="space-y-1">
+                                                    <div className="font-medium">{product.name}</div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {[product.reference, product.barcode].filter(Boolean).join(' | ') || 'Sem referência'}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </TableCell>

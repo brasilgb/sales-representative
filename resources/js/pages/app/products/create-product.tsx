@@ -10,7 +10,7 @@ import { apisales } from '@/Utils/connectApi';
 import { maskMoney, maskMoneyDot } from '@/Utils/mask';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, BoxIcon, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -66,7 +66,14 @@ export default function CreateProduct() {
         min_quantity: '',
         enabled: false,
         observations: '',
+        image: null as File | null,
     });
+
+    const imagePreview = useMemo(() => (data.image ? URL.createObjectURL(data.image) : null), [data.image]);
+
+    useEffect(() => () => {
+        if (imagePreview) URL.revokeObjectURL(imagePreview);
+    }, [imagePreview]);
 
     const handleSubmit = async (e: any) => {
         e.preventDefault();
@@ -187,6 +194,19 @@ export default function CreateProduct() {
                                 />
                                 {errors.name && <div className="text-sm text-red-500">{errors.name}</div>}
                             </div>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="image">Imagem do produto</Label>
+                            <Input
+                                type="file"
+                                id="image"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={(e) => setData('image', e.target.files?.[0] ?? null)}
+                            />
+                            <p className="text-xs text-muted-foreground">JPG, PNG ou WebP, com no máximo 2 MB.</p>
+                            {imagePreview && <img src={imagePreview} alt="Prévia do produto" className="h-32 w-32 rounded-md border object-cover" />}
+                            {errors.image && <div className="text-sm text-red-500">{errors.image}</div>}
                         </div>
 
                         <div className="mt-4 grid gap-4 md:grid-cols-5">
