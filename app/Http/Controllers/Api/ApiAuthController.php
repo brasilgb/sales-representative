@@ -184,10 +184,12 @@ class ApiAuthController extends BaseController
 
         $accountType = $user->tenant?->planModel?->account_type ?? $user->tenant?->plan_type;
         $canManageCatalog = $user->canManageCatalog();
+        $canManageTeam = $user->canManageTeam();
 
         $user->unsetRelation('tenant');
         $user->setAttribute('account_type', $accountType);
         $user->setAttribute('can_manage_catalog', $canManageCatalog);
+        $user->setAttribute('can_manage_team', $canManageTeam);
 
         return response()->json($user);
     }

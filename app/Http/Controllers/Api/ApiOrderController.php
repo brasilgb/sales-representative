@@ -77,6 +77,7 @@ class ApiOrderController extends Controller
             'items.*.total' => ['nullable', 'numeric', 'min:0'],
             'flex' => ['nullable', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
+            'total' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'payment_condition' => ['nullable', 'string', 'max:120'],
         ]);
 
@@ -113,7 +114,24 @@ class ApiOrderController extends Controller
                 ];
             }
 
-            $total = max($subtotal + $flexAmount - $discountAmount, 0);
+            $subtotal = round($subtotal, 2);
+            $adjustedTotal = null;
+
+            if (array_key_exists('total', $validatedData)) {
+                $adjustedTotal = round((float) $validatedData['total'], 2);
+                $manualDiscount = round((float) ($validatedData['discount'] ?? 0), 2);
+
+                if ($manualDiscount > $adjustedTotal) {
+                    throw new \Exception('O desconto não pode ser maior que o total ajustado.');
+                }
+
+                $flexAmount = max(round($adjustedTotal - $subtotal, 2), 0);
+                $priceReduction = max(round($subtotal - $adjustedTotal, 2), 0);
+                $discountAmount = round($priceReduction + $manualDiscount, 2);
+                $total = max(round($adjustedTotal - $manualDiscount, 2), 0);
+            } else {
+                $total = max(round($subtotal + $flexAmount - $discountAmount, 2), 0);
+            }
 
             if ($commercialCondition) {
                 $discountPercentage = $subtotal > 0 ? ($discountAmount / $subtotal) * 100 : 0;
@@ -137,6 +155,8 @@ class ApiOrderController extends Controller
                 'order_number' => Order::exists() ? Order::latest()->first()->order_number + 1 : 1,
                 'flex' => $flexAmount,
                 'discount' => $discountAmount,
+                'subtotal' => $subtotal,
+                'adjusted_total' => $adjustedTotal ?? round($subtotal + $flexAmount, 2),
                 'total' => $total,
                 'status' => 1,
                 'payment_condition' => $validatedData['payment_condition'] ?? $commercialCondition?->payment_terms,
@@ -261,12 +281,16 @@ class ApiOrderController extends Controller
         ]);
         $sumFlex = (clone $periodQuery)->sum('flex');
         $sumDiscount = (clone $periodQuery)->sum('discount');
+        $sumSubtotal = (clone $periodQuery)->sum('subtotal');
+        $sumAdjustedTotal = (clone $periodQuery)->sum('adjusted_total');
         $sumTotal = (clone $periodQuery)->sum('total');
         $orders = (clone $periodQuery)->with('customer.region')->latest()->get();
         $orderData = [
             'orders' => $orders,
             'sumFlex' => $sumFlex,
             'sumDiscount' => $sumDiscount,
+            'sumSubtotal' => $sumSubtotal,
+            'sumAdjustedTotal' => $sumAdjustedTotal,
             'sumTotal' => $sumTotal,
         ];
 
@@ -275,6 +299,7 @@ class ApiOrderController extends Controller
 
     public function setValueStatusOrderApp(Request $request, Order $order)
     {
+        abort_unless($request->user()->canManageTeam(), 403, 'Somente administradores podem alterar o status do pedido.');
         $this->authorizeVisibleOrder($order);
         $validated = $request->validate(['status' => ['required', Rule::in(['1', '2', '3', '4'])]]);
 
@@ -292,6 +317,7 @@ class ApiOrderController extends Controller
 
     public function cancelOrderApp(Order $order)
     {
+        abort_unless(request()->user()->canManageTeam(), 403, 'Somente administradores podem cancelar pedidos.');
         $this->authorizeVisibleOrder($order);
 
         // 💡 Verificação inicial: não se pode cancelar um pedido já cancelado.

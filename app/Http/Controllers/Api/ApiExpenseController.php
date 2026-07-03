@@ -38,7 +38,13 @@ class ApiExpenseController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $expense = Expense::create($this->validatedData($request) + ['user_id' => $request->user()->id]);
+        $data = $this->validatedData($request);
+
+        if ($request->hasFile('receipt')) {
+            $data['receipt_path'] = $request->file('receipt')->store('expenses', 'public');
+        }
+
+        $expense = Expense::create($data + ['user_id' => $request->user()->id]);
 
         return response()->json($expense->fresh()->load('user:id,name'), 201);
     }
@@ -72,14 +78,21 @@ class ApiExpenseController extends Controller
         $data = $request->validate([
             'expense_date' => ['required', 'date'],
             'category' => ['required', Rule::in(['mileage', 'food', 'lodging', 'other'])],
-            'amount' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
+            'amount' => ['nullable', 'required_unless:category,mileage', 'numeric', 'min:0', 'max:9999999999.99'],
             'kilometers' => ['nullable', 'required_if:category,mileage', 'numeric', 'min:0', 'max:99999999.99'],
-            'origin' => ['nullable', 'required_if:category,mileage', 'string', 'max:255'],
-            'destination' => ['nullable', 'required_if:category,mileage', 'string', 'max:255'],
+            'origin' => ['nullable', 'string', 'max:255'],
+            'destination' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'receipt' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
         ]);
 
-        if ($data['category'] !== 'mileage') {
+        unset($data['receipt']);
+
+        if ($data['category'] === 'mileage') {
+            $data['amount'] = 0;
+            $data['origin'] = null;
+            $data['destination'] = null;
+        } else {
             $data['kilometers'] = null;
             $data['origin'] = null;
             $data['destination'] = null;

@@ -57,8 +57,8 @@ export default function Expenses({ expenses, summary, filters, users, canManageT
                             <TableCell>{moment(expense.expense_date).format('DD/MM/YYYY')}</TableCell>
                             <TableCell>{categoryLabels[expense.category]}</TableCell>
                             {canManageTeam && <TableCell>{expense.user?.name ?? 'Usuário removido'}</TableCell>}
-                            <TableCell><div className="max-w-[320px]"><div>{expense.category === 'mileage' ? `${Number(expense.kilometers).toLocaleString('pt-BR')} km` : expense.description || '-'}</div>{expense.category === 'mileage' && <div className="text-xs text-muted-foreground">{expense.origin} → {expense.destination}</div>}</div></TableCell>
-                            <TableCell className="font-medium">{money(expense.amount)}</TableCell>
+                            <TableCell><div className="max-w-[320px]"><div>{expense.category === 'mileage' ? `${Number(expense.kilometers).toLocaleString('pt-BR')} km` : expense.description || '-'}</div></div></TableCell>
+                            <TableCell className="font-medium">{expense.category === 'mileage' ? '-' : money(expense.amount)}</TableCell>
                             <TableCell>{expense.receipt_url ? <Button size="icon" variant="outline" asChild title="Ver comprovante"><a href={expense.receipt_url} target="_blank" rel="noreferrer"><FileText className="h-4 w-4" /></a></Button> : '-'}</TableCell>
                             <TableCell><div className="flex justify-end gap-2"><Button asChild size="icon" className="bg-orange-500 text-white hover:bg-orange-600"><Link href={route('app.expenses.edit', expense.id)}><Edit className="h-4 w-4" /></Link></Button><ActionDelete title="esta despesa" url="app.expenses.destroy" param={expense.id} /></div></TableCell>
                         </TableRow>

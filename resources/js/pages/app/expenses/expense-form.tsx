@@ -68,29 +68,21 @@ export default function ExpenseForm({ expense, users, canManageTeam }: any) {
                     </select>
                     {errors.category && <div className="text-sm text-red-500">{errors.category}</div>}
                 </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="amount">Valor total (R$)</Label>
-                    <Input id="amount" type="number" min="0" step="0.01" value={data.amount} onChange={(event) => setData('amount', event.target.value)} />
-                    {errors.amount && <div className="text-sm text-red-500">{errors.amount}</div>}
-                </div>
+                {data.category !== 'mileage' && (
+                    <div className="grid gap-2">
+                        <Label htmlFor="amount">Valor total (R$)</Label>
+                        <Input id="amount" type="number" min="0" step="0.01" value={data.amount} onChange={(event) => setData('amount', event.target.value)} />
+                        {errors.amount && <div className="text-sm text-red-500">{errors.amount}</div>}
+                    </div>
+                )}
             </div>
 
             {data.category === 'mileage' && (
-                <div className="grid gap-4 rounded-lg border p-4 md:grid-cols-3">
+                <div className="grid gap-4 rounded-lg border p-4">
                     <div className="grid gap-2">
                         <Label htmlFor="kilometers">Quilômetros rodados</Label>
                         <Input id="kilometers" type="number" min="0" step="0.01" value={data.kilometers} onChange={(event) => setData('kilometers', event.target.value)} />
                         {errors.kilometers && <div className="text-sm text-red-500">{errors.kilometers}</div>}
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="origin">Origem</Label>
-                        <Input id="origin" value={data.origin} onChange={(event) => setData('origin', event.target.value)} placeholder="Cidade ou endereço de saída" />
-                        {errors.origin && <div className="text-sm text-red-500">{errors.origin}</div>}
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="destination">Destino</Label>
-                        <Input id="destination" value={data.destination} onChange={(event) => setData('destination', event.target.value)} placeholder="Cidade ou endereço de chegada" />
-                        {errors.destination && <div className="text-sm text-red-500">{errors.destination}</div>}
                     </div>
                 </div>
             )}

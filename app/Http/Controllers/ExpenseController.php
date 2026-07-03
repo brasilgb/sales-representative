@@ -128,7 +128,11 @@ class ExpenseController extends Controller
             $data['user_id'] = $request->user()->id;
         }
 
-        if ($data['category'] !== 'mileage') {
+        if ($data['category'] === 'mileage') {
+            $data['amount'] = 0;
+            $data['origin'] = null;
+            $data['destination'] = null;
+        } else {
             $data['kilometers'] = null;
             $data['origin'] = null;
             $data['destination'] = null;

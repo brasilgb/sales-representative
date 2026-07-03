@@ -104,9 +104,13 @@ export default function Orders({ orders }: any) {
                                         </TableCell>
                                         <TableCell>
                                             <div className="space-y-1">
-                                                <div className="font-medium">R$ {maskMoney(order.total)}</div>
+                                                <div className="font-medium">Total: R$ {maskMoney(order.total)}</div>
                                                 <div className="text-xs text-muted-foreground">
-                                                    Flex: {order.flex} | Desc.: {order.discount}
+                                                    Subtotal: R$ {maskMoney(order.subtotal ?? order.total)} | Ajustado: R${' '}
+                                                    {maskMoney(order.adjusted_total ?? order.total)}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    Flex: R$ {maskMoney(order.flex ?? 0)} | Ajustes/desc.: R$ {maskMoney(order.discount ?? 0)}
                                                 </div>
                                             </div>
                                         </TableCell>

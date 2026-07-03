@@ -95,6 +95,7 @@ class OrderController extends Controller
             'items.*.total' => ['required', 'numeric', 'min:0'],
             'flex' => ['nullable', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
+            'adjusted_total' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'payment_condition' => ['nullable', 'string', 'max:120'],
         ]);
 
@@ -116,9 +117,20 @@ class OrderController extends Controller
                 $subtotal += $expectedPrice * (int) $item['quantity'];
             }
 
-            $flexAmount = (float) ($validatedData['flex'] ?? 0);
-            $discountAmount = (float) ($validatedData['discount'] ?? 0);
-            $total = max($subtotal + $flexAmount - $discountAmount, 0);
+            $subtotal = round($subtotal, 2);
+            $manualDiscount = round((float) ($validatedData['discount'] ?? 0), 2);
+            $adjustedTotal = array_key_exists('adjusted_total', $validatedData)
+                ? round((float) $validatedData['adjusted_total'], 2)
+                : round($subtotal + (float) ($validatedData['flex'] ?? 0), 2);
+
+            if ($manualDiscount > $adjustedTotal) {
+                throw new \Exception('O desconto não pode ser maior que o valor ajustado.');
+            }
+
+            $flexAmount = max(round($adjustedTotal - $subtotal, 2), 0);
+            $priceReduction = max(round($subtotal - $adjustedTotal, 2), 0);
+            $discountAmount = round($priceReduction + $manualDiscount, 2);
+            $total = max(round($adjustedTotal - $manualDiscount, 2), 0);
 
             if ($commercialCondition) {
                 $discountPercentage = $subtotal > 0 ? ($discountAmount / $subtotal) * 100 : 0;
@@ -142,6 +154,8 @@ class OrderController extends Controller
                 'order_number' => Order::exists() ? Order::latest()->first()->order_number + 1 : 1,
                 'flex' => $flexAmount,
                 'discount' => $discountAmount,
+                'subtotal' => $subtotal,
+                'adjusted_total' => $adjustedTotal,
                 'total' => $total,
                 'status' => 1,
                 'payment_condition' => $validatedData['payment_condition'] ?? $commercialCondition?->payment_terms,

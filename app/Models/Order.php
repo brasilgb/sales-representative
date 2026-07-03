@@ -19,6 +19,8 @@ class Order extends Model
         'order_number',
         'flex',
         'discount',
+        'subtotal',
+        'adjusted_total',
         'total',
         'status',
         'payment_condition',

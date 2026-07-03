@@ -71,6 +71,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
         customer_id: initialCustomer?.id ?? '',
         flex: '',
         discount: '',
+        adjusted_total: '',
         total: '',
         payment_condition: initialCustomer?.commercial_condition?.payment_terms ?? '',
         items: [] as OrderItem[],
@@ -78,12 +79,15 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
 
     const selectedCondition = selectedCustomer?.commercial_condition ?? null;
     const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.quantity * Number(item.price), 0), [items]);
-    const flexAmount = Number(data.flex || 0);
-    const discountAmount = Number(data.discount || 0);
+    const adjustedTotal = Number(data.adjusted_total || 0);
+    const manualDiscount = Number(data.discount || 0);
+    const flexAmount = Math.max(adjustedTotal - subtotal, 0);
+    const priceReduction = Math.max(subtotal - adjustedTotal, 0);
+    const discountAmount = priceReduction + manualDiscount;
     const availableFlex = Number(flex?.value ?? 0);
     const resultingFlex = availableFlex + flexAmount - discountAmount;
     const insufficientFlex = resultingFlex < 0;
-    const commercialTotal = Math.max(subtotal + flexAmount - discountAmount, 0);
+    const commercialTotal = Math.max(adjustedTotal - manualDiscount, 0);
     const discountPercentage = subtotal > 0 ? (discountAmount / subtotal) * 100 : 0;
     const maxDiscountPercentage = Number(selectedCondition?.max_discount_percentage ?? 0);
     const minimumOrderAmount = Number(selectedCondition?.minimum_order_amount ?? 0);
@@ -108,9 +112,13 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
         setData((currentData: any) => ({
             ...currentData,
             items,
-            total: commercialTotal.toFixed(2),
+            adjusted_total: subtotal.toFixed(2),
         }));
-    }, [items, commercialTotal]);
+    }, [items, subtotal]);
+
+    useEffect(() => {
+        setData('total', commercialTotal.toFixed(2));
+    }, [commercialTotal]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -342,16 +350,16 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                                     </Badge>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="flex">Geração de Flex</Label>
+                                    <Label htmlFor="adjusted_total">Valor ajustado</Label>
                                     <Input
                                         type="text"
-                                        id="flex"
-                                        value={maskMoney(data.flex)}
-                                        onChange={(e) => setData('flex', maskMoneyDot(e.target.value) ?? '')}
+                                        id="adjusted_total"
+                                        value={maskMoney(data.adjusted_total)}
+                                        onChange={(e) => setData('adjusted_total', maskMoneyDot(e.target.value) ?? '')}
                                     />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="discount">Desconto</Label>
+                                    <Label htmlFor="discount">Desconto manual</Label>
                                     <Input
                                         type="text"
                                         id="discount"
@@ -374,8 +382,16 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                                     <strong>R$ {maskMoney(subtotal.toFixed(2))}</strong>
                                 </div>
                                 <div className="flex flex-col justify-center gap-1">
-                                    <span className="text-sm text-muted-foreground">Total comercial</span>
+                                    <span className="text-sm text-muted-foreground">Valor total</span>
                                     <strong>R$ {maskMoney(commercialTotal.toFixed(2))}</strong>
+                                </div>
+                                <div className="flex flex-col justify-center gap-1">
+                                    <span className="text-sm text-muted-foreground">Flex gerado</span>
+                                    <strong>R$ {maskMoney(flexAmount.toFixed(2))}</strong>
+                                </div>
+                                <div className="flex flex-col justify-center gap-1">
+                                    <span className="text-sm text-muted-foreground">Ajustes/Descontos</span>
+                                    <strong>R$ {maskMoney(discountAmount.toFixed(2))}</strong>
                                 </div>
                                 <div className="flex flex-col justify-center gap-1">
                                     <span className="text-sm text-muted-foreground">Saldo após o pedido</span>
