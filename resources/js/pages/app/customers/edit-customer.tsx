@@ -183,7 +183,7 @@ export default function EditCustomer({ customer, regions }: any) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Nome da empresa</Label>
+                                <Label htmlFor="name">Nome da empresa/Cliente</Label>
                                 <Input type="text" id="name" value={data.name} onChange={(e) => setData('name', e.target.value)} />
                                 {errors.name && <div className="text-sm text-red-500">{errors.name}</div>}
                             </div>
