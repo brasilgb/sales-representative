@@ -127,6 +127,76 @@ test('seller can use the mobile visit agenda for their assigned region', functio
         ->assertJsonPath('result', 'sold');
 });
 
+test('team administrator sees data from every seller region in the mobile app', function () {
+    $tenant = mvpTenant('equipe', 'admin-visibility');
+    $owner = mvpUser($tenant, User::ROLE_OWNER, 'admin-visibility');
+    $sellerNorth = mvpUser($tenant, User::ROLE_SELLER, 'seller-north');
+    $sellerSouth = mvpUser($tenant, User::ROLE_SELLER, 'seller-south');
+    Sanctum::actingAs($owner);
+
+    $north = Region::create(['name' => 'Região Norte', 'status' => true]);
+    $south = Region::create(['name' => 'Região Sul', 'status' => true]);
+    $sellerNorth->regions()->attach($north);
+    $sellerSouth->regions()->attach($south);
+
+    $customerNorth = Customer::create([
+        'user_id' => $sellerNorth->id,
+        'region_id' => $north->id,
+        'name' => 'Cliente Norte',
+        'cnpj' => '46066056000111',
+        'email' => 'cliente-norte@example.com',
+    ]);
+    $customerSouth = Customer::create([
+        'user_id' => $sellerSouth->id,
+        'region_id' => $south->id,
+        'name' => 'Cliente Sul',
+        'cnpj' => '62462048000130',
+        'email' => 'cliente-sul@example.com',
+    ]);
+    $product = Product::create([
+        'name' => 'Produto compartilhado da equipe',
+        'reference' => 'TEAM-001',
+        'description' => 'Disponível em todas as regiões',
+        'unity' => 'UN',
+        'measure' => 1,
+        'price' => 50,
+        'quantity' => 20,
+        'min_quantity' => 1,
+        'enabled' => true,
+    ]);
+    $orderNorth = Order::create([
+        'user_id' => $sellerNorth->id,
+        'customer_id' => $customerNorth->id,
+        'order_number' => 101,
+        'total' => 50,
+        'status' => '1',
+    ]);
+    $orderSouth = Order::create([
+        'user_id' => $sellerSouth->id,
+        'customer_id' => $customerSouth->id,
+        'order_number' => 102,
+        'total' => 50,
+        'status' => '1',
+    ]);
+
+    $this->getJson('/api/alldata')
+        ->assertOk()
+        ->assertJsonPath('data.user.0.id', $owner->id)
+        ->assertJsonFragment(['id' => $sellerNorth->id, 'name' => $sellerNorth->name])
+        ->assertJsonFragment(['id' => $sellerSouth->id, 'name' => $sellerSouth->name])
+        ->assertJsonFragment(['id' => $north->id, 'name' => $north->name])
+        ->assertJsonFragment(['id' => $south->id, 'name' => $south->name])
+        ->assertJsonFragment(['id' => $customerNorth->id, 'name' => $customerNorth->name])
+        ->assertJsonFragment(['id' => $customerSouth->id, 'name' => $customerSouth->name])
+        ->assertJsonFragment(['id' => $orderNorth->id, 'order_number' => 101])
+        ->assertJsonFragment(['id' => $orderSouth->id, 'order_number' => 102])
+        ->assertJsonFragment(['id' => $product->id, 'reference' => 'TEAM-001']);
+
+    $this->getJson('/api/customers')->assertOk()->assertJsonCount(2);
+    $this->getJson('/api/orders')->assertOk()->assertJsonCount(2);
+    $this->getJson('/api/products')->assertOk()->assertJsonCount(1);
+});
+
 test('mobile api blocks inactive users and tenants without an active subscription', function () {
     $activeTenant = mvpTenant('equipe', 'inactive-user');
     $inactiveSeller = mvpUser($activeTenant, User::ROLE_SELLER, 'inactive-user');
