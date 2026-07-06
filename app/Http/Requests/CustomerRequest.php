@@ -42,7 +42,7 @@ class CustomerRequest extends FormRequest
             'establishment_type' => ['nullable', 'string', 'max:50'],
             'cnpj' => [
                 'required',
-                'cnpj',
+                'cpf_ou_cnpj',
                 Rule::unique('customers', 'cnpj')->ignore($customerId)->where('tenant_id', $tenantId),
             ],
             'email' => [
@@ -68,10 +68,18 @@ class CustomerRequest extends FormRequest
         ];
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'cnpj' => preg_replace('/\D/', '', (string) $this->input('cnpj')),
+        ]);
+    }
+
     public function attributes(): array
     {
         return [
             'name' => 'nome da empresa',
+            'cnpj' => 'CPF/CNPJ',
             'region_id' => 'região',
             'establishment_type' => 'tipo de estabelecimento',
             'phone' => 'telefone',

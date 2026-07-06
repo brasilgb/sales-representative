@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\OrderUpdateService;
 use App\Support\FlexBalance;
 use App\Support\PlanLimits;
 use Carbon\Carbon;
@@ -225,7 +226,25 @@ class ApiOrderController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        //
+        $this->authorizeVisibleOrder($order);
+        $tenantId = $request->user()->tenant_id;
+        $validated = $request->validate([
+            'customer_id' => ['required', Rule::exists('customers', 'id')->where('tenant_id', $tenantId)],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'adjusted_total' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
+            'payment_condition' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        try {
+            $updatedOrder = app(OrderUpdateService::class)->update($order, $validated);
+
+            return response()->json(['message' => 'Pedido atualizado com sucesso!', 'order' => $updatedOrder]);
+        } catch (\Throwable $exception) {
+            return response()->json(['message' => $exception->getMessage()], 409);
+        }
     }
 
     /**

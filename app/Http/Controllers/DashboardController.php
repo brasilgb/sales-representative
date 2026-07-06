@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Flex;
 use App\Models\Order;
@@ -20,41 +19,28 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $filters = $this->filters($request);
-        $ordersQuery = $this->filteredOrders($filters);
-        $orders = (clone $ordersQuery)->with('customer.region', 'user')->latest()->limit(12)->get();
-        $ordersCount = (clone $ordersQuery)->count();
-        $salesTotal = (clone $ordersQuery)->sum('total');
-        $activeCustomerIds = (clone $ordersQuery)->whereNotNull('customer_id')->distinct('customer_id')->pluck('customer_id');
-        $inactiveCutoff = now()->subDays(60);
-
-        $kpis_dash = [
-            'users' => auth()->user()->canManageTeam()
-                ? User::where('tenant_id', auth()->user()->tenant_id)->count()
-                : 1,
-            'customers' => Customer::visibleTo()->count(),
-            'products' => Product::get()->count(),
-            'orders' => $ordersCount,
-            'sales_total' => $salesTotal,
-            'average_ticket' => $ordersCount > 0 ? $salesTotal / $ordersCount : 0,
-            'active_customers' => $activeCustomerIds->count(),
-            'inactive_customers' => Customer::visibleTo()
-                ->whereDoesntHave('orders', fn (Builder $query) => $query->where('created_at', '>=', $inactiveCutoff))
-                ->count(),
-            'flex' => Flex::first(),
-        ];
+        $start = now()->startOfMonth();
+        $end = now()->endOfDay();
+        $ordersQuery = Order::visibleTo()->whereBetween('created_at', [$start, $end]);
+        $validOrders = (clone $ordersQuery)->where('status', '!=', '4');
+        $ordersCount = (clone $validOrders)->count();
+        $salesTotal = (float) (clone $validOrders)->sum('total');
+        $topSeller = $this->sellerRanking($validOrders)->first();
 
         return Inertia::render('app/dashboard/index', [
-            'kpis_dash' => $kpis_dash,
-            'salesOrders' => $orders,
-            'filters' => $filters,
-            'filterOptions' => $this->filterOptions(),
+            'summary' => [
+                'sales_total' => $salesTotal,
+                'orders_count' => $ordersCount,
+                'average_ticket' => $ordersCount ? $salesTotal / $ordersCount : 0,
+                'customers_count' => (clone $validOrders)->distinct('customer_id')->count('customer_id'),
+                'pending_count' => (clone $ordersQuery)->whereIn('status', ['1', '2'])->count(),
+                'canceled_count' => (clone $ordersQuery)->where('status', '4')->count(),
+                'inactive_customers' => Customer::visibleTo()->whereDoesntHave('orders', fn (Builder $query) => $query->where('created_at', '>=', now()->subDays(60)))->count(),
+                'flex_balance' => (float) (Flex::first()?->value ?? 0),
+                'top_seller' => $topSeller ? ['name' => $topSeller->user?->name ?? 'Sem vendedor', 'total' => (float) $topSeller->total] : null,
+            ],
+            'recentOrders' => (clone $ordersQuery)->with('customer', 'user:id,name')->latest()->limit(8)->get(),
             'statusBreakdown' => $this->statusBreakdown($ordersQuery),
-            'sellerRanking' => $this->sellerRanking($ordersQuery),
-            'topProducts' => $this->topProducts($ordersQuery),
-            'salesByRegion' => $this->salesByRegion($ordersQuery),
-            'salesByBrand' => $this->salesByProductField($ordersQuery, 'brand'),
-            'salesByCategory' => $this->salesByProductField($ordersQuery, 'category'),
         ]);
     }
 

@@ -9,6 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney, maskMoneyDot } from '@/Utils/mask';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Switch } from '@/components/ui/switch';
 import { AlertTriangle, ArrowLeft, ClipboardList, RotateCcw, ShoppingCartIcon, UserIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import Select from 'react-select';
@@ -75,6 +76,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
         total: '',
         payment_condition: initialCustomer?.commercial_condition?.payment_terms ?? '',
         items: [] as OrderItem[],
+        is_recurring: false as boolean,
     });
 
     const selectedCondition = selectedCustomer?.commercial_condition ?? null;
@@ -292,6 +294,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                     </Card>
 
                     <ProductSelector products={pricedProducts} onAddProduct={handleProductAdd} />
+                    <Card><CardContent className="flex items-center justify-between pt-6"><div><Label>Pedido recorrente mensal</Label><p className="text-sm text-muted-foreground">Lembrar a próxima entrega em um mês.</p></div><Switch checked={data.is_recurring} onCheckedChange={(checked) => setData('is_recurring', checked)} /></CardContent></Card>
                     <OrderSummary items={items} onRemoveItem={handleProductRemove} />
 
                     <Card>

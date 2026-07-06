@@ -1,379 +1,51 @@
-import { KpiDashboard } from '@/components/kpi-dashboard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, SharedData } from '@/types';
+import { BreadcrumbItem, SharedData } from '@/types';
 import { statusOrderByValue } from '@/Utils/functions';
 import { maskMoney } from '@/Utils/mask';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { BarChart3, BoxIcon, Download, Filter, ShoppingCartIcon, TrendingUp, User2Icon, UsersIcon } from 'lucide-react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { ArrowRight, BadgeDollarSign, Ban, ChartNoAxesCombined, CircleDollarSign, Clock3, ReceiptText, ShoppingCart, Store, Trophy, UsersRound, WalletCards } from 'lucide-react';
 import moment from 'moment';
-import { FormEvent, useState } from 'react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: route('app.dashboard'),
-    },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: route('app.dashboard') }];
 
-const categoryLabels: Record<string, string> = {
-    racao_seca: 'Ração seca',
-    racao_umida: 'Ração úmida',
-    petisco: 'Petisco',
-    suplemento: 'Suplemento',
-    higiene: 'Higiene',
-    areia: 'Areia',
-    acessorio: 'Acessório',
-    medicamento_insumo: 'Medicamento/insumo',
-    outro: 'Outro',
-};
-
-function exportUrl(filters: any) {
-    return route('app.dashboard.export', {
-        start_date: filters.start_date,
-        end_date: filters.end_date,
-        user_id: filters.user_id || undefined,
-        region_id: filters.region_id || undefined,
-        category: filters.category || undefined,
-    });
-}
-
-function SmallMetric({ title, value, detail }: { title: string; value: string; detail: string }) {
-    return (
-        <Card>
-            <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground">{title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-semibold">{value}</div>
-                <div className="text-sm text-muted-foreground">{detail}</div>
-            </CardContent>
-        </Card>
-    );
-}
-
-export default function Dashboard({
-    kpis_dash,
-    salesOrders,
-    filters,
-    filterOptions,
-    statusBreakdown,
-    sellerRanking,
-    topProducts,
-    salesByRegion,
-    salesByBrand,
-    salesByCategory,
-}: any) {
+export default function Dashboard({ summary, recentOrders, statusBreakdown }: any) {
     const { auth } = usePage<SharedData>().props;
-    const [form, setForm] = useState({
-        start_date: filters.start_date,
-        end_date: filters.end_date,
-        user_id: filters.user_id ?? '',
-        region_id: filters.region_id ?? '',
-        category: filters.category ?? '',
-    });
-
-    const submit = (event: FormEvent) => {
-        event.preventDefault();
-        router.get(route('app.dashboard'), form, { preserveState: true });
-    };
-
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <form onSubmit={submit} className="rounded-lg border p-4">
-                    <div className="grid gap-3 md:grid-cols-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="start_date">Início</Label>
-                            <Input
-                                id="start_date"
-                                type="date"
-                                value={form.start_date}
-                                onChange={(event) => setForm((current) => ({ ...current, start_date: event.target.value }))}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="end_date">Fim</Label>
-                            <Input
-                                id="end_date"
-                                type="date"
-                                value={form.end_date}
-                                onChange={(event) => setForm((current) => ({ ...current, end_date: event.target.value }))}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="user_id">Vendedor</Label>
-                            <select
-                                id="user_id"
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
-                                value={form.user_id}
-                                onChange={(event) => setForm((current) => ({ ...current, user_id: event.target.value }))}
-                                disabled={!auth.canManageTeam}
-                            >
-                                <option value="">Todos</option>
-                                {filterOptions.users?.map((user: any) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="region_id">Região</Label>
-                            <select
-                                id="region_id"
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
-                                value={form.region_id}
-                                onChange={(event) => setForm((current) => ({ ...current, region_id: event.target.value }))}
-                            >
-                                <option value="">Todas</option>
-                                {filterOptions.regions?.map((region: any) => (
-                                    <option key={region.id} value={region.id}>
-                                        {region.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="category">Categoria</Label>
-                            <select
-                                id="category"
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
-                                value={form.category}
-                                onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
-                            >
-                                <option value="">Todas</option>
-                                {filterOptions.categories?.map((category: string) => (
-                                    <option key={category} value={category}>
-                                        {categoryLabels[category] ?? category}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="flex items-end gap-2">
-                            <Button type="submit" variant="secondary" className="w-full">
-                                <Filter className="h-4 w-4" />
-                                <span>Filtrar</span>
-                            </Button>
-                            <Button asChild variant="outline" className="w-full">
-                                <a href={exportUrl(form)}>
-                                    <Download className="h-4 w-4" />
-                                    <span>CSV</span>
-                                </a>
-                            </Button>
-                        </div>
-                    </div>
-                </form>
-
-                <div className="grid gap-4 md:grid-cols-4">
-                    <KpiDashboard
-                        link={route('app.customers.index')}
-                        title="Clientes"
-                        value={kpis_dash?.customers}
-                        icon={<UsersIcon className="h-10 w-10" />}
-                        description={`${kpis_dash?.active_customers} ativos no período`}
-                    />
-                    <KpiDashboard
-                        link={route('app.products.index')}
-                        title="Produtos"
-                        value={kpis_dash?.products}
-                        icon={<BoxIcon className="h-10 w-10" />}
-                        description="Produtos cadastrados"
-                    />
-                    <KpiDashboard
-                        link={route('app.orders.index')}
-                        title="Pedidos"
-                        value={kpis_dash?.orders}
-                        icon={<ShoppingCartIcon className="h-10 w-10" />}
-                        description="Pedidos no período filtrado"
-                    />
-                    <KpiDashboard
-                        link={route('app.users.index')}
-                        title="Usuários"
-                        value={kpis_dash?.users}
-                        icon={<User2Icon className="h-10 w-10" />}
-                        description="Equipe comercial"
-                    />
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-4">
-                    <SmallMetric title="Vendas" value={`R$ ${maskMoney(kpis_dash?.sales_total)}`} detail="Total no período" />
-                    <SmallMetric title="Ticket médio" value={`R$ ${maskMoney(kpis_dash?.average_ticket)}`} detail="Média por pedido" />
-                    <SmallMetric title="Clientes inativos" value={String(kpis_dash?.inactive_customers ?? 0)} detail="Sem compra há 60 dias" />
-                    <SmallMetric title="Flex" value={`R$ ${maskMoney(kpis_dash?.flex?.value ?? '0.00')}`} detail="Saldo disponível" />
-                </div>
-
-                <div className="grid gap-4 xl:grid-cols-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-base">
-                                <BarChart3 className="h-5 w-5" />
-                                Ranking de vendedores
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Vendedor</TableHead>
-                                        <TableHead>Pedidos</TableHead>
-                                        <TableHead>Vendas</TableHead>
-                                        <TableHead>Ticket</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {sellerRanking?.length > 0 ? (
-                                        sellerRanking.map((seller: any) => (
-                                            <TableRow key={seller.user_id ?? 'sem-vendedor'}>
-                                                <TableCell>{seller.user?.name ?? 'Sem vendedor'}</TableCell>
-                                                <TableCell>{seller.orders_count}</TableCell>
-                                                <TableCell>R$ {maskMoney(seller.total)}</TableCell>
-                                                <TableCell>R$ {maskMoney(seller.average_ticket)}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={4} className="h-16 text-center">
-                                                Sem vendas no período.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-base">
-                                <TrendingUp className="h-5 w-5" />
-                                Produtos mais vendidos
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Produto</TableHead>
-                                        <TableHead>Qtd.</TableHead>
-                                        <TableHead>Total</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {topProducts?.length > 0 ? (
-                                        topProducts.map((product: any) => (
-                                            <TableRow key={product.id}>
-                                                <TableCell>
-                                                    <div className="font-medium">{product.name}</div>
-                                                    <div className="text-xs text-muted-foreground">
-                                                        {categoryLabels[product.category] ?? product.category ?? 'Sem categoria'} | {product.brand || 'Sem marca'}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>{product.quantity}</TableCell>
-                                                <TableCell>R$ {maskMoney(product.total)}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={3} className="h-16 text-center">
-                                                Sem produtos vendidos no período.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className="grid gap-4 xl:grid-cols-4">
-                    <Breakdown title="Pedidos por status" rows={statusBreakdown} labelKey="status" valueKey="orders_count" moneyKey="total" status />
-                    <Breakdown title="Vendas por região" rows={salesByRegion} labelKey="label" valueKey="orders_count" moneyKey="total" />
-                    <Breakdown title="Vendas por marca" rows={salesByBrand} labelKey="label" valueKey="quantity" moneyKey="total" />
-                    <Breakdown title="Vendas por categoria" rows={salesByCategory} labelKey="label" valueKey="quantity" moneyKey="total" category />
-                </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">Pedidos recentes no período</CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                        {salesOrders?.length > 0 ? (
-                            salesOrders.map((order: any) => (
-                                <div key={order.id} className="rounded-lg border p-3">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div>
-                                            <p className="font-medium">Pedido #{order.order_number}</p>
-                                            <p className="text-sm text-muted-foreground">{order.customer?.name ?? 'Cliente não informado'}</p>
-                                            {order.user?.name && <p className="text-xs text-muted-foreground">Vendedor: {order.user.name}</p>}
-                                        </div>
-                                        <Badge variant={order.status === '4' ? 'destructive' : 'secondary'}>{statusOrderByValue(order.status)}</Badge>
-                                    </div>
-                                    <div className="mt-3 flex items-end justify-between">
-                                        <div className="text-sm text-muted-foreground">{moment(order.created_at).format('DD/MM/YYYY HH:mm')}</div>
-                                        <div className="font-medium">R$ {maskMoney(order.total)}</div>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-sm text-muted-foreground">Não há pedidos no período filtrado.</div>
-                        )}
-                    </CardContent>
-                </Card>
+    return <AppLayout breadcrumbs={breadcrumbs}>
+        <Head title="Dashboard" />
+        <div className="flex flex-col gap-5 p-4">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                <div><h1 className="text-2xl font-semibold">Visão geral</h1><p className="text-sm text-muted-foreground">Resumo executivo de {moment().format('MMMM [de] YYYY')}.</p></div>
+                <div className="flex gap-2"><Button asChild variant="outline"><Link href={route('app.reports.sellers')}><UsersRound className="h-4 w-4" />Vendedores</Link></Button><Button asChild><Link href={route('app.reports.sales')}><ChartNoAxesCombined className="h-4 w-4" />Vendas</Link></Button></div>
             </div>
-        </AppLayout>
-    );
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <Metric icon={<CircleDollarSign />} label="Vendas no mês" value={`R$ ${maskMoney(summary.sales_total)}`} helper="Pedidos cancelados não entram" />
+                <Metric icon={<ShoppingCart />} label="Pedidos válidos" value={summary.orders_count} helper={`${summary.pending_count} aguardando andamento`} />
+                <Metric icon={<ReceiptText />} label="Ticket médio" value={`R$ ${maskMoney(summary.average_ticket)}`} helper="Média por pedido válido" />
+                <Metric icon={<Store />} label="Clientes atendidos" value={summary.customers_count} helper="Clientes únicos no mês" />
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-3">
+                <Card className="lg:col-span-2"><CardHeader><CardTitle className="text-base">Pontos de atenção</CardTitle></CardHeader><CardContent className="grid gap-3 sm:grid-cols-3"><Attention icon={<Clock3 />} label="Pedidos pendentes" value={summary.pending_count} href={route('app.orders.index')} /><Attention icon={<Ban />} label="Cancelados no mês" value={summary.canceled_count} href={route('app.reports.sales')} danger /><Attention icon={<Store />} label="Clientes inativos" value={summary.inactive_customers} href={route('app.intelligence.index')} /></CardContent></Card>
+                <Card><CardHeader><CardTitle className="text-base">Destaque do mês</CardTitle></CardHeader><CardContent>{summary.top_seller ? <div className="flex items-center gap-3"><div className="rounded-full bg-amber-500/10 p-3 text-amber-600"><Trophy /></div><div><div className="font-semibold">{summary.top_seller.name}</div><div className="text-sm text-muted-foreground">R$ {maskMoney(summary.top_seller.total)} em vendas</div></div></div> : <Empty />}</CardContent></Card>
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-3">
+                <Card className="xl:col-span-2"><CardHeader className="flex-row items-center justify-between"><CardTitle className="text-base">Pedidos recentes</CardTitle><Button asChild size="sm" variant="ghost"><Link href={route('app.orders.index')}>Ver pedidos<ArrowRight className="h-4 w-4" /></Link></Button></CardHeader><CardContent className="space-y-2">{recentOrders.length ? recentOrders.map((order: any) => <div key={order.id} className="flex flex-col justify-between gap-2 rounded-lg border p-3 sm:flex-row sm:items-center"><div><div className="font-medium">Pedido #{order.order_number} · {order.customer?.name ?? 'Cliente não informado'}</div><div className="text-xs text-muted-foreground">{order.user?.name ?? 'Sem vendedor'} · {moment(order.created_at).format('DD/MM/YYYY HH:mm')}</div></div><div className="flex items-center justify-between gap-3"><Badge variant={String(order.status) === '4' ? 'destructive' : 'secondary'}>{statusOrderByValue(order.status)}</Badge><strong>R$ {maskMoney(order.total)}</strong></div></div>) : <Empty />}</CardContent></Card>
+                <Card><CardHeader><CardTitle className="text-base">Situação dos pedidos</CardTitle></CardHeader><CardContent className="space-y-3">{statusBreakdown.length ? statusBreakdown.map((row: any) => <div key={row.status} className="flex items-center justify-between rounded-lg border p-3"><div><div className="font-medium">{statusOrderByValue(row.status)}</div><div className="text-xs text-muted-foreground">R$ {maskMoney(row.total)}</div></div><Badge variant="secondary">{row.orders_count}</Badge></div>) : <Empty />}</CardContent></Card>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+                <Card><CardContent className="flex items-center gap-3 pt-6"><WalletCards className="text-primary" /><div><div className="text-sm text-muted-foreground">Saldo Flex interno</div><div className="text-xl font-semibold">R$ {maskMoney(summary.flex_balance)}</div></div></CardContent></Card>
+                {auth.canManageTeam && <Card><CardContent className="flex items-center justify-between gap-3 pt-6"><div className="flex items-center gap-3"><BadgeDollarSign className="text-primary" /><div><div className="font-medium">Comissões da equipe</div><div className="text-sm text-muted-foreground">Previsão, realizado e detalhamento</div></div></div><Button asChild variant="outline" size="sm"><Link href={route('app.commissions.index')}>Abrir</Link></Button></CardContent></Card>}
+            </div>
+        </div>
+    </AppLayout>;
 }
 
-function Breakdown({
-    title,
-    rows,
-    labelKey,
-    valueKey,
-    moneyKey,
-    status = false,
-    category = false,
-}: {
-    title: string;
-    rows: any[];
-    labelKey: string;
-    valueKey: string;
-    moneyKey: string;
-    status?: boolean;
-    category?: boolean;
-}) {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-base">{title}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-                {rows?.length > 0 ? (
-                    rows.map((row: any) => (
-                        <div key={row[labelKey] ?? 'sem-label'} className="rounded-md border p-3">
-                            <div className="flex items-center justify-between gap-2">
-                                <div className="truncate font-medium">
-                                    {status
-                                        ? statusOrderByValue(row[labelKey])
-                                        : category
-                                          ? categoryLabels[row[labelKey]] ?? row[labelKey]
-                                          : row[labelKey]}
-                                </div>
-                                <Badge variant="secondary">{row[valueKey]}</Badge>
-                            </div>
-                            <div className="mt-1 text-sm text-muted-foreground">R$ {maskMoney(row[moneyKey])}</div>
-                        </div>
-                    ))
-                ) : (
-                    <div className="text-sm text-muted-foreground">Sem dados no período.</div>
-                )}
-            </CardContent>
-        </Card>
-    );
-}
+function Metric({ icon, label, value, helper }: any) { return <Card><CardHeader className="flex-row items-start justify-between pb-2"><div><div className="text-sm text-muted-foreground">{label}</div><div className="mt-2 text-2xl font-semibold">{value}</div></div><span className="text-primary">{icon}</span></CardHeader><CardContent className="text-xs text-muted-foreground">{helper}</CardContent></Card>; }
+function Attention({ icon, label, value, href, danger = false }: any) { return <Link href={href} className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/40"><div className="flex items-center gap-2"><span className={danger ? 'text-destructive' : 'text-primary'}>{icon}</span><span className="text-sm">{label}</span></div><strong className={danger ? 'text-destructive' : ''}>{value}</strong></Link>; }
+function Empty() { return <div className="text-sm text-muted-foreground">Sem dados no período.</div>; }

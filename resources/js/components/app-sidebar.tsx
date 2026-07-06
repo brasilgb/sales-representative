@@ -13,6 +13,7 @@ import {
     ReceiptText,
     HandCoins,
     LayoutGrid,
+    ListChecks,
     MapPinned,
     MessageSquareMore,
     ShoppingCartIcon,
@@ -167,6 +168,19 @@ export function AppSidebar() {
             ],
         },
     ];
+    const reportItems = [
+        {
+            title: 'Relatórios',
+            url: '#',
+            icon: ListChecks,
+            isActive: Boolean(route().current('app.reports.*') || route().current('app.orders.report')),
+            items: [
+                { title: 'Vendas', url: route('app.reports.sales'), active: 'app.reports.sales' },
+                { title: 'Vendedores', url: route('app.reports.sellers'), active: 'app.reports.sellers' },
+                { title: 'Pedidos (PDF)', url: route('app.orders.report'), active: 'app.orders.report' },
+            ],
+        },
+    ];
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -184,6 +198,7 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={visibleNavItems} />
+                <NavMainCollapsible items={reportItems} />
                 <NavMainCollapsible items={settingsItems} />
             </SidebarContent>
 

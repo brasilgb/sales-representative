@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\CommercialCondition;
+use App\Models\Customer;
+use App\Models\Order;
+use App\Models\Product;
+use App\Support\FlexBalance;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
+
+final class OrderUpdateService
+{
+    public function update(Order $order, array $data): Order
+    {
+        return DB::transaction(function () use ($order, $data) {
+            $order = Order::query()->lockForUpdate()->findOrFail($order->id);
+
+            if ((string) $order->status === '4') {
+                throw new RuntimeException('Pedidos cancelados não podem ser editados.');
+            }
+
+            $order->load('orderItems');
+            foreach ($order->orderItems as $oldItem) {
+                Product::query()->lockForUpdate()->find($oldItem->product_id)?->increment('quantity', $oldItem->quantity);
+            }
+            FlexBalance::reverse((float) $order->flex, (float) $order->discount);
+
+            $customer = Customer::visibleTo()->findOrFail($data['customer_id']);
+            $condition = CommercialCondition::resolveForCustomer($customer);
+            $subtotal = 0;
+            $items = [];
+
+            foreach ($data['items'] as $item) {
+                $product = Product::query()->lockForUpdate()->findOrFail($item['product_id']);
+                $quantity = (int) $item['quantity'];
+
+                if ($product->quantity < $quantity) {
+                    throw new RuntimeException('Estoque insuficiente para o produto: '.$product->name);
+                }
+
+                $price = $condition ? $condition->adjustedPrice((float) $product->price) : (float) $product->price;
+                $itemTotal = round($price * $quantity, 2);
+                $subtotal += $itemTotal;
+                $items[] = ['product_id' => $product->id, 'quantity' => $quantity, 'price' => $price, 'name' => $product->name, 'total' => $itemTotal];
+                $product->decrement('quantity', $quantity);
+            }
+
+            $subtotal = round($subtotal, 2);
+            $adjustedTotal = round((float) ($data['adjusted_total'] ?? $subtotal), 2);
+            $manualDiscount = round((float) ($data['discount'] ?? 0), 2);
+
+            if ($manualDiscount > $adjustedTotal) {
+                throw new RuntimeException('O desconto não pode ser maior que o valor ajustado.');
+            }
+
+            $flex = max(round($adjustedTotal - $subtotal, 2), 0);
+            $priceReduction = max(round($subtotal - $adjustedTotal, 2), 0);
+            $discount = round($priceReduction + $manualDiscount, 2);
+            $total = max(round($adjustedTotal - $manualDiscount, 2), 0);
+
+            if ($condition) {
+                $discountPercentage = $subtotal > 0 ? ($discount / $subtotal) * 100 : 0;
+                if ($discountPercentage > (float) $condition->max_discount_percentage) {
+                    throw new RuntimeException('Desconto acima do limite permitido para este cliente.');
+                }
+                if ($total < (float) $condition->minimum_order_amount) {
+                    throw new RuntimeException('Pedido abaixo do valor mínimo da condição comercial.');
+                }
+            }
+
+            $commissionPercentage = (float) ($condition?->commission_percentage ?? 0);
+            $order->update([
+                'customer_id' => $customer->id,
+                'commercial_condition_id' => $condition?->id,
+                'subtotal' => $subtotal,
+                'adjusted_total' => $adjustedTotal,
+                'flex' => $flex,
+                'discount' => $discount,
+                'total' => $total,
+                'payment_condition' => $data['payment_condition'] ?? $condition?->payment_terms,
+                'commission_percentage' => $commissionPercentage,
+                'commission_amount' => round($total * ($commissionPercentage / 100), 2),
+                'is_recurring' => (bool) ($data['is_recurring'] ?? false),
+                'next_delivery_at' => ($data['is_recurring'] ?? false) ? ($order->next_delivery_at ?? now()->addMonthNoOverflow()) : null,
+            ]);
+            $order->orderItems()->delete();
+            $order->orderItems()->createMany($items);
+            FlexBalance::apply($flex, $discount);
+
+            return $order->load('customer.region', 'orderItems', 'commercialCondition');
+        });
+    }
+}

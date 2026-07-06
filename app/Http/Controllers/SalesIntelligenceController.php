@@ -39,8 +39,9 @@ class SalesIntelligenceController extends Controller
             'selectedCustomer' => $selectedCustomer,
             'inactiveBuckets' => $inactiveBuckets,
             'reorderSuggestions' => $this->reorderSuggestions(),
+            'recurringOrders' => Order::visibleTo()->where('is_recurring', true)->where('status', '!=', '4')->with('customer', 'user:id,name')->orderBy('next_delivery_at')->get(),
             'mixReport' => $selectedCustomer ? $this->mixReport($selectedCustomer) : null,
-            'campaigns' => Campaign::active()->with('product', 'region')->orderBy('ends_at')->get()->map(function (Campaign $campaign) {
+            'campaigns' => Campaign::active()->with('products', 'region')->orderBy('ends_at')->get()->map(function (Campaign $campaign) {
                 return [
                     ...$campaign->toArray(),
                     'adherence' => $this->campaignAdherence($campaign),
@@ -154,7 +155,7 @@ class SalesIntelligenceController extends Controller
             ->whereBetween('created_at', [$start, $end])
             ->whereHas('orderItems.product', function (Builder $query) use ($campaign) {
                 match ($campaign->scope_type) {
-                    'product' => $query->where('products.id', $campaign->product_id),
+                    'product' => $query->whereIn('products.id', $campaign->products->pluck('id')),
                     'brand' => $query->where('brand', $campaign->brand),
                     'category' => $query->where('category', $campaign->category),
                     default => null,

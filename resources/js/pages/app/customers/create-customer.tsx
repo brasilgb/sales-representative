@@ -141,7 +141,7 @@ export default function CreateCustomer({ regions }: any) {
                             </div>
 
                             <div className="gap-2">
-                                <Label htmlFor="name">CNPJ</Label>
+                                <Label htmlFor="cnpj">CPF/CNPJ</Label>
                                 <Input
                                     type="text"
                                     id="cnpj"

@@ -1,0 +1,9 @@
+import { Head } from '@inertiajs/react';
+import { MessageCircle } from 'lucide-react';
+
+export default function CampaignCatalog({ campaign }: any) {
+    const company = campaign.tenant;
+    const message = encodeURIComponent(`Olá! Tenho interesse na campanha ${campaign.name}. ${typeof window !== 'undefined' ? window.location.href : ''}`);
+    const whatsapp = String(company?.whatsapp ?? '').replace(/\D/g, '');
+    return <div className="min-h-screen bg-slate-50 text-slate-900"><Head title={campaign.name} /><header className="bg-slate-950 px-5 py-10 text-white"><div className="mx-auto max-w-6xl"><div className="text-sm text-cyan-300">{company?.company}</div><h1 className="mt-2 text-3xl font-black md:text-5xl">{campaign.name}</h1><p className="mt-3 max-w-2xl text-slate-300">{campaign.goal}</p></div></header><main className="mx-auto max-w-6xl p-5"><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{campaign.products.map((product: any) => <article key={product.id} className="overflow-hidden rounded-2xl border bg-white shadow-sm"><div className="flex h-56 items-center justify-center bg-slate-100">{product.image_url ? <img src={product.image_url} alt={product.name} className="h-full w-full object-contain" /> : <span className="text-sm text-slate-400">Produto sem foto</span>}</div><div className="p-5"><div className="text-xs font-bold uppercase text-cyan-700">Ref. {product.reference}</div><h2 className="mt-2 text-lg font-bold">{product.name}</h2><p className="mt-2 text-sm text-slate-600">{product.description}</p><div className="mt-4 text-2xl font-black text-emerald-700">{Number(product.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div></div></article>)}</div>{whatsapp && <a href={`https://wa.me/${whatsapp}?text=${message}`} className="fixed right-5 bottom-5 flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 font-bold text-white shadow-xl"><MessageCircle />Quero comprar</a>}</main></div>;
+}

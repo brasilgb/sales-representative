@@ -14,7 +14,7 @@ interface AuthLayoutProps {
 export default function AuthSimpleLayout({ children, title, description, width = 'w-full max-w-md' }: PropsWithChildren<AuthLayoutProps>) {
     return (
         <div className="relative flex min-h-svh min-w-0 items-center justify-center overflow-hidden p-3 sm:p-6">
-            <div className="absolute inset-0 bg-[url('/images/sales.jpg')] bg-cover bg-center bg-no-repeat" />
+            <div className="absolute inset-0 bg-[url('/images/caesegatos.png')] bg-cover bg-center bg-no-repeat" />
             <div className="absolute inset-0 bg-linear-to-br from-black/75 via-black/80 to-black/75" />
 
             <Card

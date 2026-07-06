@@ -2,12 +2,15 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
-import { BoxIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { BoxIcon, Plus } from 'lucide-react';
 import React, { useState } from 'react';
 import Select from 'react-select';
 
 interface Product {
     id: number;
+    reference: string;
     name: string;
     price: number;
     base_price?: number;
@@ -35,19 +38,20 @@ export function ProductSelector({ products, onAddProduct }: Props) {
     };
 
     return (
-        <Card className="mb-4 p-2">
-            <CardTitle className="flex items-center gap-2 font-bold mb-2"><BoxIcon className="w-6 h-6" /> Adicionar Produtos</CardTitle>
-            <div className="flex md:flex-row flex-col items-start gap-4">
-                <div className='flex md:flex-row flex-col w-full gap-4'>
-                    <div className="md:w-1/2">
+        <Card className="mb-4 p-4">
+            <CardTitle className="mb-4 flex items-center gap-2 text-base font-bold"><BoxIcon className="h-5 w-5" /> Adicionar produto ao pedido</CardTitle>
+            <div className="grid items-end gap-3 md:grid-cols-[minmax(0,1fr)_120px_auto]">
+                    <div className="grid min-w-0 gap-2">
+                        <Label>Produto</Label>
                         <Select
                             options={products}
-                            getOptionLabel={(option) => `${option.name} - R$ ${Number(option.price).toFixed(2).replace('.', ',')}`}
+                            getOptionLabel={(option) => `${option.reference} · ${option.name} - R$ ${Number(option.price).toFixed(2).replace('.', ',')}`}
                             getOptionValue={(option) => option.id.toString()}
                             onChange={(product) => setSelectedProduct(product)}
                             value={selectedProduct}
-                            placeholder="Selecione um produto"
-                            className="shadow-xs p-0 border text-gray-700 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-9"
+                            placeholder="Pesquise por referência ou nome"
+                            noOptionsMessage={() => 'Nenhum produto encontrado'}
+                            className="rounded-md border border-gray-300 p-0 text-gray-700 shadow-xs focus-within:ring-2 focus-within:ring-blue-500"
                             styles={{
                                 control: (baseStyles, state) => ({
                                     ...baseStyles,
@@ -55,7 +59,7 @@ export function ProductSelector({ products, onAddProduct }: Props) {
                                     boxShadow: 'none',
                                     border: 'none',
                                     background: 'transparent',
-                                    paddingBottom: '2px',
+                                    minHeight: '38px',
                                 }),
                                 dropdownIndicator: (base) => ({
                                     ...base,
@@ -68,23 +72,24 @@ export function ProductSelector({ products, onAddProduct }: Props) {
                             }}
                         />
                     </div>
-                    <div className="md:w-1/4">
-                        <input
+                    <div className="grid gap-2">
+                        <Label htmlFor="order-product-quantity">Quantidade</Label>
+                        <Input
+                            id="order-product-quantity"
                             type="number"
                             value={quantity}
-                            onChange={(e) => setQuantity(parseInt(e.target.value))}
+                            onChange={(e) => setQuantity(Number(e.target.value))}
                             min="1"
-                            className="w-full border rounded p-2"
                         />
                     </div>
-                </div>
                 <Button
-                    variant="secondary"
                     type="button"
                     onClick={handleAdd}
                     disabled={!selectedProduct || quantity <= 0}
+                    className="w-full whitespace-nowrap bg-emerald-600 text-white hover:bg-emerald-700 md:w-auto"
                 >
-                    Adicionar
+                    <Plus className="h-4 w-4" />
+                    Adicionar ao pedido
                 </Button>
             </div>
             {selectedProduct && Number(selectedProduct.base_price ?? selectedProduct.price) !== Number(selectedProduct.price) && (

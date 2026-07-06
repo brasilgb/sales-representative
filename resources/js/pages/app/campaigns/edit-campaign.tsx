@@ -9,6 +9,7 @@ import { BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft, Megaphone, Save } from 'lucide-react';
 import moment from 'moment';
+import { ProductPicker } from './product-picker';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('app.dashboard') },
@@ -32,7 +33,7 @@ export default function EditCampaign({ campaign, products, regions, brands, cate
     const { data, setData, patch, processing, errors } = useForm({
         name: campaign.name ?? '',
         scope_type: campaign.scope_type ?? 'product',
-        product_id: campaign.product_id ?? '',
+        product_ids: campaign.products?.map((product: any) => product.id) ?? [],
         region_id: campaign.region_id ?? '',
         brand: campaign.brand ?? '',
         category: campaign.category ?? '',
@@ -101,23 +102,7 @@ export default function EditCampaign({ campaign, products, regions, brands, cate
                         </div>
 
                         {data.scope_type === 'product' && (
-                            <div className="grid gap-2">
-                                <Label htmlFor="product_id">Produto</Label>
-                                <select
-                                    id="product_id"
-                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
-                                    value={data.product_id}
-                                    onChange={(event) => setData('product_id', event.target.value)}
-                                >
-                                    <option value="">Selecione</option>
-                                    {products.map((product: any) => (
-                                        <option key={product.id} value={product.id}>
-                                            {product.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.product_id && <div className="text-sm text-red-500">{errors.product_id}</div>}
-                            </div>
+                            <div className="grid gap-2"><Label>Produtos da campanha</Label><ProductPicker products={products} value={data.product_ids} onChange={(ids: number[]) => setData('product_ids', ids)} error={errors.product_ids} /></div>
                         )}
 
                         {data.scope_type === 'brand' && (

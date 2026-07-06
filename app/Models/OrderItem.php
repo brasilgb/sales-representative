@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OrderItem extends Model
 {
     use Tenantable;
-    
+
     protected $fillable = [
         'order_id',
         'product_id',
         'quantity',
         'price',
-        'total'
+        'name',
+        'total',
     ];
 
     public function order(): BelongsTo

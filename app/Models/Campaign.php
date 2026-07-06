@@ -6,6 +6,8 @@ use App\Traits\Tenantable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 class Campaign extends Model
 {
@@ -22,6 +24,7 @@ class Campaign extends Model
         'ends_at',
         'goal',
         'status',
+        'public_token',
     ];
 
     protected function casts(): array
@@ -36,6 +39,16 @@ class Campaign extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(fn (Campaign $campaign) => $campaign->public_token ??= (string) Str::uuid());
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class)->withTimestamps();
     }
 
     public function region(): BelongsTo

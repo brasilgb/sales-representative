@@ -8,7 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem, SharedData } from '@/types';
 import { maskMoney } from '@/Utils/mask';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { BrainCircuit, Edit, Megaphone, Plus, RotateCcw, ShoppingCart, TrendingUp } from 'lucide-react';
+import { BrainCircuit, Edit, ExternalLink, Megaphone, Plus, RotateCcw, ShoppingCart, TrendingUp } from 'lucide-react';
 import moment from 'moment';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -36,7 +36,7 @@ const scopeLabels: Record<string, string> = {
     region: 'Região',
 };
 
-export default function Intelligence({ customers, selectedCustomer, inactiveBuckets, reorderSuggestions, mixReport, campaigns }: any) {
+export default function Intelligence({ customers, selectedCustomer, inactiveBuckets, reorderSuggestions, mixReport, campaigns, recurringOrders }: any) {
     const { auth, flash } = usePage<SharedData & { flash: any }>().props;
 
     const changeCustomer = (event: any) => {
@@ -56,6 +56,7 @@ export default function Intelligence({ customers, selectedCustomer, inactiveBuck
             </div>
 
             <div className="grid gap-4 p-4 md:grid-cols-3">
+                <Card className="md:col-span-3"><CardHeader><CardTitle>Próximas entregas recorrentes</CardTitle></CardHeader><CardContent className="grid gap-3 md:grid-cols-3">{recurringOrders?.length ? recurringOrders.map((order: any) => <div key={order.id} className="rounded-lg border p-3"><div className="font-medium">{order.customer?.name}</div><div className="text-sm text-muted-foreground">Entrega: {moment(order.next_delivery_at).format('DD/MM/YYYY')}</div><Button asChild size="sm" className="mt-3"><Link href={route('app.orders.create', { customer_id: order.customer_id })}>Gerar próximo pedido</Link></Button></div>) : <div className="text-sm text-muted-foreground">Nenhum pedido recorrente ativo.</div>}</CardContent></Card>
                 {[30, 45, 60].map((days) => (
                     <Card key={days}>
                         <CardHeader>
@@ -232,7 +233,7 @@ export default function Intelligence({ customers, selectedCustomer, inactiveBuck
                                             <TableCell>
                                                 <div className="text-sm">{scopeLabels[campaign.scope_type] ?? campaign.scope_type}</div>
                                                 <div className="text-xs text-muted-foreground">
-                                                    {campaign.product?.name || campaign.region?.name || campaign.brand || campaign.category || '-'}
+                                                    {campaign.scope_type === 'product' ? `${campaign.products?.length ?? 0} produto(s)` : campaign.region?.name || campaign.brand || campaign.category || '-'}
                                                 </div>
                                             </TableCell>
                                             <TableCell>
@@ -253,6 +254,7 @@ export default function Intelligence({ customers, selectedCustomer, inactiveBuck
                                             {auth.canManageTeam && (
                                                 <TableCell>
                                                     <div className="flex justify-end gap-2">
+                                                        {campaign.public_token && <Button asChild size="icon" variant="outline"><a href={route('campaigns.public', campaign.public_token)} target="_blank" rel="noreferrer" title="Abrir página pública"><ExternalLink className="h-4 w-4" /></a></Button>}
                                                         <Button asChild size="icon" className="bg-orange-500 text-white hover:bg-orange-600">
                                                             <Link href={route('app.campaigns.edit', campaign.id)}>
                                                                 <Edit className="h-4 w-4" />

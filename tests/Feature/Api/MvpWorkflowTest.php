@@ -3,6 +3,7 @@
 use App\Models\Admin\Plan;
 use App\Models\CommercialCondition;
 use App\Models\Customer;
+use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Region;
@@ -228,6 +229,80 @@ test('customer email is optional but is validated when provided', function () {
         'email' => 'email-invalido',
     ])->assertUnprocessable()
         ->assertJsonValidationErrors('email');
+});
+
+test('customer accepts a valid cpf or cnpj and rejects an invalid document', function () {
+    $tenant = mvpTenant('solo', 'customer-document');
+    $owner = mvpUser($tenant, User::ROLE_OWNER, 'customer-document');
+    Sanctum::actingAs($owner);
+    $region = Region::create(['name' => 'Região documentos', 'status' => true]);
+
+    $this->postJson('/api/customers', [
+        'name' => 'Cliente pessoa física',
+        'cnpj' => '529.982.247-25',
+        'region_id' => $region->id,
+    ])->assertCreated()
+        ->assertJsonPath('cnpj', '52998224725');
+
+    $this->postJson('/api/customers', [
+        'name' => 'Cliente pessoa jurídica',
+        'cnpj' => '04.252.011/0001-10',
+        'region_id' => $region->id,
+    ])->assertCreated()
+        ->assertJsonPath('cnpj', '04252011000110');
+
+    $this->postJson('/api/customers', [
+        'name' => 'Cliente documento inválido',
+        'cnpj' => '111.111.111-11',
+        'region_id' => $region->id,
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors('cnpj');
+});
+
+test('order editing recalculates stock flex totals and rolls back invalid changes', function () {
+    $tenant = mvpTenant('solo', 'edit-order');
+    $owner = mvpUser($tenant, User::ROLE_OWNER, 'edit-order');
+    Sanctum::actingAs($owner);
+    Flex::create(['value' => 50]);
+    $customer = Customer::create(['name' => 'Cliente edição', 'cnpj' => '52998224725']);
+    $product = Product::create([
+        'name' => 'Produto edição', 'reference' => 'EDIT-001', 'description' => 'Teste',
+        'unity' => 'UN', 'measure' => 1, 'price' => 10, 'quantity' => 10, 'min_quantity' => 1, 'enabled' => true,
+    ]);
+
+    $created = $this->postJson('/api/orders', [
+        'customer_id' => $customer->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 2]],
+        'total' => 20,
+        'discount' => 0,
+    ])->assertCreated();
+    $orderId = $created->json('order.id');
+
+    $this->putJson("/api/orders/{$orderId}", [
+        'customer_id' => $customer->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 3]],
+        'adjusted_total' => 36,
+        'discount' => 1,
+    ])->assertOk()
+        ->assertJsonPath('order.subtotal', 30)
+        ->assertJsonPath('order.flex', 6)
+        ->assertJsonPath('order.discount', 1)
+        ->assertJsonPath('order.total', 35);
+
+    expect($product->fresh()->quantity)->toBe(7)
+        ->and((float) Flex::firstOrFail()->value)->toBe(55.0);
+
+    $this->putJson("/api/orders/{$orderId}", [
+        'customer_id' => $customer->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 99]],
+        'adjusted_total' => 990,
+        'discount' => 0,
+    ])->assertStatus(409)
+        ->assertJsonPath('message', 'Estoque insuficiente para o produto: Produto edição');
+
+    expect($product->fresh()->quantity)->toBe(7)
+        ->and((float) Flex::firstOrFail()->value)->toBe(55.0)
+        ->and((float) Order::findOrFail($orderId)->total)->toBe(35.0);
 });
 
 test('mobile api blocks inactive users and tenants without an active subscription', function () {

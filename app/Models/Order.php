@@ -26,7 +26,11 @@ class Order extends Model
         'payment_condition',
         'commission_percentage',
         'commission_amount',
+        'is_recurring',
+        'next_delivery_at',
     ];
+
+    protected function casts(): array { return ['is_recurring' => 'boolean', 'next_delivery_at' => 'date']; }
 
     protected static function booted(): void
     {

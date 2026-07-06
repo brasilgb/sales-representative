@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\OrderUpdateService;
 use App\Support\FlexBalance;
 use App\Support\PlanLimits;
 use Carbon\Carbon;
@@ -97,6 +98,7 @@ class OrderController extends Controller
             'discount' => ['nullable', 'numeric', 'min:0'],
             'adjusted_total' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'payment_condition' => ['nullable', 'string', 'max:120'],
+            'is_recurring' => ['nullable', 'boolean'],
         ]);
 
         try {
@@ -161,6 +163,8 @@ class OrderController extends Controller
                 'payment_condition' => $validatedData['payment_condition'] ?? $commercialCondition?->payment_terms,
                 'commission_percentage' => $commissionPercentage,
                 'commission_amount' => $commissionAmount,
+                'is_recurring' => (bool) ($validatedData['is_recurring'] ?? false),
+                'next_delivery_at' => ($validatedData['is_recurring'] ?? false) ? now()->addMonthNoOverflow()->toDateString() : null,
             ]);
 
             // 2. Preparar e criar os itens do pedido
@@ -217,7 +221,7 @@ class OrderController extends Controller
         $this->authorizeVisibleOrder($order);
 
         $products = Product::all();
-        $customers = Customer::visibleTo()->get();
+        $customers = Customer::visibleTo()->orderBy('name')->get()->each(fn (Customer $customer) => $customer->setAttribute('commercial_condition', CommercialCondition::resolveForCustomer($customer)));
         $flex = Flex::first();
         // Carrega os relacionamentos necessários no modelo já injetado pela rota.
         $order->load('customer', 'orderItems');
@@ -239,7 +243,26 @@ class OrderController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        //
+        $this->authorizeVisibleOrder($order);
+        $tenantId = $request->user()->tenant_id;
+        $validated = $request->validate([
+            'customer_id' => ['required', Rule::exists('customers', 'id')->where('tenant_id', $tenantId)],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'adjusted_total' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
+            'payment_condition' => ['nullable', 'string', 'max:120'],
+            'is_recurring' => ['nullable', 'boolean'],
+        ]);
+
+        try {
+            app(OrderUpdateService::class)->update($order, $validated);
+
+            return redirect()->route('app.orders.index')->with('success', 'Pedido atualizado com sucesso!');
+        } catch (\Throwable $exception) {
+            return redirect()->back()->with('error', $exception->getMessage())->withInput();
+        }
     }
 
     /**

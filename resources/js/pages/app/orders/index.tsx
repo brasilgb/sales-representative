@@ -12,7 +12,7 @@ import { BreadcrumbItem } from '@/types';
 import { statusOrder } from '@/Utils/dataSelect';
 import { maskMoney } from '@/Utils/mask';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { CalendarDaysIcon, EyeIcon, Plus, ShoppingCartIcon } from 'lucide-react';
+import { CalendarDaysIcon, Pencil, Plus, ShoppingCartIcon } from 'lucide-react';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 
@@ -130,11 +130,7 @@ export default function Orders({ orders }: any) {
                                         </TableCell>
                                         <TableCell className="min-w-[120px]">
                                             <div className="flex flex-wrap justify-end gap-2">
-                                                <Button asChild size="icon" className="bg-cyan-500 text-white hover:bg-cyan-600" title="Ver pedido">
-                                                    <Link href={route('app.orders.edit', order.id)} aria-label={`Ver pedido ${order.order_number}`}>
-                                                        <EyeIcon className="h-4 w-4" />
-                                                    </Link>
-                                                </Button>
+                                                <Button asChild size="icon" variant="outline" title={String(order.status) === '4' ? 'Consultar pedido' : 'Editar pedido'}><Link href={route('app.orders.edit', order.id)} aria-label={`${String(order.status) === '4' ? 'Consultar' : 'Editar'} pedido ${order.order_number}`}><Pencil className="h-4 w-4" /></Link></Button>
                                                 <ActionDelete title={'este pedido'} url={'app.orders.destroy'} param={order.id} />
                                             </div>
                                         </TableCell>

@@ -32,6 +32,7 @@ class ApiCustomerController extends Controller
     public function store(Request $request)
     {
         $this->authorizeCatalogManagement($request);
+        $this->normalizeDocument($request);
 
         $customerId = $request->input('id');
         $tenantId = auth()->user()->tenant_id;
@@ -43,7 +44,7 @@ class ApiCustomerController extends Controller
         $validated = $request->validate([
             'cnpj' => [
                 'required',
-                'cnpj',
+                'cpf_ou_cnpj',
                 Rule::unique('customers')->ignore($customerId)->where('tenant_id', $tenantId),
             ],
             'name' => 'required|string|max:100',
@@ -110,6 +111,7 @@ class ApiCustomerController extends Controller
     {
         $this->authorizeCatalogManagement($request);
         $this->authorizeVisibleCustomer($customer);
+        $this->normalizeDocument($request);
 
         // The TenantScope ensures this customer belongs to the current tenant.
         $tenantId = auth()->user()->tenant_id;
@@ -117,7 +119,7 @@ class ApiCustomerController extends Controller
         $validated = $request->validate([
             'cnpj' => [
                 'required',
-                'cnpj',
+                'cpf_ou_cnpj',
                 Rule::unique('customers')->ignore($customer->id)->where('tenant_id', $tenantId),
             ],
             'name' => 'required|string|max:100',
@@ -176,6 +178,13 @@ class ApiCustomerController extends Controller
     private function authorizeVisibleCustomer(Customer $customer): void
     {
         abort_unless(Customer::visibleTo()->whereKey($customer->id)->exists(), 404);
+    }
+
+    private function normalizeDocument(Request $request): void
+    {
+        $request->merge([
+            'cnpj' => preg_replace('/\D/', '', (string) $request->input('cnpj')),
+        ]);
     }
 
     private function authorizeCatalogManagement(Request $request): void

@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OtherSettingController;
+use App\Http\Controllers\PerformanceReportController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RegionController;
@@ -21,6 +22,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/dashboard/export', [DashboardController::class, 'export'])->name('dashboard.export');
+Route::get('/reports/sales', [PerformanceReportController::class, 'sales'])->name('reports.sales');
+Route::get('/reports/sellers', [PerformanceReportController::class, 'sellers'])->name('reports.sellers');
 Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
 Route::patch('/subscription', [SubscriptionController::class, 'update'])->name('subscription.update');
 Route::post('/subscription/pix', [PaymentController::class, 'generatePix'])->name('subscription.pix');

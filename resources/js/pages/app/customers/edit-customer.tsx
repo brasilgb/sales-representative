@@ -171,7 +171,7 @@ export default function EditCustomer({ customer, regions }: any) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="name">CPF/CNPJ</Label>
+                                <Label htmlFor="cnpj">CPF/CNPJ</Label>
                                 <Input
                                     type="text"
                                     id="cnpj"

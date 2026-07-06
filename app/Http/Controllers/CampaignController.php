@@ -31,7 +31,8 @@ class CampaignController extends Controller
         $this->authorizeCampaignManagement();
         $this->authorizeFeature();
 
-        Campaign::create($this->campaignData($request));
+        $campaign = Campaign::create($this->campaignData($request));
+        $campaign->products()->sync($request->validated('product_ids', []));
 
         return redirect()->route('app.intelligence.index')->with('success', 'Campanha cadastrada com sucesso!');
     }
@@ -48,7 +49,7 @@ class CampaignController extends Controller
 
         return Inertia::render('app/campaigns/edit-campaign', [
             ...$this->formData(),
-            'campaign' => $campaign,
+            'campaign' => $campaign->load('products:id'),
         ]);
     }
 
@@ -58,6 +59,7 @@ class CampaignController extends Controller
         $this->authorizeFeature();
 
         $campaign->update($this->campaignData($request));
+        $campaign->products()->sync($request->validated('product_ids', []));
 
         return redirect()->route('app.campaigns.edit', $campaign)->with('success', 'Campanha alterada com sucesso!');
     }
@@ -75,7 +77,7 @@ class CampaignController extends Controller
     private function formData(): array
     {
         return [
-            'products' => Product::where('enabled', true)->orderBy('name')->get(['id', 'name', 'brand', 'category']),
+            'products' => Product::where('enabled', true)->orderBy('name')->get(['id', 'reference', 'name', 'brand', 'category']),
             'regions' => Region::where('status', true)->orderBy('name')->get(['id', 'name']),
             'brands' => Product::whereNotNull('brand')->distinct()->orderBy('brand')->pluck('brand')->values(),
             'categories' => Product::whereNotNull('category')->distinct()->orderBy('category')->pluck('category')->values(),
@@ -85,6 +87,7 @@ class CampaignController extends Controller
     private function campaignData(CampaignRequest $request): array
     {
         $data = $request->validated();
+        unset($data['product_ids']);
 
         if ($data['scope_type'] !== 'product') {
             $data['product_id'] = null;
@@ -105,6 +108,15 @@ class CampaignController extends Controller
         $data['status'] = (bool) ($data['status'] ?? false);
 
         return $data;
+    }
+
+    public function publicCatalog(string $token): Response
+    {
+        $campaign = Campaign::withoutGlobalScopes()->where('public_token', $token)->where('status', true)->with(['products' => fn ($query) => $query->where('enabled', true), 'tenant'])->firstOrFail();
+        abort_if($campaign->starts_at && $campaign->starts_at->isFuture(), 404);
+        abort_if($campaign->ends_at && $campaign->ends_at->isPast(), 404);
+
+        return Inertia::render('site/campaigns/show', ['campaign' => $campaign]);
     }
 
     private function authorizeCampaignManagement(): void
