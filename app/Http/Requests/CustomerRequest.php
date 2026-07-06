@@ -35,13 +35,13 @@ class CustomerRequest extends FormRequest
 
         return [
             'region_id' => [
-                'required',
+                'nullable',
                 $regionRule,
             ],
             'name' => ['required', 'string', 'max:255'],
             'establishment_type' => ['nullable', 'string', 'max:50'],
             'cnpj' => [
-                'required',
+                'nullable',
                 'cpf_ou_cnpj',
                 Rule::unique('customers', 'cnpj')->ignore($customerId)->where('tenant_id', $tenantId),
             ],
@@ -50,7 +50,7 @@ class CustomerRequest extends FormRequest
                 'email',
                 Rule::unique('customers', 'email')->ignore($customerId)->where('tenant_id', $tenantId),
             ],
-            'phone' => ['required', 'string', 'max:50'],
+            'phone' => ['nullable', 'string', 'max:50'],
             'zip_code' => ['nullable', 'string', 'max:20'],
             'state' => ['nullable', 'string', 'max:20'],
             'city' => ['nullable', 'string', 'max:50'],
