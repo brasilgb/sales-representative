@@ -197,6 +197,39 @@ test('team administrator sees data from every seller region in the mobile app', 
     $this->getJson('/api/products')->assertOk()->assertJsonCount(1);
 });
 
+test('customer email is optional but is validated when provided', function () {
+    $tenant = mvpTenant('solo', 'customer-email');
+    $owner = mvpUser($tenant, User::ROLE_OWNER, 'customer-email');
+    Sanctum::actingAs($owner);
+
+    $region = Region::create(['name' => 'Região principal', 'status' => true]);
+
+    $response = $this->postJson('/api/customers', [
+        'name' => 'Cliente sem e-mail',
+        'cnpj' => '04252011000110',
+        'region_id' => $region->id,
+    ])->assertCreated()
+        ->assertJsonPath('email', null);
+
+    $customerId = $response->json('id');
+
+    $this->patchJson("/api/customers/{$customerId}", [
+        'name' => 'Cliente sem e-mail atualizado',
+        'cnpj' => '04252011000110',
+        'region_id' => $region->id,
+        'email' => null,
+    ])->assertOk()
+        ->assertJsonPath('email', null);
+
+    $this->postJson('/api/customers', [
+        'name' => 'Cliente com e-mail inválido',
+        'cnpj' => '11222333000181',
+        'region_id' => $region->id,
+        'email' => 'email-invalido',
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors('email');
+});
+
 test('mobile api blocks inactive users and tenants without an active subscription', function () {
     $activeTenant = mvpTenant('equipe', 'inactive-user');
     $inactiveSeller = mvpUser($activeTenant, User::ROLE_SELLER, 'inactive-user');

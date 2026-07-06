@@ -159,7 +159,7 @@ export default function CreateCustomer({ regions }: any) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">E-mail</Label>
+                                <Label htmlFor="email">E-mail (opcional)</Label>
                                 <Input type="text" id="email" value={data.email} onChange={(e) => setData('email', e.target.value)} />
                                 {errors.email && <div className="text-sm text-red-500">{errors.email}</div>}
                             </div>

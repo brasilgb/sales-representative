@@ -46,7 +46,7 @@ class CustomerRequest extends FormRequest
                 Rule::unique('customers', 'cnpj')->ignore($customerId)->where('tenant_id', $tenantId),
             ],
             'email' => [
-                'required',
+                'nullable',
                 'email',
                 Rule::unique('customers', 'email')->ignore($customerId)->where('tenant_id', $tenantId),
             ],

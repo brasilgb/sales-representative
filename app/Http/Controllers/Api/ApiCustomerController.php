@@ -53,7 +53,7 @@ class ApiCustomerController extends Controller
                 Rule::exists('regions', 'id')->where('tenant_id', $tenantId),
             ],
             'email' => [
-                'required',
+                'nullable',
                 'email',
                 Rule::unique('customers')->ignore($customerId)->where('tenant_id', $tenantId),
             ],
@@ -127,7 +127,7 @@ class ApiCustomerController extends Controller
                 Rule::exists('regions', 'id')->where('tenant_id', $tenantId),
             ],
             'email' => [
-                'required',
+                'nullable',
                 'email',
                 Rule::unique('customers')->ignore($customer->id)->where('tenant_id', $tenantId),
             ],
