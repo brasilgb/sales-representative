@@ -33,6 +33,7 @@ const speciesOptions = [
     { value: 'caes_gatos', label: 'Cães e gatos' },
     { value: 'equinos', label: 'Equinos' },
     { value: 'bovinos', label: 'Bovinos' },
+    { value: 'aves', label: 'Aves' },
     { value: 'outros', label: 'Outros' },
 ];
 

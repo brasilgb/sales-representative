@@ -28,6 +28,7 @@ const speciesLabels: Record<string, string> = {
     caes_gatos: 'Cães e gatos',
     equinos: 'Equinos',
     bovinos: 'Bovinos',
+    aves: 'Aves',
     outros: 'Outros',
 };
 
