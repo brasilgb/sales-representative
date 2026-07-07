@@ -1,5 +1,4 @@
 import ActionDelete from '@/components/action-delete';
-import AlertSuccess from '@/components/app-alert-success';
 import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import { Icon } from '@/components/icon';
 import InputSearch from '@/components/inputSearch';
@@ -8,7 +7,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney } from '@/Utils/mask';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { BoxIcon, Edit, Plus } from 'lucide-react';
 import moment from 'moment';
 
@@ -43,11 +42,9 @@ const categoryLabels: Record<string, string> = {
 };
 
 export default function Products({ products }: any) {
-    const { flash } = usePage().props as any;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Produtos" />
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">

@@ -1,11 +1,10 @@
-import AlertSuccess from '@/components/app-alert-success';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, HandCoins, Save } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -22,7 +21,6 @@ const scopeTypes = [
 ];
 
 export default function EditCommercialCondition({ condition, customers, regions, establishmentTypes }: any) {
-    const { flash } = usePage().props as any;
     const { data, setData, patch, processing, errors } = useForm({
         name: condition.name ?? '',
         scope_type: condition.scope_type ?? 'global',
@@ -44,7 +42,6 @@ export default function EditCommercialCondition({ condition, customers, regions,
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Editar condição comercial" />
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
                 <div className="flex items-center gap-2">

@@ -1,4 +1,3 @@
-import AlertError from '@/components/app-alert-error';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney, maskMoneyDot } from '@/Utils/mask';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Switch } from '@/components/ui/switch';
 import { AlertTriangle, ArrowLeft, ClipboardList, RotateCcw, ShoppingCartIcon, UserIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -49,7 +48,6 @@ type OrderItem = {
 };
 
 export default function CreateOrder({ customers, products, flex, selectedCustomerId }: any) {
-    const { flash } = usePage().props as any;
     const initialCustomer = customers.find((customer: any) => customer.id === selectedCustomerId) ?? null;
     const [selectedCustomer, setSelectedCustomer] = useState<any | null>(initialCustomer);
     const [items, setItems] = useState<OrderItem[]>([]);
@@ -203,7 +201,6 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Pedidos" />
-            {flash.error && <AlertError message={flash.error} />}
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
                 <div className="flex items-center gap-2">

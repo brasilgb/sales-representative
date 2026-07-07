@@ -1,4 +1,3 @@
-import AlertSuccess from '@/components/app-alert-success';
 import AppearanceTabs from '@/components/appearance-tabs';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import HeadingSmall from '@/components/heading-small';
@@ -24,7 +23,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function SettingsIndex({ settings }: any) {
-  const { flash, auth } = usePage().props as any;
+  const { auth } = usePage().props as any;
 
   const { data, setData, progress, processing, errors } = useForm({
     name: settings?.name,
@@ -43,7 +42,6 @@ export default function SettingsIndex({ settings }: any) {
  
   return (
     <AdminSidebarLayout>
-      {flash.message && <AlertSuccess message={flash.message} />}
       <Head title="Configurações" />
       <div className='flex items-center justify-between h-16 px-4 w-full'>
         <div className='flex items-center gap-2'>

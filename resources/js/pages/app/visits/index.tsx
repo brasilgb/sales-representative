@@ -1,5 +1,4 @@
 import ActionDelete from '@/components/action-delete';
-import AlertSuccess from '@/components/app-alert-success';
 import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { CalendarDays, CheckCircle2, Clock3, Edit, LogIn, LogOut, Plus, Search } from 'lucide-react';
 import moment from 'moment';
 import { FormEvent, useState } from 'react';
@@ -49,7 +48,6 @@ function patchWithLocation(url: string) {
 }
 
 export default function Visits({ visits, inactiveCustomers, filters }: any) {
-    const { flash } = usePage().props as any;
     const [date, setDate] = useState(filters.date);
     const [inactiveDays, setInactiveDays] = useState(filters.inactive_days ?? 30);
 
@@ -60,7 +58,6 @@ export default function Visits({ visits, inactiveCustomers, filters }: any) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Agenda" />
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">

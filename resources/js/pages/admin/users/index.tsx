@@ -18,7 +18,6 @@ import { Button } from '@/components/ui/button';
 import InputSearch from '@/components/inputSearch';
 import AppPagination from '@/components/app-pagination';
 import ActionDelete from '@/components/action-delete';
-import AlertSuccess from '@/components/app-alert-success';
 import { Badge } from '@/components/ui/badge';
 import { roleUserByValue } from '@/Utils/functions';
 import AdminSidebarLayout from '@/layouts/admin/admin-sidebar-layout';
@@ -35,11 +34,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Users({ users }: any) {
-  const { flash, auth } = usePage().props as any;
+  const { auth } = usePage().props as any;
 
   return (
     <AdminSidebarLayout>
-      {flash.message && <AlertSuccess message={flash.message} />}
       <Head title="Usuários" />
       <div className='flex items-center justify-between h-16 px-4 mb-4'>
         <div className='flex items-center gap-2'>

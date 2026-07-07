@@ -1,5 +1,4 @@
 import ActionDelete from '@/components/action-delete';
-import AlertSuccess from '@/components/app-alert-success';
 import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import InputSearch from '@/components/inputSearch';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Edit, MapPinned, Plus } from 'lucide-react';
 import moment from 'moment';
 
@@ -23,11 +22,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Regions({ regions }: any) {
-    const { flash } = usePage().props as any;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Regiões" />
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">

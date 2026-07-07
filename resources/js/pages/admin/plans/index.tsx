@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react'
+import { Head } from '@inertiajs/react'
 import { BreadcrumbItem } from '@/types';
 import { HandCoins } from 'lucide-react'
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -8,7 +8,6 @@ import EditPlan from './edit-plan';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import moment from 'moment';
 import AppPagination from '@/components/app-pagination';
-import AlertSuccess from '@/components/app-alert-success';
 import AdminSidebarLayout from '@/layouts/admin/admin-sidebar-layout';
 import CreatePlan from './create-plan';
 
@@ -24,12 +23,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function PlansIndex({ plans }: any) {
-    const { flash } = usePage().props as any;
 
     return (
         <AdminSidebarLayout>
             <Head title="Planos" />
-            {flash.message && <AlertSuccess message={flash.message} />}
             <div className='flex items-center justify-between h-16 px-4'>
                 <div className='flex items-center gap-2'>
                     <Icon iconNode={HandCoins} className='w-8 h-8' />

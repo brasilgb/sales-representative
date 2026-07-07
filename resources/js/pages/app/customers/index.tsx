@@ -1,5 +1,4 @@
 import ActionDelete from '@/components/action-delete';
-import AlertSuccess from '@/components/app-alert-success';
 import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import { Icon } from '@/components/icon';
 import InputSearch from '@/components/inputSearch';
@@ -8,7 +7,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskCnpj, maskPhone } from '@/Utils/mask';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Edit, Plus, ShoppingCart, Users } from 'lucide-react';
 import moment from 'moment';
 
@@ -33,7 +32,6 @@ const establishmentTypeLabels: Record<string, string> = {
 };
 
 export default function Customers({ customers, regions, filters }: any) {
-    const { flash } = usePage().props as any;
     const applyFilter = (key: 'region_id', value: string) => {
         router.get(
             route('app.customers.index'),
@@ -51,7 +49,6 @@ export default function Customers({ customers, regions, filters }: any) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Clientes" />
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">

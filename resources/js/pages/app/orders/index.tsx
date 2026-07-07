@@ -1,5 +1,4 @@
 import ActionDelete from '@/components/action-delete';
-import AlertSuccess from '@/components/app-alert-success';
 import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import { AppSelect } from '@/components/app-select';
 import { Icon } from '@/components/icon';
@@ -11,7 +10,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { statusOrder } from '@/Utils/dataSelect';
 import { maskMoney } from '@/Utils/mask';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { CalendarDaysIcon, Pencil, Plus, ShoppingCartIcon } from 'lucide-react';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
@@ -28,7 +27,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Orders({ orders }: any) {
-    const { flash } = usePage().props as any;
     const [messageStatus, setMessageStatus] = useState<string>('');
 
     useEffect(() => {
@@ -41,7 +39,6 @@ export default function Orders({ orders }: any) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Pedidos" />
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">

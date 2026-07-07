@@ -2,7 +2,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbItem, Tenant } from "@/types";
-import { Head, Link, useForm, usePage } from "@inertiajs/react";
+import { Head, Link, useForm } from "@inertiajs/react";
 import { ArrowLeft, Building, Save } from "lucide-react";
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,6 @@ import AdminSidebarLayout from "@/layouts/admin/admin-sidebar-layout";
 import InputError from "@/components/input-error";
 import Select from 'react-select';
 import { statusSaas } from "@/Utils/dataSelect";
-import AlertSuccess from "@/components/app-alert-success";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -30,7 +29,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function EditTenant({ plans, tenant }: any) {
-    const { flash } = usePage().props as any;
     const allPlans = plans.map((plan: any) => ({
         value: plan.id,
         label: plan.name,
@@ -99,7 +97,6 @@ export default function EditTenant({ plans, tenant }: any) {
 
     return (
         <AdminSidebarLayout>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <div className='flex items-center justify-between h-16 px-4'>
                 <Head title="Empresas" />
                 <div className='flex items-center gap-2'>

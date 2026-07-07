@@ -1,5 +1,4 @@
 import ActionDelete from '@/components/action-delete';
-import AlertSuccess from '@/components/app-alert-success';
 import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Car, Edit, FileText, Plus, ReceiptText, Search, WalletCards } from 'lucide-react';
 import moment from 'moment';
 import { FormEvent, useState } from 'react';
@@ -17,7 +16,6 @@ const categoryLabels: Record<string, string> = { mileage: 'Quilometragem', food:
 const money = (value: number | string) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 export default function Expenses({ expenses, summary, filters, users, canManageTeam }: any) {
-    const { flash } = usePage().props as any;
     const [month, setMonth] = useState(filters.month);
     const [category, setCategory] = useState(filters.category ?? '');
     const [userId, setUserId] = useState(filters.user_id ?? '');
@@ -29,7 +27,6 @@ export default function Expenses({ expenses, summary, filters, users, canManageT
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Despesas" />
             <div className="flex min-h-16 items-center gap-2 px-4 py-3"><ReceiptText className="h-8 w-8" /><h2 className="text-xl font-semibold">Despesas</h2></div>
 

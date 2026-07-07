@@ -1,5 +1,4 @@
 import ActionDelete from '@/components/action-delete';
-import AlertSuccess from '@/components/app-alert-success';
 import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import InputSearch from '@/components/inputSearch';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +7,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney } from '@/Utils/mask';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { BarChart3, Edit, HandCoins, Plus } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -24,11 +23,9 @@ const scopeLabels: Record<string, string> = {
 };
 
 export default function CommercialConditions({ conditions }: any) {
-    const { flash } = usePage().props as any;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Condições comerciais" />
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">

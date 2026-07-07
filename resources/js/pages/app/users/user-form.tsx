@@ -1,4 +1,3 @@
-import AlertSuccess from '@/components/app-alert-success';
 import { Icon } from '@/components/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskPhone } from '@/Utils/mask';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Eye, EyeClosed, Save, UserCog } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 
@@ -16,7 +15,6 @@ export default function UserForm({ user = null, regions = [], canManageSellers =
     const ownProfile = editing && !canManageSellers;
     const title = editing ? (ownProfile ? 'Meu usuário' : 'Editar vendedor') : 'Inserir vendedor';
     const [showPassword, setShowPassword] = useState(false);
-    const { flash } = usePage().props as any;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: route('app.dashboard') },
         { title: canManageSellers ? 'Vendedores' : 'Meu usuário', href: canManageSellers ? route('app.users.index') : '#' },
@@ -62,7 +60,6 @@ export default function UserForm({ user = null, regions = [], canManageSellers =
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={title} />
-            {flash.message && <AlertSuccess message={flash.message} />}
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
                 <div className="flex items-center gap-2">

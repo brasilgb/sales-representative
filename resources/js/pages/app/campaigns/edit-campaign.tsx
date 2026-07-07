@@ -1,4 +1,3 @@
-import AlertSuccess from '@/components/app-alert-success';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,7 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Megaphone, Save } from 'lucide-react';
 import moment from 'moment';
 import { ProductPicker } from './product-picker';
@@ -29,7 +28,6 @@ function dateValue(value?: string | null) {
 }
 
 export default function EditCampaign({ campaign, products, regions, brands, categories }: any) {
-    const { flash } = usePage().props as any;
     const { data, setData, patch, processing, errors } = useForm({
         name: campaign.name ?? '',
         scope_type: campaign.scope_type ?? 'product',
@@ -50,7 +48,6 @@ export default function EditCampaign({ campaign, products, regions, brands, cate
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Editar campanha" />
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
                 <div className="flex items-center gap-2">

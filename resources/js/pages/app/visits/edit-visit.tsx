@@ -1,4 +1,3 @@
-import AlertSuccess from '@/components/app-alert-success';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, CalendarDays, LogIn, LogOut, Save } from 'lucide-react';
 import moment from 'moment';
 
@@ -63,7 +62,6 @@ function patchWithLocation(url: string) {
 }
 
 export default function EditVisit({ visit, customers, users }: any) {
-    const { flash } = usePage().props as any;
     const { data, setData, patch, processing, errors } = useForm({
         customer_id: visit.customer_id ?? '',
         user_id: visit.user_id ?? '',
@@ -82,7 +80,6 @@ export default function EditVisit({ visit, customers, users }: any) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Editar visita" />
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">

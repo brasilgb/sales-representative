@@ -1,5 +1,4 @@
 import ActionDelete from '@/components/action-delete';
-import AlertSuccess from '@/components/app-alert-success';
 import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import { Icon } from '@/components/icon';
 import InputSearch from '@/components/inputSearch';
@@ -22,12 +21,11 @@ const roleLabels: Record<string, string> = {
 };
 
 export default function Users({ users }: any) {
-    const { flash, auth } = usePage().props as any;
+    const { auth } = usePage().props as any;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Vendedores" />
-            {flash.message && <AlertSuccess message={flash.message} />}
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
                 <div className="flex items-center gap-2">

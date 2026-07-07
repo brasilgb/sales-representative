@@ -1,5 +1,4 @@
 import ActionDelete from '@/components/action-delete';
-import AlertSuccess from '@/components/app-alert-success';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +36,7 @@ const scopeLabels: Record<string, string> = {
 };
 
 export default function Intelligence({ customers, selectedCustomer, inactiveBuckets, reorderSuggestions, mixReport, campaigns, recurringOrders }: any) {
-    const { auth, flash } = usePage<SharedData & { flash: any }>().props;
+    const { auth } = usePage<SharedData>().props;
 
     const changeCustomer = (event: any) => {
         router.get(route('app.intelligence.index'), { customer_id: event.target.value }, { preserveState: true });
@@ -45,7 +44,6 @@ export default function Intelligence({ customers, selectedCustomer, inactiveBuck
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Inteligência comercial" />
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">

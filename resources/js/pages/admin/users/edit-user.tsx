@@ -14,7 +14,6 @@ import { Switch } from "@/components/ui/switch";
 import { rolesUser } from "@/Utils/dataSelect";
 import { useState } from "react";
 import { maskPhone } from "@/Utils/mask";
-import AlertSuccess from "@/components/app-alert-success";
 import AdminSidebarLayout from "@/layouts/admin/admin-sidebar-layout";
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -34,7 +33,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function CreateUser({ user, tenants }: any) {
   const [showPassword, setShowPassword] = useState<boolean>(false)
-  const { flash, auth } = usePage().props as any;
+  const { auth } = usePage().props as any;
 
   const newTenant = tenants?.map((tenant: any) => ({
     value: tenant.id,
@@ -72,7 +71,6 @@ export default function CreateUser({ user, tenants }: any) {
   return (
     <AdminSidebarLayout>
       <Head title="Usuários" />
-      {flash.message && <AlertSuccess message={flash.message} />}
       <div className='flex items-center justify-between h-16 px-4'>
         <div className='flex items-center gap-2'>
           <Icon iconNode={UserCog} className='w-8 h-8' />

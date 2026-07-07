@@ -1,4 +1,3 @@
-import AlertSuccess from '@/components/app-alert-success';
 import { Icon } from '@/components/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney, maskMoneyDot } from '@/Utils/mask';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, BoxIcon, ImageIcon, Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 
@@ -47,7 +46,6 @@ const categoryOptions = [
 ];
 
 export default function CreateProduct({ product }: any) {
-    const { flash } = usePage().props as any;
 
     const { data, setData, post, progress, processing, reset, errors } = useForm({
         name: product.name,
@@ -88,7 +86,6 @@ export default function CreateProduct({ product }: any) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Produtos" />
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
                 <div className="flex items-center gap-2">

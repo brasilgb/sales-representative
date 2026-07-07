@@ -1,9 +1,8 @@
-import AlertError from '@/components/app-alert-error';
-import AlertSuccess from '@/components/app-alert-success';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/toaster';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem, SharedData } from '@/types';
 import { maskMoney } from '@/Utils/mask';
@@ -17,14 +16,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Subscription({ tenant, plans, blockedReason, onTrial }: any) {
-    const { auth, flash } = usePage<SharedData & { flash: any }>().props;
+    const { auth } = usePage<SharedData>().props;
+    const toast = useToast();
     const [selectedPeriods, setSelectedPeriods] = useState<Record<number, number>>(() =>
         Object.fromEntries(
             plans.map((plan: any) => [plan.id, tenant.plan === plan.id && tenant.billing_period_id ? tenant.billing_period_id : plan.periods?.[0]?.id]),
         ),
     );
     const [pixData, setPixData] = useState<any | null>(null);
-    const [paymentError, setPaymentError] = useState<string | null>(null);
     const [generatingPix, setGeneratingPix] = useState<number | null>(null);
     useEffect(() => {
         if (!pixData?.payment_id) return;
@@ -50,7 +49,6 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial }: 
     }, [pixData?.payment_id]);
 
     const choosePlan = async (planId: number) => {
-        setPaymentError(null);
         setGeneratingPix(planId);
 
         try {
@@ -72,7 +70,7 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial }: 
 
             setPixData(result);
         } catch (error) {
-            setPaymentError(error instanceof Error ? error.message : 'Não foi possível gerar o Pix.');
+            toast.error(error instanceof Error ? error.message : 'Não foi possível gerar o Pix.');
         } finally {
             setGeneratingPix(null);
         }
@@ -80,8 +78,6 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial }: 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
-            {(flash.error || paymentError) && <AlertError message={flash.error || paymentError} />}
             <Head title="Assinatura" />
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
@@ -108,7 +104,14 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial }: 
                                 className="mx-auto h-56 w-56 rounded-md border p-2"
                             />
                             <Input readOnly value={pixData.qr_code_copy_paste} className="text-xs" />
-                            <Button type="button" variant="outline" onClick={() => navigator.clipboard.writeText(pixData.qr_code_copy_paste)}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(pixData.qr_code_copy_paste);
+                                    toast.success('Código Pix copiado!');
+                                }}
+                            >
                                 <Copy className="h-4 w-4" />
                                 Copiar código Pix
                             </Button>

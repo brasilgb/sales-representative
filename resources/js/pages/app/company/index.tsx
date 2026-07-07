@@ -1,4 +1,3 @@
-import AlertSuccess from '@/components/app-alert-success';
 import { Icon } from '@/components/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskCep, maskCpfCnpj, maskPhone, unMask } from '@/Utils/mask';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { Building, Save } from 'lucide-react';
 import { FormEvent, useEffect, useMemo } from 'react';
 
@@ -17,7 +16,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Company({ company, canEdit }: any) {
-    const { flash } = usePage().props as any;
     const { data, setData, post, transform, processing, errors } = useForm({
         logo: null as File | null,
         company: company?.company ?? '',
@@ -81,7 +79,6 @@ export default function Company({ company, canEdit }: any) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dados da empresa" />
-            {flash.message && <AlertSuccess message={flash.message} />}
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
                 <div className="flex items-center gap-2">

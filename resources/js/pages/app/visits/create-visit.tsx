@@ -1,4 +1,3 @@
-import AlertSuccess from '@/components/app-alert-success';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, CalendarDays, Save } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -33,7 +32,6 @@ const noSaleReasonOptions = [
 ];
 
 export default function CreateVisit({ customers, users, selectedCustomerId }: any) {
-    const { flash } = usePage().props as any;
     const { data, setData, post, processing, errors } = useForm({
         customer_id: selectedCustomerId ?? '',
         user_id: users?.length === 1 ? users[0].id : '',
@@ -51,7 +49,6 @@ export default function CreateVisit({ customers, users, selectedCustomerId }: an
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            {flash.message && <AlertSuccess message={flash.message} />}
             <Head title="Nova visita" />
 
             <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
