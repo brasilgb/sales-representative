@@ -9,7 +9,7 @@ import { BreadcrumbItem } from '@/types';
 import { apisales } from '@/Utils/connectApi';
 import { maskMoney, maskMoneyDot } from '@/Utils/mask';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, BoxIcon, Save } from 'lucide-react';
+import { ArrowLeft, BoxIcon, ImageIcon, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -158,6 +158,29 @@ export default function CreateProduct() {
             <div className="p-4">
                 <div className="rounded-lg border p-2">
                     <form onSubmit={handleSubmit} className="space-y-8">
+                        <div className="rounded-lg border bg-muted/20 p-4">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                {imagePreview ? (
+                                    <img src={imagePreview} alt="Prévia do produto" className="h-40 w-40 shrink-0 rounded-lg border bg-background object-contain" />
+                                ) : (
+                                    <div className="flex h-40 w-40 shrink-0 items-center justify-center rounded-lg border border-dashed bg-background text-muted-foreground">
+                                        <ImageIcon className="h-10 w-10" />
+                                    </div>
+                                )}
+                                <div className="grid w-full gap-2">
+                                    <Label htmlFor="image">Imagem do produto</Label>
+                                    <Input
+                                        type="file"
+                                        id="image"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        onChange={(e) => setData('image', e.target.files?.[0] ?? null)}
+                                    />
+                                    <p className="text-xs text-muted-foreground">JPG, PNG ou WebP, com no máximo 2 MB.</p>
+                                    {errors.image && <div className="text-sm text-red-500">{errors.image}</div>}
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="mt-4 grid gap-4 md:grid-cols-3">
                             <div className="grid gap-2">
                                 <Label htmlFor="reference">Referência</Label>
@@ -194,19 +217,6 @@ export default function CreateProduct() {
                                 />
                                 {errors.name && <div className="text-sm text-red-500">{errors.name}</div>}
                             </div>
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="image">Imagem do produto</Label>
-                            <Input
-                                type="file"
-                                id="image"
-                                accept="image/jpeg,image/png,image/webp"
-                                onChange={(e) => setData('image', e.target.files?.[0] ?? null)}
-                            />
-                            <p className="text-xs text-muted-foreground">JPG, PNG ou WebP, com no máximo 2 MB.</p>
-                            {imagePreview && <img src={imagePreview} alt="Prévia do produto" className="h-32 w-32 rounded-md border object-cover" />}
-                            {errors.image && <div className="text-sm text-red-500">{errors.image}</div>}
                         </div>
 
                         <div className="mt-4 grid gap-4 md:grid-cols-5">
