@@ -81,6 +81,9 @@ export function PricingSection({ plans }: { plans: any[] }) {
                                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
                                     <CardDescription className="leading-relaxed">{accountTypeDescriptions[plan.account_type] ?? plan.description}</CardDescription>
                                     <div className="mt-4">
+                                        {selectedMonths === 1 && (
+                                            <div className="mb-1 text-sm font-medium text-muted-foreground">A partir de</div>
+                                        )}
                                         <span className="text-4xl font-bold">{period ? `R$ ${maskMoney(period.price)}` : 'Sob consulta'}</span>
                                         <span className="ml-2 text-muted-foreground">/{periodLabels[selectedMonths].toLowerCase()}</span>
                                     </div>
