@@ -11,7 +11,6 @@ import {
     CalendarDays,
     CogIcon,
     ReceiptText,
-    HandCoins,
     LayoutGrid,
     ListChecks,
     MapPinned,
@@ -61,12 +60,6 @@ const appNavItems: NavItem[] = [
         active: 'app.products.*',
     },
     {
-        title: 'Condições',
-        href: route('app.commercial-conditions.index'),
-        icon: HandCoins,
-        active: 'app.commercial-conditions.*',
-    },
-    {
         title: 'Comissões',
         href: route('app.commissions.index'),
         icon: BarChart3,
@@ -111,7 +104,6 @@ export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
     const canEditOwnUser = auth.isSeller || !auth.canManageSellers;
     const featureByTitle: Record<string, string> = {
-        Condições: 'commercial_conditions',
         Comissões: 'commissions',
         Inteligência: 'intelligence',
     };
@@ -120,7 +112,7 @@ export function AppSidebar() {
             return false;
         }
 
-        if (['Regiões', 'Condições'].includes(item.title) && !auth.canManageTeam) {
+        if (item.title === 'Regiões' && !auth.canManageTeam) {
             return false;
         }
 
@@ -138,7 +130,8 @@ export function AppSidebar() {
                     (canEditOwnUser && route().current('app.users.*')) ||
                     route().current('app.other-settings.*') ||
                     route().current('app.auxiliary-apps.*') ||
-                    route().current('app.subscription.*'),
+                    route().current('app.subscription.*') ||
+                    route().current('app.commercial-conditions.*'),
             ),
             items: [
                 ...(canEditOwnUser
@@ -155,6 +148,15 @@ export function AppSidebar() {
                     url: route('app.company.index'),
                     active: 'app.company.*',
                 },
+                ...(auth.canManageTeam && auth.planFeatures?.includes('commercial_conditions')
+                    ? [
+                          {
+                              title: 'Regras comerciais',
+                              url: route('app.commercial-conditions.index'),
+                              active: 'app.commercial-conditions.*',
+                          },
+                      ]
+                    : []),
                 {
                     title: 'Aplicativos auxiliares',
                     url: route('app.auxiliary-apps.index'),
