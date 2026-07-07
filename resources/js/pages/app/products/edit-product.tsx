@@ -30,6 +30,8 @@ const speciesOptions = [
     { value: 'caes', label: 'Cães' },
     { value: 'gatos', label: 'Gatos' },
     { value: 'caes_gatos', label: 'Cães e gatos' },
+    { value: 'equinos', label: 'Equinos' },
+    { value: 'bovinos', label: 'Bovinos' },
     { value: 'outros', label: 'Outros' },
 ];
 
@@ -41,6 +43,9 @@ const categoryOptions = [
     { value: 'higiene', label: 'Higiene' },
     { value: 'areia', label: 'Areia' },
     { value: 'acessorio', label: 'Acessório' },
+    { value: 'brinquedo', label: 'Brinquedo' },
+    { value: 'vacina', label: 'Vacina' },
+    { value: 'antiparasitario', label: 'Antiparasitário' },
     { value: 'medicamento_insumo', label: 'Medicamento/insumo' },
     { value: 'outro', label: 'Outro' },
 ];

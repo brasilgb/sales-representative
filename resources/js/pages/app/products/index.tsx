@@ -26,6 +26,8 @@ const speciesLabels: Record<string, string> = {
     caes: 'Cães',
     gatos: 'Gatos',
     caes_gatos: 'Cães e gatos',
+    equinos: 'Equinos',
+    bovinos: 'Bovinos',
     outros: 'Outros',
 };
 
@@ -37,6 +39,9 @@ const categoryLabels: Record<string, string> = {
     higiene: 'Higiene',
     areia: 'Areia',
     acessorio: 'Acessório',
+    brinquedo: 'Brinquedo',
+    vacina: 'Vacina',
+    antiparasitario: 'Antiparasitário',
     medicamento_insumo: 'Medicamento/insumo',
     outro: 'Outro',
 };

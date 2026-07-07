@@ -27,7 +27,7 @@ export default function Terms() {
                 <LegalSidebar sections={sections} />
                 <article className="max-w-[76ch] text-[15px] leading-7 text-muted-foreground [&_h2]:scroll-mt-28 [&_h2]:border-b [&_h2]:border-border [&_h2]:pb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_p]:mb-5 [&_ul]:mb-6 [&_ul]:space-y-2">
                     <h1 className="mb-5 text-3xl font-semibold tracking-tight text-foreground">Termos de Uso — VetorPet</h1>
-                    <p className="mb-10 text-sm">Última atualização: 30 de junho de 2026</p>
+                    <p className="mb-10 text-sm">Última atualização: 7 de julho de 2026</p>
                     <p>
                         Estes Termos regulam o acesso à plataforma VetorPet. Ao criar uma conta ou utilizar o serviço, o usuário declara ter
                         capacidade para contratar e concordar com estas condições.
@@ -45,6 +45,7 @@ export default function Terms() {
                         <li>catálogo, estoque de referência e condições comerciais;</li>
                         <li>agenda e registro de visitas;</li>
                         <li>emissão e acompanhamento de pedidos;</li>
+                        <li>campanhas segmentadas, catálogos públicos e inteligência comercial;</li>
                         <li>painéis, relatórios e comissões comerciais.</li>
                     </ul>
 
@@ -65,7 +66,7 @@ export default function Terms() {
                     </h2>
                     <p>
                         O cliente mantém a titularidade e a responsabilidade pelos dados que insere, incluindo informações de sua empresa, equipe,
-                        clientes, contatos, produtos, preços, visitas e pedidos.
+                        clientes, contatos, produtos, preços, visitas, pedidos e campanhas.
                     </p>
                     <p>
                         O cliente declara possuir base legal para tratar e inserir dados pessoais de terceiros. Quando tratar esses dados em nome do
@@ -102,6 +103,13 @@ export default function Terms() {
                     <p>
                         Indicadores, sugestões e cálculos de comissão dependem dos dados e regras configurados pelo cliente e devem ser conferidos
                         antes de decisões financeiras.
+                    </p>
+                    <p>
+                        Campanhas podem ser direcionadas a todos os clientes ou a uma região e disponibilizadas por um endereço público contendo o
+                        nome e o objetivo da campanha, identificação e contato da empresa e informações dos produtos selecionados. O cliente é
+                        responsável por definir o público, revisar o conteúdo e compartilhar esse endereço somente pelos canais e com as pessoas
+                        pretendidas. Enquanto a campanha estiver ativa e dentro do período configurado, qualquer pessoa que possua o endereço poderá
+                        visualizar o catálogo sem autenticação.
                     </p>
 
                     <h2 id="disponibilidade" className="mt-14 mb-5">
