@@ -83,6 +83,7 @@ test('android order uses server commercial price without flex for any quantity',
         ]],
         'flex' => 0,
         'discount' => 0,
+        'total' => 1,
     ])->assertCreated()
         ->assertJsonPath('order.total', 120 * $quantity)
         ->assertJsonPath('order.flex', 0)

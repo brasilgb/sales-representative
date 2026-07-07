@@ -97,6 +97,7 @@ class OrderController extends Controller
             'flex' => ['nullable', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'adjusted_total' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'adjusted_total_was_edited' => ['nullable', 'boolean'],
             'payment_condition' => ['nullable', 'string', 'max:120'],
             'is_recurring' => ['nullable', 'boolean'],
         ]);
@@ -121,7 +122,7 @@ class OrderController extends Controller
 
             $subtotal = round($subtotal, 2);
             $manualDiscount = round((float) ($validatedData['discount'] ?? 0), 2);
-            $adjustedTotal = isset($validatedData['adjusted_total'])
+            $adjustedTotal = ($validatedData['adjusted_total_was_edited'] ?? false) && isset($validatedData['adjusted_total'])
                 ? round((float) $validatedData['adjusted_total'], 2)
                 : round($subtotal + (float) ($validatedData['flex'] ?? 0), 2);
 

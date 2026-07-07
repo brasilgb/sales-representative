@@ -79,6 +79,7 @@ class ApiOrderController extends Controller
             'flex' => ['nullable', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'total' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'total_was_edited' => ['nullable', 'boolean'],
             'payment_condition' => ['nullable', 'string', 'max:120'],
         ]);
 
@@ -118,7 +119,7 @@ class ApiOrderController extends Controller
             $subtotal = round($subtotal, 2);
             $adjustedTotal = null;
 
-            if (isset($validatedData['total'])) {
+            if (($validatedData['total_was_edited'] ?? false) && isset($validatedData['total'])) {
                 $adjustedTotal = round((float) $validatedData['total'], 2);
                 $manualDiscount = round((float) ($validatedData['discount'] ?? 0), 2);
 

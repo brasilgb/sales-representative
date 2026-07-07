@@ -266,6 +266,38 @@ test('flex balance applies order movements and is restored on cancellation', fun
         ->and($order->fresh()->status)->toBe('4');
 });
 
+test('web order with automatic total does not consume flex for quantities above five', function () {
+    $tenant = isolationTenant('32');
+    $owner = isolationOwner($tenant, '32');
+    $customer = isolationCustomer($tenant, $owner, '32');
+    $product = isolationProduct($tenant, '32');
+
+    $this->actingAs($owner);
+    Flex::create(['value' => 0]);
+
+    $this->post(route('app.orders.store'), [
+        'customer_id' => $customer->id,
+        'items' => [[
+            'product_id' => $product->id,
+            'quantity' => 6,
+            'price' => 10,
+            'name' => $product->name,
+            'total' => 60,
+        ]],
+        // Simula um valor automático antigo/desatualizado enviado pela tela.
+        'adjusted_total' => 10,
+        'discount' => 0,
+    ])->assertRedirect(route('app.orders.index'));
+
+    $order = Order::withoutGlobalScopes()->where('tenant_id', $tenant->id)->firstOrFail();
+
+    expect((float) $order->subtotal)->toBe(60.0)
+        ->and((float) $order->total)->toBe(60.0)
+        ->and((float) $order->discount)->toBe(0.0)
+        ->and((float) $order->flex)->toBe(0.0)
+        ->and((float) Flex::firstOrFail()->value)->toBe(0.0);
+});
+
 test('order cannot consume more flex than the available balance', function () {
     $tenant = isolationTenant('19');
     $owner = isolationOwner($tenant, '19');

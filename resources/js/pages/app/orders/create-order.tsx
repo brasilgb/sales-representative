@@ -73,6 +73,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
         flex: '',
         discount: '',
         adjusted_total: '',
+        adjusted_total_was_edited: false as boolean,
         total: '',
         payment_condition: initialCustomer?.commercial_condition?.payment_terms ?? '',
         items: [] as OrderItem[],
@@ -115,6 +116,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
             ...currentData,
             items,
             adjusted_total: subtotal.toFixed(2),
+            adjusted_total_was_edited: false,
         }));
     }, [items, subtotal]);
 
@@ -358,7 +360,11 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                                         type="text"
                                         id="adjusted_total"
                                         value={maskMoney(data.adjusted_total)}
-                                        onChange={(e) => setData('adjusted_total', maskMoneyDot(e.target.value) ?? '')}
+                                        onChange={(e) => setData((currentData: any) => ({
+                                            ...currentData,
+                                            adjusted_total: maskMoneyDot(e.target.value) ?? '',
+                                            adjusted_total_was_edited: true,
+                                        }))}
                                     />
                                 </div>
                                 <div className="grid gap-2">
