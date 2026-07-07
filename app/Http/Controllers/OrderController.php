@@ -121,7 +121,7 @@ class OrderController extends Controller
 
             $subtotal = round($subtotal, 2);
             $manualDiscount = round((float) ($validatedData['discount'] ?? 0), 2);
-            $adjustedTotal = array_key_exists('adjusted_total', $validatedData)
+            $adjustedTotal = isset($validatedData['adjusted_total'])
                 ? round((float) $validatedData['adjusted_total'], 2)
                 : round($subtotal + (float) ($validatedData['flex'] ?? 0), 2);
 

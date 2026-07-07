@@ -118,7 +118,7 @@ class ApiOrderController extends Controller
             $subtotal = round($subtotal, 2);
             $adjustedTotal = null;
 
-            if (array_key_exists('total', $validatedData)) {
+            if (isset($validatedData['total'])) {
                 $adjustedTotal = round((float) $validatedData['total'], 2);
                 $manualDiscount = round((float) ($validatedData['discount'] ?? 0), 2);
 

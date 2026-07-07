@@ -39,7 +39,7 @@ function mvpUser(Tenant $tenant, int $role, string $suffix): User
     ]);
 }
 
-test('android order uses server commercial price and calculates commission', function () {
+test('android order uses server commercial price without flex for any quantity', function (int $quantity) {
     $tenant = mvpTenant('solo', 'order');
     $owner = mvpUser($tenant, User::ROLE_OWNER, 'order');
     Sanctum::actingAs($owner);
@@ -56,7 +56,7 @@ test('android order uses server commercial price and calculates commission', fun
         'unity' => 'UN',
         'measure' => 1,
         'price' => 100,
-        'quantity' => 10,
+        'quantity' => 20,
         'min_quantity' => 1,
         'enabled' => true,
     ]);
@@ -76,7 +76,7 @@ test('android order uses server commercial price and calculates commission', fun
         'customer_id' => $customer->id,
         'items' => [[
             'product_id' => $product->id,
-            'quantity' => 2,
+            'quantity' => $quantity,
             'price' => 1,
             'name' => 'Valor enviado pelo cliente não é confiável',
             'total' => 2,
@@ -84,15 +84,17 @@ test('android order uses server commercial price and calculates commission', fun
         'flex' => 0,
         'discount' => 0,
     ])->assertCreated()
-        ->assertJsonPath('order.total', 240)
+        ->assertJsonPath('order.total', 120 * $quantity)
+        ->assertJsonPath('order.flex', 0)
+        ->assertJsonPath('order.discount', 0)
         ->assertJsonPath('order.payment_condition', '28 dias')
-        ->assertJsonPath('order.commission_amount', 12);
+        ->assertJsonPath('order.commission_amount', 6 * $quantity);
 
     $order = Order::firstOrFail();
     expect($order->commercial_condition_id)->toBe($condition->id)
         ->and((float) $order->orderItems()->firstOrFail()->price)->toBe(120.0)
-        ->and($product->fresh()->quantity)->toBe(8);
-});
+        ->and($product->fresh()->quantity)->toBe(20 - $quantity);
+})->with([1, 5, 10]);
 
 test('seller can use the mobile visit agenda for their assigned region', function () {
     $tenant = mvpTenant('equipe', 'visits');
