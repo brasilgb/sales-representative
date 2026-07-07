@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Expense;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ApiExpenseController extends Controller
@@ -59,7 +60,19 @@ class ApiExpenseController extends Controller
     public function update(Request $request, Expense $expense): JsonResponse
     {
         $this->authorizeExpense($expense);
-        $expense->update($this->validatedData($request));
+        $data = $this->validatedData($request);
+
+        if ($request->hasFile('receipt')) {
+            $oldReceipt = $expense->receipt_path;
+            $data['receipt_path'] = $request->file('receipt')->store('expenses', 'public');
+            $expense->update($data);
+
+            if ($oldReceipt) {
+                Storage::disk('public')->delete($oldReceipt);
+            }
+        } else {
+            $expense->update($data);
+        }
 
         return response()->json($expense->fresh()->load('user:id,name'));
     }
