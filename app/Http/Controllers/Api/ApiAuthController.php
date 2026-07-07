@@ -185,11 +185,13 @@ class ApiAuthController extends BaseController
         $accountType = $user->tenant?->planModel?->account_type ?? $user->tenant?->plan_type;
         $canManageCatalog = $user->canManageCatalog();
         $canManageTeam = $user->canManageTeam();
+        $publicCatalogUrl = route('catalog.public', $user->tenant->public_catalog_token);
 
         $user->unsetRelation('tenant');
         $user->setAttribute('account_type', $accountType);
         $user->setAttribute('can_manage_catalog', $canManageCatalog);
         $user->setAttribute('can_manage_team', $canManageTeam);
+        $user->setAttribute('public_catalog_url', $publicCatalogUrl);
 
         return response()->json($user);
     }

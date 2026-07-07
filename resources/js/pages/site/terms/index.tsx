@@ -111,6 +111,12 @@ export default function Terms() {
                         pretendidas. Enquanto a campanha estiver ativa e dentro do período configurado, qualquer pessoa que possua o endereço poderá
                         visualizar o catálogo sem autenticação.
                     </p>
+                    <p>
+                        A empresa também pode compartilhar seu catálogo público permanente, independente de campanha, com identificação e contato da
+                        empresa, referências, descrições, imagens e preços dos produtos disponíveis. Qualquer pessoa que possua o endereço poderá
+                        visualizá-lo sem autenticação, cabendo ao cliente manter essas informações atualizadas e compartilhar o link pelos canais
+                        pretendidos.
+                    </p>
 
                     <h2 id="disponibilidade" className="mt-14 mb-5">
                         7. Disponibilidade e manutenção

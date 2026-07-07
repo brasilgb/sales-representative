@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Tenant extends Model
 {
@@ -43,6 +44,11 @@ class Tenant extends Model
         'plan_type',
         'owner_user_id',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(fn (Tenant $tenant) => $tenant->public_catalog_token ??= (string) Str::uuid());
+    }
 
     protected function casts(): array
     {

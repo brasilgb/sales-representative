@@ -44,7 +44,8 @@ test('team seller can consult but cannot manage customers or products', function
     $this->getJson('/api/user')
         ->assertOk()
         ->assertJsonPath('account_type', Tenant::PLAN_TEAM)
-        ->assertJsonPath('can_manage_catalog', false);
+        ->assertJsonPath('can_manage_catalog', false)
+        ->assertJsonPath('public_catalog_url', route('catalog.public', $tenant->public_catalog_token));
 
     $this->getJson('/api/customers')->assertOk();
     $this->getJson('/api/products')->assertOk();

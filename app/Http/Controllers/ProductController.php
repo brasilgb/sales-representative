@@ -34,7 +34,10 @@ class ProductController extends Controller
 
         $products = $query->paginate(12);
 
-        return Inertia::render('app/products/index', ['products' => $products]);
+        return Inertia::render('app/products/index', [
+            'products' => $products,
+            'publicCatalogUrl' => route('catalog.public', $request->user()->tenant->public_catalog_token),
+        ]);
     }
 
     /**

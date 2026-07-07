@@ -150,6 +150,11 @@ export default function Privacy() {
                         produtos selecionados. O endereço não deve ser usado para publicar dados pessoais ou informações confidenciais e deixa de
                         apresentar a campanha quando ela é desativada ou está fora do período configurado.
                     </p>
+                    <p>
+                        O catálogo público permanente da empresa também pode ser acessado sem login por um endereço exclusivo. Ele pode exibir nome,
+                        logo e WhatsApp da empresa, além de imagem, referência, nome, descrição e preço dos produtos ativos com estoque disponível.
+                        Dados internos de estoque, observações e informações cadastrais não destinadas à divulgação não são apresentados nessa página.
+                    </p>
 
                     <h2 id="criancas" className="mt-14 mb-5">
                         10. Crianças e adolescentes

@@ -8,7 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney } from '@/Utils/mask';
 import { Head, Link } from '@inertiajs/react';
-import { BoxIcon, Edit, Plus } from 'lucide-react';
+import { BoxIcon, Edit, MessageCircle, Plus } from 'lucide-react';
 import moment from 'moment';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -47,7 +47,8 @@ const categoryLabels: Record<string, string> = {
     outro: 'Outro',
 };
 
-export default function Products({ products }: any) {
+export default function Products({ products, publicCatalogUrl }: any) {
+    const whatsappMessage = encodeURIComponent(`Olá! Confira nosso catálogo de produtos com valores e referências: ${publicCatalogUrl}`);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -65,6 +66,12 @@ export default function Products({ products }: any) {
                     <InputSearch placeholder="Buscar produto por nome, referência, marca ou categoria" url="app.products.index" />
                 </div>
                 <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto lg:shrink-0 lg:justify-end">
+                    <Button asChild className="w-full whitespace-nowrap bg-emerald-600 text-white hover:bg-emerald-700 sm:w-auto">
+                        <a href={`https://wa.me/?text=${whatsappMessage}`} target="_blank" rel="noreferrer">
+                            <MessageCircle className="h-4 w-4" />
+                            <span>Enviar catálogo</span>
+                        </a>
+                    </Button>
                     <Button variant="default" asChild className="w-full whitespace-nowrap sm:w-auto">
                         <Link href={route('app.products.create')}>
                             <Plus className="h-4 w-4" />
