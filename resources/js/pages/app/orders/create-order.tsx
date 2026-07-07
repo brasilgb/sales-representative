@@ -82,7 +82,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
 
     const selectedCondition = selectedCustomer?.commercial_condition ?? null;
     const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.quantity * Number(item.price), 0), [items]);
-    const adjustedTotal = Number(data.adjusted_total || 0);
+    const adjustedTotal = data.adjusted_total_was_edited ? Number(data.adjusted_total || 0) : subtotal;
     const manualDiscount = Number(data.discount || 0);
     const flexAmount = Math.max(adjustedTotal - subtotal, 0);
     const priceReduction = Math.max(subtotal - adjustedTotal, 0);
