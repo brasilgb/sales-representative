@@ -45,7 +45,7 @@ export default function Expenses({ expenses, summary, filters, users, canManageT
                     <div className="grid gap-2"><Label htmlFor="category">Categoria</Label><select id="category" className="flex h-9 rounded-md border border-input bg-transparent px-3 text-sm" value={category} onChange={(event) => setCategory(event.target.value)}><option value="">Todas</option>{Object.entries(categoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
                     {canManageTeam && <div className="grid gap-2"><Label htmlFor="user_id">Vendedor</Label><select id="user_id" className="flex h-9 rounded-md border border-input bg-transparent px-3 text-sm" value={userId} onChange={(event) => setUserId(event.target.value)}><option value="">Todos</option>{users.map((user: any) => <option key={user.id} value={user.id}>{user.name}</option>)}</select></div>}
                 </div>
-                <div className="flex gap-2"><Button type="submit" variant="secondary"><Search className="h-4 w-4" /> Filtrar</Button><Button asChild><Link href={route('app.expenses.create')}><Plus className="h-4 w-4" /> Nova despesa</Link></Button></div>
+                <div className="flex gap-2"><Button type="submit" className="bg-sky-600 text-white hover:bg-sky-700"><Search className="h-4 w-4" /> Filtrar</Button><Button asChild><Link href={route('app.expenses.create')}><Plus className="h-4 w-4" /> Nova despesa</Link></Button></div>
             </form>
 
             <div className="p-4 pt-0">

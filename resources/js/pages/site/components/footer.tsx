@@ -61,7 +61,7 @@ export function Footer() {
                         <ul className="space-y-3 text-sm">
                             <li>
                                 <a
-                                    href="https://wa.me/5551995179173?text=Quero%20mais%20informações%20sobre%20o%20VetorPet"
+                                    href="https://wa.me/5551998931325?text=Quero%20mais%20informações%20sobre%20o%20VetorPet"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-2 text-white/60 transition-colors hover:text-white"

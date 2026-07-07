@@ -16,6 +16,9 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                         <SidebarMenuButton  
                             asChild isActive={isActive(item.active)}
                             tooltip={{ children: item.title }}
+                            className={item.title === 'Pedidos'
+                                ? 'font-semibold text-orange-600 hover:bg-orange-500/10 hover:text-orange-700 data-[active=true]:bg-orange-500/15 data-[active=true]:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 dark:data-[active=true]:text-orange-300'
+                                : undefined}
                         >
                             <Link href={item.href} prefetch>
                                 {item.icon && <item.icon />}

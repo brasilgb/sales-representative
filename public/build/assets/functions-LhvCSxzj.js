@@ -1,1 +1,0 @@
-const a=e=>{switch(e){case"1":return"Chefe da equipe";case"2":return"Vendedor"}},r=e=>{switch(e){case"1":return"Pedido realizado";case"2":return"Pago";case"3":return"Entregue";case"4":return"Cancelado"}},s=e=>{switch(e){case"1":return"Ativo";case"2":return"Inativo";case"3":return"Trial";case"4":return"Pausado";case"5":return"Vence em 5D"}};export{r as a,a as r,s};

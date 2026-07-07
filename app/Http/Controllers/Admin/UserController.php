@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserRequest;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -19,7 +20,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('q');
-        $query = User::orderBy('id', 'DESC');
+        $query = $this->rootAppUsers()->orderByDesc('id');
         if ($search) {
             $query->where('name', 'like', '%'.$search.'%');
         }
@@ -55,8 +56,9 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show(int $user)
     {
+        $user = $this->findUser($user);
         $tenants = Tenant::get();
 
         return Inertia::render('admin/users/edit-user', ['user' => $user, 'tenants' => $tenants]);
@@ -65,16 +67,17 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(User $user)
+    public function edit(int $user)
     {
-        return redirect()->route('admin.users.show', ['user' => $user->id]);
+        return redirect()->route('admin.users.show', ['user' => $user]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UserRequest $request, User $user): RedirectResponse
+    public function update(UserRequest $request, int $user): RedirectResponse
     {
+        $user = $this->findUser($user);
         $data = $request->all();
         $request->validated();
         $data['password'] = $request->password ? Hash::make($request->password) : $user->password;
@@ -87,8 +90,9 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(int $user)
     {
+        $user = $this->findUser($user);
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', 'Usuário excluido com sucesso!');
@@ -99,5 +103,17 @@ class UserController extends Controller
         if ($user->tenant_id && $user->isOwner()) {
             Tenant::whereKey($user->tenant_id)->update(['owner_user_id' => $user->id]);
         }
+    }
+
+    private function findUser(int $id): User
+    {
+        return $this->rootAppUsers()->findOrFail($id);
+    }
+
+    private function rootAppUsers(): Builder
+    {
+        return User::withoutGlobalScopes()
+            ->whereHas('tenant', fn ($query) => $query
+                ->whereColumn('tenants.owner_user_id', 'users.id'));
     }
 }

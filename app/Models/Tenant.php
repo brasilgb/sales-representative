@@ -83,6 +83,57 @@ class Tenant extends Model
         return $this->trial_ends_at !== null && $this->trial_ends_at->isFuture();
     }
 
+    public function licenseEndsAt()
+    {
+        return $this->isOnTrial() ? $this->trial_ends_at : $this->expiration_date;
+    }
+
+    public function daysRemaining(): ?int
+    {
+        $endsAt = $this->licenseEndsAt();
+
+        if (! $endsAt) {
+            return null;
+        }
+
+        return max(0, (int) ceil(now()->startOfDay()->diffInDays($endsAt->copy()->startOfDay(), false)));
+    }
+
+    public function subscriptionStatus(): string
+    {
+        if ((int) $this->status === 2) {
+            return 'Inativa';
+        }
+
+        if (in_array((int) $this->status, [4, 5], true)) {
+            return 'Pausada';
+        }
+
+        if ($this->isOnTrial()) {
+            return 'Em teste';
+        }
+
+        if ($this->trial_ends_at && ! $this->payment) {
+            return 'Teste expirado';
+        }
+
+        if ($this->expiration_date?->copy()->endOfDay()->isPast()) {
+            return 'Expirada';
+        }
+
+        $daysRemaining = $this->daysRemaining();
+
+        if ($daysRemaining === 0) {
+            return 'Vence hoje';
+        }
+
+        if ($daysRemaining !== null && $daysRemaining <= 5) {
+            return "Vence em {$daysRemaining} dias";
+        }
+
+        return 'Ativa';
+    }
+
     protected function logoUrl(): Attribute
     {
         return Attribute::get(fn () => $this->logo ? asset('storage/'.$this->logo) : null);

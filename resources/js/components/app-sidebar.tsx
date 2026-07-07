@@ -31,6 +31,12 @@ const appNavItems: NavItem[] = [
         active: 'app.dashboard',
     },
     {
+        title: 'Pedidos',
+        href: route('app.orders.index'),
+        icon: ShoppingCartIcon,
+        active: 'app.orders.*',
+    },
+    {
         title: 'Regiões',
         href: route('app.regions.index'),
         icon: MapPinned,
@@ -65,12 +71,6 @@ const appNavItems: NavItem[] = [
         href: route('app.commissions.index'),
         icon: BarChart3,
         active: 'app.commissions.*',
-    },
-    {
-        title: 'Pedidos',
-        href: route('app.orders.index'),
-        icon: ShoppingCartIcon,
-        active: 'app.orders.*',
     },
     {
         title: 'Agenda',

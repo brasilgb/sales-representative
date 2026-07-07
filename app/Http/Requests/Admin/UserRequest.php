@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 
 class UserRequest extends FormRequest
@@ -25,7 +26,11 @@ class UserRequest extends FormRequest
     {
         return [
             'name' => 'required',
-            'email' => ($this->getMethod() == 'POST') ? 'required|email|unique:users' : 'required|email|unique:users,email,'.$this->user->id,
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'email')->ignore($this->route('user')),
+            ],
             'roles' => 'required|in:1,2',
             'password' => ($this->getMethod() == 'POST') ? ['required', 'min:8', 'confirmed', Rules\Password::defaults()] : ['nullable', 'min:8', 'confirmed', Rules\Password::defaults()],
             'password_confirmation' => ($this->getMethod() == 'POST') ? ['required', 'min:8'] : ['nullable', 'min:8'],

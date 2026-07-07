@@ -43,7 +43,7 @@ export default function CommercialConditions({ conditions }: any) {
                     <InputSearch placeholder="Buscar condição comercial" url="app.commercial-conditions.index" />
                 </div>
                 <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto lg:shrink-0 lg:justify-end">
-                    <Button asChild variant="secondary" className="w-full sm:w-auto">
+                    <Button asChild className="w-full bg-emerald-600 text-white hover:bg-emerald-700 sm:w-auto">
                         <Link href={route('app.commissions.index')}>
                             <BarChart3 className="h-4 w-4" />
                             <span>Comissões</span>

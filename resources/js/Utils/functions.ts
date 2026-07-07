@@ -30,6 +30,8 @@ const statusUserByValue = (value: any) => {
 
 const roleUserByValue = (value: any) => {
     switch (value) {
+        case '99':
+            return "Administrador root";
         case '1':
             return "Chefe da equipe";
         case '2':

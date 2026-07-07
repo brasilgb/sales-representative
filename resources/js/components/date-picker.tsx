@@ -18,7 +18,7 @@ function formatDate(date: Date | undefined) {
         return ""
     }
 
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString("pt-BR", {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -49,7 +49,7 @@ export function DatePicker({ date, setDate, onDateSelect }: DatePickerProps) {
                 <Input
                     id="date"
                     value={value}
-                    placeholder="June 01, 2025"
+                    placeholder="01/06/2025"
                     className="bg-background pr-10"
                     onChange={(e) => {
                         const date = new Date(e.target.value)
@@ -74,7 +74,7 @@ export function DatePicker({ date, setDate, onDateSelect }: DatePickerProps) {
                             className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
                         >
                             <CalendarIcon className="size-3.5" />
-                            <span className="sr-only">Select date</span>
+                            <span className="sr-only">Selecionar data</span>
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent

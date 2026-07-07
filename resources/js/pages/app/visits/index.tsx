@@ -89,7 +89,7 @@ export default function Visits({ visits, inactiveCustomers, filters }: any) {
                     </div>
                 </div>
                 <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
-                    <Button type="submit" variant="secondary" className="w-full sm:w-auto">
+                    <Button type="submit" className="w-full bg-sky-600 text-white hover:bg-sky-700 sm:w-auto">
                         <Search className="h-4 w-4" />
                         <span>Filtrar</span>
                     </Button>

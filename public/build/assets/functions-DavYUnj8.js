@@ -1,0 +1,1 @@
+const r=e=>{switch(e){case"99":return"Administrador root";case"1":return"Chefe da equipe";case"2":return"Vendedor"}},a=e=>{switch(e){case"1":return"Pedido realizado";case"2":return"Pago";case"3":return"Entregue";case"4":return"Cancelado"}};export{r,a as s};

@@ -33,7 +33,7 @@ class TenantRequest extends FormRequest
                 'required',
                 Rule::exists('periods', 'id')->where(fn ($query) => $query->where('plan_id', $this->input('plan'))),
             ],
-            'status' => 'required',
+            'status' => ['required', Rule::in([1, 2, 5])],
         ];
     }
 

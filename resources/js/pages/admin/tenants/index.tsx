@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react'
+import { Head, Link, router } from '@inertiajs/react'
 import { BreadcrumbItem } from '@/types';
 import { Building, Building2, Edit, Plus } from 'lucide-react'
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -10,8 +10,9 @@ import { maskPhone } from '@/Utils/mask';
 import moment from 'moment';
 import ActionDelete from '@/components/action-delete';
 import AppPagination from '@/components/app-pagination';
-import { statusSaasByValue } from '@/Utils/functions';
 import AdminSidebarLayout from '@/layouts/admin/admin-sidebar-layout';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -25,6 +26,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function TenantsIndex({  tenants }: any) {
+
+  const updateStatus = (tenantId: number, active: boolean) => {
+    router.patch(route('admin.tenants.status', tenantId), { active }, { preserveScroll: true });
+  };
 
   return (
     <AdminSidebarLayout>
@@ -63,6 +68,7 @@ export default function TenantsIndex({  tenants }: any) {
                 <TableHead>E-mail</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Dias restantes</TableHead>
                 <TableHead>Criação</TableHead>
                 <TableHead>Vencimento</TableHead>
                 <TableHead></TableHead>
@@ -77,9 +83,21 @@ export default function TenantsIndex({  tenants }: any) {
                     <TableCell>{tenant.cnpj}</TableCell>
                     <TableCell>{tenant.email}</TableCell>
                     <TableCell>{maskPhone(tenant.phone)}</TableCell>
-                    <TableCell>{statusSaasByValue(tenant.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={Number(tenant.status) === 1}
+                          onCheckedChange={(active) => updateStatus(tenant.id, active)}
+                          aria-label={`${Number(tenant.status) === 1 ? 'Desativar' : 'Ativar'} ${tenant.company}`}
+                        />
+                        <Badge variant={['Expirada', 'Teste expirado', 'Inativa'].includes(tenant.subscription_status) ? 'destructive' : 'secondary'}>
+                          {tenant.subscription_status}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>{tenant.days_remaining === null ? '—' : `${tenant.days_remaining} dias`}</TableCell>
                     <TableCell>{moment(tenant.created_at).format("DD/MM/YYYY")}</TableCell>
-                    <TableCell>{moment(tenant.expiration_date).format("DD/MM/YYYY")}</TableCell>
+                    <TableCell>{tenant.license_ends_at ? moment(tenant.license_ends_at).format("DD/MM/YYYY") : '—'}</TableCell>
                     <TableCell className='flex justify-end gap-2'>
 
                       {/* <Button asChild size="icon" className="bg-sky-500 hover:bg-sky-600 text-white">
@@ -101,7 +119,7 @@ export default function TenantsIndex({  tenants }: any) {
                 ))
                 : (
                   <TableRow>
-                    <TableCell colSpan={7} className='h-16 w-full flex items-center justify-center'>
+                    <TableCell colSpan={10} className='h-16 w-full text-center'>
                       Não há dados a serem mostrados no momento.
                     </TableCell>
                   </TableRow>
@@ -110,7 +128,7 @@ export default function TenantsIndex({  tenants }: any) {
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={9}>
+                <TableCell colSpan={10}>
                   <AppPagination data={tenants} />
                 </TableCell>
               </TableRow>

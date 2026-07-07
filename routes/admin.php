@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\PlanController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::patch('/tenants/{tenant}/status', [TenantController::class, 'updateStatus'])->name('tenants.status');
 Route::resource('/tenants', TenantController::class);
 Route::resource('/branches', BranchController::class);
 Route::resource('/plans', PlanController::class);

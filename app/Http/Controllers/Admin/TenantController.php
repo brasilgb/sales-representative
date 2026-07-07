@@ -9,6 +9,7 @@ use App\Models\Admin\Plan;
 use App\Models\Tenant;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class TenantController extends Controller
@@ -18,7 +19,12 @@ class TenantController extends Controller
      */
     public function index()
     {
-        $tenants = Tenant::paginate(11);
+        $tenants = Tenant::orderByDesc('id')->paginate(11)->through(fn (Tenant $tenant) => [
+            ...$tenant->toArray(),
+            'subscription_status' => $tenant->subscriptionStatus(),
+            'days_remaining' => $tenant->daysRemaining(),
+            'license_ends_at' => $tenant->licenseEndsAt(),
+        ]);
 
         return Inertia::render('admin/tenants/index', ['tenants' => $tenants]);
     }
@@ -93,6 +99,19 @@ class TenantController extends Controller
         $tenant->update($data);
 
         return redirect()->route('admin.tenants.show', ['tenant' => $tenant->id])->with('success', 'Empresa atualizada com sucess!');
+    }
+
+    public function updateStatus(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $tenant->update([
+            'status' => $data['active'] ? 1 : 2,
+        ]);
+
+        return back()->with('success', $data['active'] ? 'Empresa ativada com sucesso!' : 'Empresa desativada com sucesso!');
     }
 
     /**

@@ -3,16 +3,10 @@ import {
     BarChart3,
     BriefcaseBusiness,
     CalendarCheck,
-    ChartNoAxesCombined,
-    FileText,
-    HandCoins,
-    MapPinned,
     Package,
-    Percent,
     ShoppingCart,
     Smartphone,
     Tags,
-    Target,
     Users,
 } from 'lucide-react';
 
@@ -51,11 +45,6 @@ const features = [
         description: 'Planeje a rotina em campo e registre check-in, check-out, localização e observações de cada atendimento.',
     },
     {
-        icon: MapPinned,
-        title: 'Regiões comerciais',
-        description: 'Distribua a carteira por regiões e mantenha vendedores, clientes e visitas organizados por área de atuação.',
-    },
-    {
         icon: ShoppingCart,
         title: 'Pedidos em campo',
         description: 'Monte pedidos pelo painel ou aplicativo com itens, quantidades, descontos e totais calculados pelo sistema.',
@@ -64,31 +53,6 @@ const features = [
         icon: Tags,
         title: 'Tabelas e condições comerciais',
         description: 'Defina preços, limites e regras comerciais aplicadas pelo servidor no momento da emissão do pedido.',
-    },
-    {
-        icon: Percent,
-        title: 'Campanhas e objetivos',
-        description: 'Planeje campanhas por período, produto, marca, categoria ou região e registre o objetivo de cada ação comercial.',
-    },
-    {
-        icon: HandCoins,
-        title: 'Comissões',
-        description: 'Configure percentuais comerciais e acompanhe a comissão calculada a partir dos pedidos da operação.',
-    },
-    {
-        icon: Target,
-        title: 'Desempenho da equipe',
-        description: 'Acompanhe vendedores e resultados para identificar evolução, oportunidades e pontos que precisam de atenção.',
-    },
-    {
-        icon: ChartNoAxesCombined,
-        title: 'Inteligência de vendas',
-        description: 'Analise clientes, produtos e movimentação comercial para orientar a próxima ação da equipe.',
-    },
-    {
-        icon: FileText,
-        title: 'Relatórios de pedidos',
-        description: 'Consulte pedidos por período e gere documentos comerciais para compartilhar ou arquivar.',
     },
     {
         icon: BarChart3,
@@ -108,13 +72,13 @@ export function FeaturesSection() {
             <div className="relative container mx-auto px-4">
                 <div className="mx-auto mb-16 max-w-3xl text-center">
                     <span className="inline-flex rounded-full border border-white/12 bg-white/6 px-4 py-1 text-[0.7rem] font-semibold tracking-[0.26em] text-primary uppercase">
-                        Recursos essenciais
+                        O que você consegue fazer
                     </span>
                     <h2 className="mt-5 text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-                        A operação comercial pet conectada do planejamento ao pedido
+                        Tudo o que sustenta a venda, sem espalhar a rotina em várias ferramentas
                     </h2>
                     <p className="mt-4 text-lg leading-relaxed text-white/72">
-                        O VetorPet reúne gestão web e aplicativo Android para organizar a equipe, atender pet shops e transformar visitas em vendas.
+                        Prepare clientes, produtos e regras comerciais no painel. Em campo, consulte a carteira, registre visitas e monte pedidos no Android.
                     </p>
                 </div>
 

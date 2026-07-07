@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { maskMoney } from '@/Utils/mask';
 import { Link } from '@inertiajs/react';
-import { Check, Infinity, Users } from 'lucide-react';
+import { Check, CreditCard, ShieldCheck, Users } from 'lucide-react';
 import { useState } from 'react';
 
 const periodLabels: Record<number, string> = {
@@ -50,14 +50,14 @@ const formatFeature = (feature: string) => featureLabels[feature] ?? feature.rep
 
 export function PricingSection({ plans }: { plans: any[] }) {
     const [selectedMonths, setSelectedMonths] = useState(1);
-    const sharedFeatures = Array.from(new Set(plans.flatMap((plan) => plan.features ?? [])));
+    const trialDays = Number(plans[0]?.trial_days ?? 14);
 
     return (
         <section id="precos" className="border-b border-border bg-muted/30 py-16 md:py-24">
             <div className="container mx-auto px-4">
                 <div className="mx-auto mb-10 max-w-3xl text-center">
-                    <h2 className="mb-4 text-3xl font-bold tracking-tight text-balance md:text-5xl">Mesmos módulos, valores para cada operação</h2>
-                    <p className="text-lg text-muted-foreground text-balance">Todos os planos têm os mesmos módulos. O que muda é o valor para vendedor único ou equipe e o período de pagamento.</p>
+                    <h2 className="mb-4 text-3xl font-bold tracking-tight text-balance md:text-5xl">Escolha pelo tamanho da sua equipe</h2>
+                    <p className="text-lg text-muted-foreground text-balance">Um plano para quem vende sozinho e outro para equipes com até 8 vendedores. Selecione o período para ver o valor total da cobrança.</p>
                 </div>
 
                 <div className="mx-auto mb-10 flex w-fit flex-wrap justify-center gap-2 rounded-lg border bg-background p-2">
@@ -77,17 +77,17 @@ export function PricingSection({ plans }: { plans: any[] }) {
                             <Card key={plan.id} className={`relative flex flex-col border-border ${isTeam ? 'border-primary shadow-lg' : ''}`}>
                                 {isTeam && <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">Para equipes</Badge>}
                                 <CardHeader>
-                                    <div className="mb-2 text-sm font-medium text-primary">{accountTypeLabels[plan.account_type] ?? plan.name}</div>
-                                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                                    <div className="mb-2 text-sm font-medium text-primary">{isTeam ? 'Plano para empresas' : 'Plano individual'}</div>
+                                    <CardTitle className="text-2xl">{accountTypeLabels[plan.account_type] ?? plan.name}</CardTitle>
                                     <CardDescription className="leading-relaxed">{accountTypeDescriptions[plan.account_type] ?? plan.description}</CardDescription>
                                     <div className="mt-4">
-                                        {selectedMonths === 1 && (
-                                            <div className="mb-1 text-sm font-medium text-muted-foreground">A partir de</div>
-                                        )}
                                         <span className="text-4xl font-bold">{period ? `R$ ${maskMoney(period.price)}` : 'Sob consulta'}</span>
-                                        <span className="ml-2 text-muted-foreground">/{periodLabels[selectedMonths].toLowerCase()}</span>
+                                        <span className="ml-2 text-muted-foreground">{selectedMonths === 1 ? '/mês' : `/a cada ${selectedMonths} meses`}</span>
                                     </div>
-                                    <div className="text-sm text-muted-foreground">{plan.trial_days} dias de teste</div>
+                                    {period && selectedMonths > 1 && (
+                                        <div className="text-sm text-muted-foreground">Equivale a R$ {maskMoney(Number(period.price) / selectedMonths)} por mês</div>
+                                    )}
+                                    <div className="mt-1 text-sm text-muted-foreground">{plan.trial_days} dias para testar sem cartão</div>
                                 </CardHeader>
                                 <CardContent className="flex-1">
                                     <div className="mb-3 rounded-md border border-border bg-background p-4">
@@ -102,11 +102,16 @@ export function PricingSection({ plans }: { plans: any[] }) {
                                     <div className="rounded-md border border-border bg-background p-4">
                                         <div className="mb-2 flex items-center gap-2 text-sm font-medium">
                                             <Check className="h-5 w-5 text-primary" />
-                                            Todos os módulos inclusos
+                                            Incluído neste plano
                                         </div>
-                                        <p className="text-sm leading-6 text-muted-foreground">
-                                            A experiência completa do VetorPet, com clientes, catálogo, pedidos, agenda, relatórios e recursos comerciais.
-                                        </p>
+                                        <ul className="space-y-2 pt-1">
+                                            {(plan.features ?? []).map((feature: string) => (
+                                                <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                                                    {formatFeature(feature)}
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 </CardContent>
                                 <CardFooter>
@@ -119,26 +124,10 @@ export function PricingSection({ plans }: { plans: any[] }) {
                     })}
                 </div>
 
-                <div className="mx-auto mt-8 max-w-5xl rounded-lg border border-border bg-card p-6">
-                    <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h3 className="text-xl font-semibold">Módulos inclusos</h3>
-                            <p className="text-sm text-muted-foreground">Os recursos abaixo fazem parte da experiência do VetorPet.</p>
-                        </div>
-                        <Badge variant="secondary" className="w-fit gap-2">
-                            <Infinity className="h-4 w-4" />
-                            Base compartilhada
-                        </Badge>
-                    </div>
-
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {sharedFeatures.map((feature) => (
-                            <div key={feature} className="flex items-start gap-3 rounded-md border border-border bg-background p-3">
-                                <Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                                <span className="text-sm font-medium">{formatFeature(feature)}</span>
-                            </div>
-                        ))}
-                    </div>
+                <div className="mx-auto mt-8 grid max-w-5xl gap-3 rounded-lg border border-border bg-card p-5 sm:grid-cols-3">
+                    <div className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-primary" /><span className="text-sm font-medium">{trialDays} dias para testar</span></div>
+                    <div className="flex items-center gap-3"><CreditCard className="h-5 w-5 text-primary" /><span className="text-sm font-medium">Sem cartão no cadastro</span></div>
+                    <div className="flex items-center gap-3"><Check className="h-5 w-5 text-primary" /><span className="text-sm font-medium">Cancele quando quiser</span></div>
                 </div>
             </div>
         </section>
