@@ -77,8 +77,8 @@ export function Toaster({ children, initialFlash }: PropsWithChildren<{ initialF
                         <div
                             key={toast.id}
                             role={success ? 'status' : 'alert'}
-                            className={`pointer-events-auto flex items-start gap-3 rounded-lg border bg-background p-4 text-sm shadow-lg ${
-                                success ? 'border-green-200 text-green-800 dark:border-green-900 dark:text-green-300' : 'border-red-200 text-red-800 dark:border-red-900 dark:text-red-300'
+                            className={`pointer-events-auto flex items-start gap-3 rounded-lg border bg-white p-4 text-sm shadow-lg ${
+                                success ? 'border-green-200 text-green-800' : 'border-red-200 text-red-800'
                             }`}
                         >
                             <Icon className="mt-0.5 h-5 w-5 shrink-0" />

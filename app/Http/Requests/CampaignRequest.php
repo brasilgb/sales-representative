@@ -18,10 +18,25 @@ class CampaignRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'scope_type' => ['required', Rule::in(['product', 'brand', 'category', 'region'])],
-            'product_ids' => ['nullable', Rule::requiredIf($this->input('scope_type') === 'product'), 'array', 'min:1'],
-            'product_ids.*' => [Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
-            'region_id' => ['nullable', Rule::requiredIf($this->input('scope_type') === 'region'), Rule::exists('regions', 'id')->where('tenant_id', $tenantId)],
+            'audience_type' => ['required', Rule::in(['all', 'region'])],
+            'scope_type' => ['required', Rule::in(['product', 'brand', 'category'])],
+            'product_ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+            'product_ids.*' => [Rule::exists('products', 'id')->where(function ($query) use ($tenantId) {
+                $query->where('tenant_id', $tenantId);
+
+                if ($this->input('scope_type') === 'brand') {
+                    $query->where('brand', $this->input('brand'));
+                }
+
+                if ($this->input('scope_type') === 'category') {
+                    $query->where('category', $this->input('category'));
+                }
+            })],
+            'region_id' => ['nullable', Rule::requiredIf($this->input('audience_type') === 'region'), Rule::exists('regions', 'id')->where('tenant_id', $tenantId)],
             'brand' => ['nullable', Rule::requiredIf($this->input('scope_type') === 'brand'), 'string', 'max:80'],
             'category' => ['nullable', Rule::requiredIf($this->input('scope_type') === 'category'), 'string', 'max:60'],
             'starts_at' => ['nullable', 'date'],

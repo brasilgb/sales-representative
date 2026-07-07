@@ -52,7 +52,6 @@ export default function CreateProduct() {
     const { data, setData, post, progress, processing, reset, errors } = useForm({
         name: '',
         reference: '',
-        barcode: '',
         description: '',
         species: '',
         category: '',
@@ -98,7 +97,6 @@ export default function CreateProduct() {
             if (success && product) {
                 setDisableInput(true);
                 setData((data) => ({ ...data, name: product.name }));
-                setData((data) => ({ ...data, barcode: product.barcode ?? '' }));
                 setData((data) => ({ ...data, description: product.description }));
                 setData((data) => ({ ...data, species: product.species ?? '' }));
                 setData((data) => ({ ...data, category: product.category ?? '' }));
@@ -181,7 +179,7 @@ export default function CreateProduct() {
                             </div>
                         </div>
 
-                        <div className="mt-4 grid gap-4 md:grid-cols-3">
+                        <div className="mt-4 grid gap-4 md:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="reference">Referência</Label>
                                 <Input
@@ -192,18 +190,6 @@ export default function CreateProduct() {
                                     onBlur={(e) => referenceDataSelected(e)}
                                 />
                                 {errors.reference && <div className="text-sm text-red-500">{errors.reference}</div>}
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="barcode">Código de barras</Label>
-                                <Input
-                                    type="text"
-                                    id="barcode"
-                                    value={data.barcode}
-                                    onChange={(e) => setData('barcode', e.target.value)}
-                                    readOnly={disableInput}
-                                />
-                                {errors.barcode && <div className="text-sm text-red-500">{errors.barcode}</div>}
                             </div>
 
                             <div className="grid gap-2">

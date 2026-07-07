@@ -29,10 +29,9 @@ const categoryLabels: Record<string, string> = {
 };
 
 const scopeLabels: Record<string, string> = {
-    product: 'Produto',
+    product: 'Produtos selecionados',
     brand: 'Marca',
     category: 'Categoria',
-    region: 'Região',
 };
 
 export default function Intelligence({ customers, selectedCustomer, inactiveBuckets, reorderSuggestions, mixReport, campaigns, recurringOrders }: any) {
@@ -214,7 +213,7 @@ export default function Intelligence({ customers, selectedCustomer, inactiveBuck
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Campanha</TableHead>
-                                    <TableHead>Aplicação</TableHead>
+                                    <TableHead>Público e oferta</TableHead>
                                     <TableHead>Aderência</TableHead>
                                     <TableHead>Período</TableHead>
                                     {auth.canManageTeam && <TableHead className="min-w-[120px]"></TableHead>}
@@ -229,9 +228,13 @@ export default function Intelligence({ customers, selectedCustomer, inactiveBuck
                                                 <div className="text-xs text-muted-foreground">{campaign.goal || 'Sem objetivo detalhado'}</div>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="text-sm">{scopeLabels[campaign.scope_type] ?? campaign.scope_type}</div>
+                                                <div className="text-sm">
+                                                    {campaign.audience_type === 'region' ? campaign.region?.name : 'Todos os clientes'}
+                                                </div>
                                                 <div className="text-xs text-muted-foreground">
-                                                    {campaign.scope_type === 'product' ? `${campaign.products?.length ?? 0} produto(s)` : campaign.region?.name || campaign.brand || campaign.category || '-'}
+                                                    {scopeLabels[campaign.scope_type] ?? campaign.scope_type}
+                                                    {campaign.scope_type !== 'product' ? `: ${campaign.brand || campaign.category || '-'}` : ''}
+                                                    {' · '}{campaign.products?.length ?? 0} produto(s)
                                                 </div>
                                             </TableCell>
                                             <TableCell>

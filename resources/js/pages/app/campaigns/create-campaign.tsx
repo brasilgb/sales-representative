@@ -16,15 +16,20 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const scopeTypes = [
-    { value: 'product', label: 'Produto' },
+    { value: 'product', label: 'Produtos selecionados' },
     { value: 'brand', label: 'Marca' },
     { value: 'category', label: 'Categoria' },
-    { value: 'region', label: 'Região' },
+];
+
+const audienceTypes = [
+    { value: 'all', label: 'Todos os clientes' },
+    { value: 'region', label: 'Clientes de uma região' },
 ];
 
 export default function CreateCampaign({ products, regions, brands, categories }: any) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
+        audience_type: 'all',
         scope_type: 'product',
         product_ids: [] as number[],
         region_id: '',
@@ -40,6 +45,12 @@ export default function CreateCampaign({ products, regions, brands, categories }
         event.preventDefault();
         post(route('app.campaigns.store'), { onSuccess: () => reset() });
     };
+
+    const availableProducts = data.scope_type === 'brand'
+        ? products.filter((product: any) => product.brand === data.brand)
+        : data.scope_type === 'category'
+            ? products.filter((product: any) => product.category === data.category)
+            : products;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -71,12 +82,12 @@ export default function CreateCampaign({ products, regions, brands, categories }
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="scope_type">Aplicação</Label>
+                                <Label htmlFor="scope_type">O que promover</Label>
                                 <select
                                     id="scope_type"
                                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
                                     value={data.scope_type}
-                                    onChange={(event) => setData('scope_type', event.target.value)}
+                                    onChange={(event) => setData((current) => ({ ...current, scope_type: event.target.value, product_ids: [] }))}
                                 >
                                     {scopeTypes.map((scope) => (
                                         <option key={scope.value} value={scope.value}>
@@ -93,9 +104,33 @@ export default function CreateCampaign({ products, regions, brands, categories }
                             </div>
                         </div>
 
-                        {data.scope_type === 'product' && (
-                            <div className="grid gap-2"><Label>Produtos da campanha</Label><ProductPicker products={products} value={data.product_ids} onChange={(ids: number[]) => setData('product_ids', ids)} error={errors.product_ids} /></div>
-                        )}
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor="audience_type">Para quem</Label>
+                                <select
+                                    id="audience_type"
+                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
+                                    value={data.audience_type}
+                                    onChange={(event) => setData('audience_type', event.target.value)}
+                                >
+                                    {audienceTypes.map((audience) => (
+                                        <option key={audience.value} value={audience.value}>{audience.label}</option>
+                                    ))}
+                                </select>
+                                {errors.audience_type && <div className="text-sm text-red-500">{errors.audience_type}</div>}
+                            </div>
+
+                            {data.audience_type === 'region' && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="region_id">Região</Label>
+                                    <select id="region_id" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm" value={data.region_id} onChange={(event) => setData('region_id', event.target.value)}>
+                                        <option value="">Selecione</option>
+                                        {regions.map((region: any) => <option key={region.id} value={region.id}>{region.name}</option>)}
+                                    </select>
+                                    {errors.region_id && <div className="text-sm text-red-500">{errors.region_id}</div>}
+                                </div>
+                            )}
+                        </div>
 
                         {data.scope_type === 'brand' && (
                             <div className="grid gap-2">
@@ -104,7 +139,7 @@ export default function CreateCampaign({ products, regions, brands, categories }
                                     id="brand"
                                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
                                     value={data.brand}
-                                    onChange={(event) => setData('brand', event.target.value)}
+                                    onChange={(event) => setData((current) => ({ ...current, brand: event.target.value, product_ids: [] }))}
                                 >
                                     <option value="">Selecione</option>
                                     {brands.map((brand: string) => (
@@ -124,7 +159,7 @@ export default function CreateCampaign({ products, regions, brands, categories }
                                     id="category"
                                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
                                     value={data.category}
-                                    onChange={(event) => setData('category', event.target.value)}
+                                    onChange={(event) => setData((current) => ({ ...current, category: event.target.value, product_ids: [] }))}
                                 >
                                     <option value="">Selecione</option>
                                     {categories.map((category: string) => (
@@ -137,25 +172,10 @@ export default function CreateCampaign({ products, regions, brands, categories }
                             </div>
                         )}
 
-                        {data.scope_type === 'region' && (
-                            <div className="grid gap-2">
-                                <Label htmlFor="region_id">Região</Label>
-                                <select
-                                    id="region_id"
-                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
-                                    value={data.region_id}
-                                    onChange={(event) => setData('region_id', event.target.value)}
-                                >
-                                    <option value="">Selecione</option>
-                                    {regions.map((region: any) => (
-                                        <option key={region.id} value={region.id}>
-                                            {region.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.region_id && <div className="text-sm text-red-500">{errors.region_id}</div>}
-                            </div>
-                        )}
+                        <div className="grid gap-2">
+                            <Label>Produtos da campanha</Label>
+                            <ProductPicker products={availableProducts} value={data.product_ids} onChange={(ids: number[]) => setData('product_ids', ids)} error={errors.product_ids} />
+                        </div>
 
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="grid gap-2">

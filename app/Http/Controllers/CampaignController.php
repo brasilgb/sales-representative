@@ -93,7 +93,7 @@ class CampaignController extends Controller
             $data['product_id'] = null;
         }
 
-        if ($data['scope_type'] !== 'region') {
+        if ($data['audience_type'] !== 'region') {
             $data['region_id'] = null;
         }
 

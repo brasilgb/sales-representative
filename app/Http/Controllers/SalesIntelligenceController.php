@@ -154,18 +154,11 @@ class SalesIntelligenceController extends Controller
         $query = Order::visibleTo()
             ->whereBetween('created_at', [$start, $end])
             ->whereHas('orderItems.product', function (Builder $query) use ($campaign) {
-                match ($campaign->scope_type) {
-                    'product' => $query->whereIn('products.id', $campaign->products->pluck('id')),
-                    'brand' => $query->where('brand', $campaign->brand),
-                    'category' => $query->where('category', $campaign->category),
-                    default => null,
-                };
+                $query->whereIn('products.id', $campaign->products->pluck('id'));
             });
 
-        if ($campaign->scope_type === 'region') {
-            $query = Order::visibleTo()
-                ->whereBetween('created_at', [$start, $end])
-                ->whereHas('customer', fn (Builder $query) => $query->where('region_id', $campaign->region_id));
+        if ($campaign->audience_type === 'region') {
+            $query->whereHas('customer', fn (Builder $query) => $query->where('region_id', $campaign->region_id));
         }
 
         return [
