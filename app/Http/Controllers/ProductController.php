@@ -36,7 +36,10 @@ class ProductController extends Controller
 
         return Inertia::render('app/products/index', [
             'products' => $products,
-            'publicCatalogUrl' => route('catalog.public', $request->user()->tenant->public_catalog_token),
+            'publicCatalogUrl' => route('catalog.public', [
+                'token' => $request->user()->tenant->public_catalog_token,
+                'v' => $request->user()->tenant->updated_at?->timestamp,
+            ]),
         ]);
     }
 

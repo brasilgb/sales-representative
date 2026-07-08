@@ -28,6 +28,7 @@ test('public product catalog shows only available products and safe company data
 
     $tenant = Tenant::create([
         'company' => 'Empresa Catálogo Público',
+        'logo' => 'logos/empresa-catalogo.png',
         'cnpj' => '88765432000100',
         'email' => 'catalogo-publico@example.com',
         'whatsapp' => '11999999999',
@@ -44,6 +45,8 @@ test('public product catalog shows only available products and safe company data
 
     $this->get(route('catalog.public', $tenant->public_catalog_token))
         ->assertOk()
+        ->assertSee('<meta property="og:title" content="Catálogo de produtos | Empresa Catálogo Público">', false)
+        ->assertSee('<meta property="og:image" content="'.asset('storage/logos/empresa-catalogo.png').'">', false)
         ->assertInertia(fn (Assert $page) => $page
             ->component('site/catalogs/show')
             ->has('company', 3)

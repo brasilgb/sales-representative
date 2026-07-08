@@ -7,6 +7,7 @@ export interface Auth {
     canManageTeam: boolean;
     canManageSellers: boolean;
     companyLogo?: string | null;
+    companyName?: string | null;
     planFeatures: string[];
     subscriptionBlockedReason?: string | null;
 }

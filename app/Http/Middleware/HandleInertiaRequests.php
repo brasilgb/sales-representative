@@ -57,6 +57,7 @@ class HandleInertiaRequests extends Middleware
                 'canManageTeam' => $request->user()?->canManageTeam() ?? false,
                 'canManageSellers' => $request->user()?->canManageSellers() ?? false,
                 'companyLogo' => $request->user()?->tenant?->logo_url,
+                'companyName' => $request->user()?->tenant?->company,
                 'planFeatures' => $planLimits?->plan()?->features ?? [],
                 'subscriptionBlockedReason' => $planLimits?->subscriptionBlockedReason(),
             ],

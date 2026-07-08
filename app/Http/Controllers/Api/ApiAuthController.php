@@ -185,7 +185,10 @@ class ApiAuthController extends BaseController
         $accountType = $user->tenant?->planModel?->account_type ?? $user->tenant?->plan_type;
         $canManageCatalog = $user->canManageCatalog();
         $canManageTeam = $user->canManageTeam();
-        $publicCatalogUrl = route('catalog.public', $user->tenant->public_catalog_token);
+        $publicCatalogUrl = route('catalog.public', [
+            'token' => $user->tenant->public_catalog_token,
+            'v' => $user->tenant->updated_at?->timestamp,
+        ]);
 
         $user->unsetRelation('tenant');
         $user->setAttribute('account_type', $accountType);
