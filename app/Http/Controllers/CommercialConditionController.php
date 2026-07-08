@@ -254,6 +254,10 @@ class CommercialConditionController extends Controller
     {
         $data = $request->validated();
 
+        if ($data['scope_type'] === 'campaign') {
+            $data['price_adjustment_percentage'] = 0;
+        }
+
         if ($data['scope_type'] !== 'customer') {
             $data['customer_id'] = null;
         }

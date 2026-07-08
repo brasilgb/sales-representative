@@ -153,7 +153,7 @@ class OrderController extends Controller
             if ($commercialCondition) {
                 $discountPercentage = $subtotal > 0 ? ($discountAmount / $subtotal) * 100 : 0;
 
-                if ($discountPercentage > (float) $commercialCondition->max_discount_percentage) {
+                if ($discountPercentage > $commercialCondition->maximumAdditionalDiscountPercentage()) {
                     throw new \Exception('Desconto acima do limite permitido para este cliente.');
                 }
 

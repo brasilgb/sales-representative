@@ -74,7 +74,7 @@ final class OrderUpdateService
 
             if ($condition) {
                 $discountPercentage = $subtotal > 0 ? ($discount / $subtotal) * 100 : 0;
-                if ($discountPercentage > (float) $condition->max_discount_percentage) {
+                if ($discountPercentage > $condition->maximumAdditionalDiscountPercentage()) {
                     throw new RuntimeException('Desconto acima do limite permitido para este cliente.');
                 }
                 if ($total < (float) $condition->minimum_order_amount) {

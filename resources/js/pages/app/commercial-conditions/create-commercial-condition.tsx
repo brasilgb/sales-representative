@@ -77,7 +77,7 @@ export default function CreateCommercialCondition({ customers, regions, campaign
                                     id="scope_type"
                                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
                                     value={data.scope_type}
-                                    onChange={(event) => setData('scope_type', event.target.value)}
+                                    onChange={(event) => setData((current) => ({ ...current, scope_type: event.target.value, price_adjustment_percentage: '0' }))}
                                 >
                                     {scopeTypes.map((scope) => (
                                         <option key={scope.value} value={scope.value}>
@@ -176,7 +176,7 @@ export default function CreateCommercialCondition({ customers, regions, campaign
                         )}
 
                         <div className="grid gap-4 md:grid-cols-5">
-                            <div className="grid gap-2">
+                            {data.scope_type !== 'campaign' && <div className="grid gap-2">
                                 <Label htmlFor="price_adjustment_percentage">Ajuste de preço (%)</Label>
                                 <Input
                                     id="price_adjustment_percentage"
@@ -187,11 +187,11 @@ export default function CreateCommercialCondition({ customers, regions, campaign
                                     value={data.price_adjustment_percentage}
                                     onChange={(event) => setData('price_adjustment_percentage', event.target.value)}
                                 />
-                                <div className="text-xs text-muted-foreground">Use valor negativo para desconto. Ex.: -10 reduz o preço em 10%.</div>
+                                <div className="text-xs text-muted-foreground">Use valor negativo para redução e positivo para acréscimo.</div>
                                 {errors.price_adjustment_percentage && <div className="text-sm text-red-500">{errors.price_adjustment_percentage}</div>}
-                            </div>
+                            </div>}
                             <div className="grid gap-2">
-                                <Label htmlFor="max_discount_percentage">Desconto máximo (%)</Label>
+                                <Label htmlFor="max_discount_percentage">{data.scope_type === 'campaign' ? 'Desconto da campanha (%)' : 'Desconto máximo (%)'}</Label>
                                 <Input
                                     id="max_discount_percentage"
                                     type="number"
@@ -200,7 +200,7 @@ export default function CreateCommercialCondition({ customers, regions, campaign
                                     value={data.max_discount_percentage}
                                     onChange={(event) => setData('max_discount_percentage', event.target.value)}
                                 />
-                                <div className="text-xs text-muted-foreground">Limite para descontos adicionais no pedido; este campo não aceita valor negativo.</div>
+                                <div className="text-xs text-muted-foreground">{data.scope_type === 'campaign' ? 'Este percentual reduz diretamente o preço dos produtos da campanha.' : 'Limite para descontos adicionais no pedido.'}</div>
                                 {errors.max_discount_percentage && <div className="text-sm text-red-500">{errors.max_discount_percentage}</div>}
                             </div>
                             <div className="grid gap-2">

@@ -87,8 +87,8 @@ export default function CommercialConditions({ conditions }: any) {
                                         </TableCell>
                                         <TableCell>
                                             <div className="space-y-1 text-sm">
-                                                <div>Preço: {Number(condition.price_adjustment_percentage).toFixed(2)}%</div>
-                                                <div>Desc. máx.: {Number(condition.max_discount_percentage).toFixed(2)}%</div>
+                                                {condition.scope_type !== 'campaign' && <div>Preço: {Number(condition.price_adjustment_percentage).toFixed(2)}%</div>}
+                                                <div>{condition.scope_type === 'campaign' ? 'Desconto da campanha' : 'Desc. máx.'}: {Number(condition.max_discount_percentage).toFixed(2)}%</div>
                                                 <div>Mínimo: R$ {maskMoney(condition.minimum_order_amount)}</div>
                                                 <div>Comissão: {Number(condition.commission_percentage).toFixed(2)}%</div>
                                             </div>

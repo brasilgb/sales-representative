@@ -86,6 +86,15 @@ class CommercialCondition extends Model
 
     public function adjustedPrice(float $price): float
     {
-        return round($price * (1 + ((float) $this->price_adjustment_percentage / 100)), 2);
+        $percentage = $this->scope_type === 'campaign'
+            ? -((float) $this->max_discount_percentage)
+            : (float) $this->price_adjustment_percentage;
+
+        return round($price * (1 + ($percentage / 100)), 2);
+    }
+
+    public function maximumAdditionalDiscountPercentage(): float
+    {
+        return $this->scope_type === 'campaign' ? 0 : (float) $this->max_discount_percentage;
     }
 }
