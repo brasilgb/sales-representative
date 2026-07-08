@@ -21,6 +21,7 @@ class CommercialCondition extends Model
         'price_adjustment_percentage',
         'max_discount_percentage',
         'minimum_order_amount',
+        'minimum_order_quantity',
         'payment_terms',
         'commission_percentage',
         'status',
@@ -32,6 +33,7 @@ class CommercialCondition extends Model
             'price_adjustment_percentage' => 'decimal:2',
             'max_discount_percentage' => 'decimal:2',
             'minimum_order_amount' => 'decimal:2',
+            'minimum_order_quantity' => 'integer',
             'commission_percentage' => 'decimal:2',
             'status' => 'boolean',
         ];

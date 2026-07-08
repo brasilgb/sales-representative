@@ -149,6 +149,17 @@ test('order selected from a campaign uses its price and records the campaign', f
     expect($order->campaign_id)->toBe($campaign->id)
         ->and($order->commercial_condition_id)->toBe($condition->id)
         ->and((float) $order->orderItems()->firstOrFail()->price)->toBe(85.0);
+
+    $condition->update(['minimum_order_quantity' => 3]);
+
+    $this->postJson('/api/orders', [
+        'customer_id' => $customer->id,
+        'campaign_id' => $campaign->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 1]],
+    ])->assertStatus(400)
+        ->assertJsonPath('message', 'Ocorreu um erro: Quantidade mínima da campanha não atingida.');
+
+    expect(Order::count())->toBe(1);
 });
 
 test('seller can use the mobile visit agenda for their assigned region', function () {

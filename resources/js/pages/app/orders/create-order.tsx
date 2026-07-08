@@ -80,7 +80,7 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
     });
 
     const availableCampaigns = campaigns.filter(
-        (campaign: any) => campaign.audience_type === 'all' || Number(campaign.region_id) === Number(selectedCustomer?.region_id),
+        (campaign: any) => campaign.commercial_condition && (campaign.audience_type === 'all' || Number(campaign.region_id) === Number(selectedCustomer?.region_id)),
     );
     const selectedCampaign = availableCampaigns.find((campaign: any) => String(campaign.id) === String(data.campaign_id)) ?? null;
     const selectedCondition = selectedCampaign?.commercial_condition ?? selectedCustomer?.commercial_condition ?? null;
@@ -97,6 +97,10 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
     const discountPercentage = subtotal > 0 ? (discountAmount / subtotal) * 100 : 0;
     const maxDiscountPercentage = Number(selectedCondition?.max_discount_percentage ?? 0);
     const minimumOrderAmount = Number(selectedCondition?.minimum_order_amount ?? 0);
+    const minimumOrderQuantity = Number(selectedCampaign?.commercial_condition?.minimum_order_quantity ?? 0);
+    const campaignProductIds = new Set((selectedCampaign?.products ?? []).map((product: any) => Number(product.id)));
+    const campaignQuantity = items.reduce((sum, item) => sum + (campaignProductIds.has(Number(item.product_id)) ? item.quantity : 0), 0);
+    const belowMinimum = selectedCampaign ? campaignQuantity < minimumOrderQuantity : commercialTotal < minimumOrderAmount;
     const commissionAmount = commercialTotal * (Number(selectedCondition?.commission_percentage ?? 0) / 100);
     const latestOrder = selectedCustomer?.latest_order;
     const pricedProducts = useMemo(
@@ -354,8 +358,8 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                                         <div className="font-medium">{Number(selectedCondition.max_discount_percentage).toFixed(2)}%</div>
                                     </div>
                                     <div>
-                                        <div className="text-muted-foreground">Pedido mínimo</div>
-                                        <div className="font-medium">R$ {maskMoney(selectedCondition.minimum_order_amount)}</div>
+                                        <div className="text-muted-foreground">{selectedCampaign ? 'Quantidade mínima' : 'Pedido mínimo'}</div>
+                                        <div className="font-medium">{selectedCampaign ? `${minimumOrderQuantity} unidade(s)` : `R$ ${maskMoney(selectedCondition.minimum_order_amount)}`}</div>
                                     </div>
                                     <div>
                                         <div className="text-muted-foreground">Prazo</div>
@@ -368,15 +372,15 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                                 </div>
                             )}
 
-                            {((discountPercentage > maxDiscountPercentage || commercialTotal < minimumOrderAmount) && selectedCondition) || insufficientFlex ? (
+                            {((discountPercentage > maxDiscountPercentage || belowMinimum) && selectedCondition) || insufficientFlex ? (
                                 <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
                                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                                     <div>
                                         {selectedCondition && discountPercentage > maxDiscountPercentage && (
                                             <div>Desconto atual de {discountPercentage.toFixed(2)}% acima do limite permitido.</div>
                                         )}
-                                        {selectedCondition && commercialTotal < minimumOrderAmount && (
-                                            <div>Total comercial abaixo do pedido mínimo desta condição.</div>
+                                        {selectedCondition && belowMinimum && (
+                                            <div>{selectedCampaign ? `Quantidade mínima não atingida. Faltam ${minimumOrderQuantity - campaignQuantity} unidade(s).` : 'Total comercial abaixo do pedido mínimo desta condição.'}</div>
                                         )}
                                         {insufficientFlex && <div>O desconto excede o saldo Flex disponível.</div>}
                                     </div>
@@ -447,7 +451,7 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                     </Card>
 
                     <div className="flex justify-end">
-                        <Button type="submit" disabled={processing || items.length === 0 || insufficientFlex}>
+                        <Button type="submit" disabled={processing || items.length === 0 || insufficientFlex || belowMinimum}>
                             Finalizar pedido
                         </Button>
                     </div>

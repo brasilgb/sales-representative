@@ -256,6 +256,9 @@ class CommercialConditionController extends Controller
 
         if ($data['scope_type'] === 'campaign') {
             $data['price_adjustment_percentage'] = 0;
+            $data['minimum_order_amount'] = 0;
+        } else {
+            $data['minimum_order_quantity'] = 0;
         }
 
         if ($data['scope_type'] !== 'customer') {

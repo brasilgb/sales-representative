@@ -16,6 +16,7 @@ function commercialConditionPayload(array $overrides = []): array
         'price_adjustment_percentage' => 0,
         'max_discount_percentage' => 10,
         'minimum_order_amount' => 100,
+        'minimum_order_quantity' => 0,
         'payment_terms' => '28 dias',
         'commission_percentage' => 5,
         'status' => true,

@@ -113,6 +113,7 @@ class OrderController extends Controller
             $campaign = isset($validatedData['campaign_id'])
                 ? Campaign::active()->with(['products:id', 'commercialCondition'])->findOrFail($validatedData['campaign_id'])
                 : null;
+            abort_if($campaign && ! $campaign->commercialCondition, 422, 'A campanha não possui uma regra comercial ativa.');
             abort_if($campaign?->audience_type === 'region' && $campaign->region_id !== $customer->region_id, 422, 'A campanha não é válida para a região deste cliente.');
             $customerCondition = CommercialCondition::resolveForCustomer($customer);
             $commercialCondition = $campaign?->commercialCondition ?? $customerCondition;
@@ -121,6 +122,7 @@ class OrderController extends Controller
             DB::beginTransaction();
 
             $subtotal = 0;
+            $campaignQuantity = 0;
             foreach ($validatedData['items'] as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 $itemCondition = $campaign && in_array($product->id, $campaignProductIds, true)
@@ -133,6 +135,9 @@ class OrderController extends Controller
                 }
 
                 $subtotal += $expectedPrice * (int) $item['quantity'];
+                if ($campaign && in_array($product->id, $campaignProductIds, true)) {
+                    $campaignQuantity += (int) $item['quantity'];
+                }
             }
 
             $subtotal = round($subtotal, 2);
@@ -157,7 +162,11 @@ class OrderController extends Controller
                     throw new \Exception('Desconto acima do limite permitido para este cliente.');
                 }
 
-                if ($total < (float) $commercialCondition->minimum_order_amount) {
+                if ($campaign && $campaignQuantity < (int) $commercialCondition->minimum_order_quantity) {
+                    throw new \Exception('Quantidade mínima da campanha não atingida.');
+                }
+
+                if (! $campaign && $total < (float) $commercialCondition->minimum_order_amount) {
                     throw new \Exception('Pedido abaixo do valor mínimo da condição comercial.');
                 }
             }

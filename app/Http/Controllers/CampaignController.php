@@ -145,7 +145,7 @@ class CampaignController extends Controller
 
             $campaign->setAttribute('commercial_rule', [
                 'name' => $commercialCondition->name,
-                'minimum_order_amount' => $commercialCondition->minimum_order_amount,
+                'minimum_order_quantity' => $commercialCondition->minimum_order_quantity,
                 'payment_terms' => $commercialCondition->payment_terms,
             ]);
         }

@@ -28,6 +28,7 @@ class CommercialConditionRequest extends FormRequest
             'price_adjustment_percentage' => ['required', 'numeric', 'between:-100,999'],
             'max_discount_percentage' => ['required', 'numeric', 'between:0,100'],
             'minimum_order_amount' => ['required', 'numeric', 'min:0'],
+            'minimum_order_quantity' => ['required', 'integer', 'min:0'],
             'payment_terms' => ['nullable', 'string', 'max:120'],
             'commission_percentage' => ['required', 'numeric', 'between:0,100'],
             'status' => ['nullable', 'boolean'],

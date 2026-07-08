@@ -39,6 +39,7 @@ final class OrderUpdateService
             $condition = $campaign?->commercialCondition ?? $customerCondition;
             $campaignProductIds = $campaign?->products->modelKeys() ?? [];
             $subtotal = 0;
+            $campaignQuantity = 0;
             $items = [];
 
             foreach ($data['items'] as $item) {
@@ -55,6 +56,9 @@ final class OrderUpdateService
                 $price = $itemCondition ? $itemCondition->adjustedPrice((float) $product->price) : (float) $product->price;
                 $itemTotal = round($price * $quantity, 2);
                 $subtotal += $itemTotal;
+                if ($campaign && in_array($product->id, $campaignProductIds, true)) {
+                    $campaignQuantity += $quantity;
+                }
                 $items[] = ['product_id' => $product->id, 'quantity' => $quantity, 'price' => $price, 'name' => $product->name, 'total' => $itemTotal];
                 $product->decrement('quantity', $quantity);
             }
@@ -77,7 +81,10 @@ final class OrderUpdateService
                 if ($discountPercentage > $condition->maximumAdditionalDiscountPercentage()) {
                     throw new RuntimeException('Desconto acima do limite permitido para este cliente.');
                 }
-                if ($total < (float) $condition->minimum_order_amount) {
+                if ($campaign && $campaignQuantity < (int) $condition->minimum_order_quantity) {
+                    throw new RuntimeException('Quantidade mínima da campanha não atingida.');
+                }
+                if (! $campaign && $total < (float) $condition->minimum_order_amount) {
                     throw new RuntimeException('Pedido abaixo do valor mínimo da condição comercial.');
                 }
             }

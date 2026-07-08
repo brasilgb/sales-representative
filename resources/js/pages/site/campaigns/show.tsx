@@ -51,8 +51,8 @@ export default function CampaignCatalog({ campaign }: any) {
                     {campaign.commercial_rule && (
                         <div className="mt-4 inline-flex flex-wrap gap-x-4 gap-y-1 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200">
                             <span>{campaign.commercial_rule.name}</span>
-                            {Number(campaign.commercial_rule.minimum_order_amount) > 0 && (
-                                <span>Pedido mínimo: {Number(campaign.commercial_rule.minimum_order_amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                            {Number(campaign.commercial_rule.minimum_order_quantity) > 0 && (
+                                <span>Quantidade mínima: {Number(campaign.commercial_rule.minimum_order_quantity).toLocaleString('pt-BR')} unidade(s)</span>
                             )}
                             {campaign.commercial_rule.payment_terms && <span>Pagamento: {campaign.commercial_rule.payment_terms}</span>}
                         </div>

@@ -41,11 +41,17 @@ export default function Orders({ orders }: any) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Pedidos" />
 
-            <div className="flex min-h-16 flex-col justify-center gap-1 px-4 py-3">
+            <div className="flex min-h-16 flex-col justify-between gap-3 px-4 py-3 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-2">
                     <Icon iconNode={ShoppingCartIcon} className="h-8 w-8" />
                     <h2 className="text-xl font-semibold tracking-tight">Pedidos</h2>
                 </div>
+                <Button variant="default" asChild className="w-full whitespace-nowrap sm:w-auto">
+                    <Link href={route('app.orders.create')}>
+                        <Plus className="h-4 w-4" />
+                        <span>Adicionar pedido</span>
+                    </Link>
+                </Button>
             </div>
 
             <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
@@ -57,12 +63,6 @@ export default function Orders({ orders }: any) {
                         <Link href={route('app.orders.report')}>
                             <CalendarDaysIcon className="h-4 w-4" />
                             <span>Relatório</span>
-                        </Link>
-                    </Button>
-                    <Button variant="default" asChild className="w-full whitespace-nowrap sm:w-auto">
-                        <Link href={route('app.orders.create')}>
-                            <Plus className="h-4 w-4" />
-                            <span>Novo pedido</span>
                         </Link>
                     </Button>
                 </div>

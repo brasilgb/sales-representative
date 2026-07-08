@@ -32,6 +32,7 @@ export default function CreateCommercialCondition({ customers, regions, campaign
         price_adjustment_percentage: '0',
         max_discount_percentage: '0',
         minimum_order_amount: '0',
+        minimum_order_quantity: '0',
         payment_terms: '',
         commission_percentage: '0',
         status: true,
@@ -204,14 +205,14 @@ export default function CreateCommercialCondition({ customers, regions, campaign
                                 {errors.max_discount_percentage && <div className="text-sm text-red-500">{errors.max_discount_percentage}</div>}
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="minimum_order_amount">Pedido mínimo</Label>
+                                <Label htmlFor={data.scope_type === 'campaign' ? 'minimum_order_quantity' : 'minimum_order_amount'}>{data.scope_type === 'campaign' ? 'Quantidade mínima' : 'Pedido mínimo (R$)'}</Label>
                                 <Input
-                                    id="minimum_order_amount"
+                                    id={data.scope_type === 'campaign' ? 'minimum_order_quantity' : 'minimum_order_amount'}
                                     type="number"
-                                    step="0.01"
+                                    step={data.scope_type === 'campaign' ? '1' : '0.01'}
                                     min="0"
-                                    value={data.minimum_order_amount}
-                                    onChange={(event) => setData('minimum_order_amount', event.target.value)}
+                                    value={data.scope_type === 'campaign' ? data.minimum_order_quantity : data.minimum_order_amount}
+                                    onChange={(event) => data.scope_type === 'campaign' ? setData('minimum_order_quantity', event.target.value) : setData('minimum_order_amount', event.target.value)}
                                 />
                             </div>
                             <div className="grid gap-2">
