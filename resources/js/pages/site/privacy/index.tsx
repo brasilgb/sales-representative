@@ -27,7 +27,7 @@ export default function Privacy() {
                 <LegalSidebar sections={sections} />
                 <article className="max-w-[76ch] text-[15px] leading-7 text-muted-foreground [&_h2]:scroll-mt-28 [&_h2]:border-b [&_h2]:border-border [&_h2]:pb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_p]:mb-5 [&_ul]:mb-6 [&_ul]:space-y-2">
                     <h1 className="mb-5 text-3xl font-semibold tracking-tight text-foreground">Política de Privacidade — VetorPet</h1>
-                    <p className="mb-10 text-sm">Última atualização: 7 de julho de 2026</p>
+                    <p className="mb-10 text-sm">Última atualização: 8 de julho de 2026</p>
                     <p>
                         Esta Política explica como o VetorPet trata dados pessoais em seu site, painel web e aplicativo Android, em conformidade com a
                         Lei nº 13.709/2018 — Lei Geral de Proteção de Dados Pessoais (LGPD).
@@ -53,7 +53,7 @@ export default function Privacy() {
                         <li>equipe: perfil, função, regiões e permissões;</li>
                         <li>
                             operação comercial: contatos de pet shops e clínicas, visitas, pedidos, produtos, condições comerciais, comissões,
-                            campanhas e regiões usadas para segmentação;
+                            campanhas, regras comerciais, descontos, quantidades mínimas e regiões usadas para segmentação;
                         </li>
                         <li>localização: latitude e longitude opcionais no check-in e check-out de visitas, quando autorizadas no dispositivo;</li>
                         <li>
@@ -68,7 +68,7 @@ export default function Privacy() {
                     </h2>
                     <p>
                         Tratamos dados para criar e autenticar contas, executar o contrato, sincronizar web e aplicativo, processar assinaturas,
-                        prestar suporte, exibir campanhas conforme a região do usuário, produzir indicadores e sugestões de inteligência comercial,
+                        prestar suporte, exibir campanhas conforme a região do usuário, vincular campanhas a pedidos, produzir indicadores e sugestões de inteligência comercial,
                         proteger a plataforma, prevenir fraude, cumprir obrigações legais e melhorar o serviço.
                     </p>
                     <p>
@@ -146,7 +146,7 @@ export default function Privacy() {
                     </p>
                     <p>
                         Catálogos de campanhas podem ser acessados sem login por um endereço público criado pela plataforma. Essas páginas podem
-                        exibir nome e objetivo da campanha, nome, logo e WhatsApp da empresa, além de imagem, referência, nome, descrição e preço dos
+                        exibir nome e objetivo da campanha, nome, logo e WhatsApp da empresa, além de imagem, referência, nome, descrição, preço promocional, condição de pagamento e quantidade mínima dos
                         produtos selecionados. O endereço não deve ser usado para publicar dados pessoais ou informações confidenciais e deixa de
                         apresentar a campanha quando ela é desativada ou está fora do período configurado.
                     </p>

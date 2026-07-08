@@ -27,7 +27,7 @@ export default function Terms() {
                 <LegalSidebar sections={sections} />
                 <article className="max-w-[76ch] text-[15px] leading-7 text-muted-foreground [&_h2]:scroll-mt-28 [&_h2]:border-b [&_h2]:border-border [&_h2]:pb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_p]:mb-5 [&_ul]:mb-6 [&_ul]:space-y-2">
                     <h1 className="mb-5 text-3xl font-semibold tracking-tight text-foreground">Termos de Uso — VetorPet</h1>
-                    <p className="mb-10 text-sm">Última atualização: 7 de julho de 2026</p>
+                    <p className="mb-10 text-sm">Última atualização: 8 de julho de 2026</p>
                     <p>
                         Estes Termos regulam o acesso à plataforma VetorPet. Ao criar uma conta ou utilizar o serviço, o usuário declara ter
                         capacidade para contratar e concordar com estas condições.
@@ -105,11 +105,21 @@ export default function Terms() {
                         antes de decisões financeiras.
                     </p>
                     <p>
+                        Regras comerciais podem alterar preços, limitar descontos, definir pedido mínimo, prazo de pagamento e comissão. Regras
+                        vinculadas a campanhas aplicam o desconto configurado somente aos produtos participantes e podem exigir quantidade mínima
+                        de unidades. O preço-base do produto não é alterado. Ao selecionar uma campanha na criação do pedido, o pedido, os itens e
+                        os relatórios passam a registrar os valores e a campanha utilizados.
+                    </p>
+                    <p>
                         Campanhas podem ser direcionadas a todos os clientes ou a uma região e disponibilizadas por um endereço público contendo o
                         nome e o objetivo da campanha, identificação e contato da empresa e informações dos produtos selecionados. O cliente é
                         responsável por definir o público, revisar o conteúdo e compartilhar esse endereço somente pelos canais e com as pessoas
                         pretendidas. Enquanto a campanha estiver ativa e dentro do período configurado, qualquer pessoa que possua o endereço poderá
                         visualizar o catálogo sem autenticação.
+                    </p>
+                    <p>
+                        A página pública da campanha também pode apresentar preços promocionais, condições de pagamento e quantidade mínima. A
+                        empresa assinante é responsável por revisar a regra, os produtos, o período e as condições antes da divulgação.
                     </p>
                     <p>
                         A empresa também pode compartilhar seu catálogo público permanente, independente de campanha, com identificação e contato da
