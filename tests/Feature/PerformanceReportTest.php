@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Admin\Plan;
+use App\Models\Campaign;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Region;
@@ -35,7 +36,8 @@ function performanceContext(): array
 test('sales and seller reports keep indicators separated and ignore canceled sales', function () {
     ['owner' => $owner, 'seller' => $seller, 'customer' => $customer] = performanceContext();
 
-    Order::create(['user_id' => $seller->id, 'customer_id' => $customer->id, 'order_number' => 1, 'total' => 100, 'commission_amount' => 5, 'status' => '3']);
+    $campaign = Campaign::create(['name' => 'Campanha do relatório', 'scope_type' => 'product', 'audience_type' => 'all', 'status' => true]);
+    Order::create(['user_id' => $seller->id, 'customer_id' => $customer->id, 'campaign_id' => $campaign->id, 'order_number' => 1, 'total' => 100, 'commission_amount' => 5, 'status' => '3']);
     Order::create(['user_id' => $seller->id, 'customer_id' => $customer->id, 'order_number' => 2, 'total' => 80, 'commission_amount' => 4, 'status' => '4']);
     Visit::create(['user_id' => $seller->id, 'customer_id' => $customer->id, 'scheduled_at' => now(), 'status' => 'completed', 'result' => 'sold']);
     Visit::create(['user_id' => $seller->id, 'customer_id' => $customer->id, 'scheduled_at' => now(), 'status' => 'completed', 'result' => 'no_sale']);
@@ -47,7 +49,15 @@ test('sales and seller reports keep indicators separated and ignore canceled sal
             ->where('summary.sales_total', 100)
             ->where('summary.orders_count', 1)
             ->where('summary.canceled_count', 1)
-            ->where('summary.canceled_total', 80));
+            ->where('summary.canceled_total', 80)
+            ->where('salesByCampaign.0.label', 'Campanha do relatório'));
+
+    $this->get(route('app.reports.sellers', ['campaign_id' => $campaign->id]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.campaign_id', $campaign->id)
+            ->where('summary.sales_total', 100)
+            ->where('performance.0.orders_count', 1));
 
     $this->get(route('app.reports.sellers'))
         ->assertOk()
@@ -65,5 +75,9 @@ test('sales and seller reports keep indicators separated and ignore canceled sal
             ->component('app/dashboard/index')
             ->where('summary.sales_total', 100)
             ->where('summary.orders_count', 1)
-            ->where('summary.canceled_count', 1));
+            ->where('summary.canceled_count', 1)
+            ->where('summary.campaign_sales_total', 100)
+            ->where('summary.campaign_orders_count', 1)
+            ->where('summary.campaign_sales_share', 100)
+            ->where('campaignSales.0.campaign.name', 'Campanha do relatório'));
 });

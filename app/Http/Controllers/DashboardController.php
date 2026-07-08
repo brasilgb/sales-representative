@@ -25,6 +25,8 @@ class DashboardController extends Controller
         $validOrders = (clone $ordersQuery)->where('status', '!=', '4');
         $ordersCount = (clone $validOrders)->count();
         $salesTotal = (float) (clone $validOrders)->sum('total');
+        $campaignOrders = (clone $validOrders)->whereNotNull('campaign_id');
+        $campaignSalesTotal = (float) (clone $campaignOrders)->sum('total');
         $topSeller = $this->sellerRanking($validOrders)->first();
 
         return Inertia::render('app/dashboard/index', [
@@ -38,8 +40,18 @@ class DashboardController extends Controller
                 'inactive_customers' => Customer::visibleTo()->whereDoesntHave('orders', fn (Builder $query) => $query->where('created_at', '>=', now()->subDays(60)))->count(),
                 'flex_balance' => (float) (Flex::first()?->value ?? 0),
                 'top_seller' => $topSeller ? ['name' => $topSeller->user?->name ?? 'Sem vendedor', 'total' => (float) $topSeller->total] : null,
+                'campaign_sales_total' => $campaignSalesTotal,
+                'campaign_orders_count' => (clone $campaignOrders)->count(),
+                'campaign_sales_share' => $salesTotal > 0 ? ($campaignSalesTotal / $salesTotal) * 100 : 0,
             ],
-            'recentOrders' => (clone $ordersQuery)->with('customer', 'user:id,name')->latest()->limit(8)->get(),
+            'campaignSales' => (clone $campaignOrders)
+                ->select('campaign_id', DB::raw('count(*) as orders_count'), DB::raw('sum(total) as total'))
+                ->with('campaign:id,name')
+                ->groupBy('campaign_id')
+                ->orderByDesc('total')
+                ->limit(5)
+                ->get(),
+            'recentOrders' => (clone $ordersQuery)->with('customer', 'user:id,name', 'campaign:id,name')->latest()->limit(8)->get(),
             'statusBreakdown' => $this->statusBreakdown($ordersQuery),
         ]);
     }

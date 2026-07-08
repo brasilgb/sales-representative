@@ -15,7 +15,7 @@ export default function SellerReport({ filters, filterOptions, summary, performa
         <Head title="Desempenho dos vendedores" />
         <div className="flex flex-col gap-5 p-4">
             <div className="flex items-center gap-3"><UsersRound className="h-8 w-8" /><div><h1 className="text-2xl font-semibold">Desempenho dos vendedores</h1><p className="text-sm text-muted-foreground">Produção, cobertura da carteira, visitas e conversão por vendedor.</p></div></div>
-            <ReportFilters filters={filters} options={filterOptions} routeName="app.reports.sellers" />
+            <ReportFilters filters={filters} options={filterOptions} routeName="app.reports.sellers" campaigns />
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
                 <Metric icon={<ChartNoAxesCombined />} label="Vendas válidas" value={`R$ ${maskMoney(summary.sales_total)}`} />
                 <Metric icon={<ShoppingCart />} label="Pedidos" value={summary.orders_count} />

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CampaignRequest;
 use App\Models\Campaign;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Region;
 use App\Support\PlanLimits;
@@ -13,9 +14,24 @@ use Inertia\Response;
 
 class CampaignController extends Controller
 {
-    public function index(): RedirectResponse
+    public function index(): Response
     {
-        return redirect()->route('app.intelligence.index');
+        $this->authorizeFeature();
+
+        return Inertia::render('app/campaigns/index', [
+            'campaigns' => Campaign::with(['products:id', 'region:id,name', 'commercialCondition'])
+                ->orderByDesc('status')
+                ->orderByDesc('starts_at')
+                ->get()
+                ->map(fn (Campaign $campaign) => [
+                    ...$campaign->toArray(),
+                    'public_url' => route('campaigns.public', $campaign->public_token),
+                    'sales' => [
+                        'orders_count' => Order::visibleTo()->where('campaign_id', $campaign->id)->where('status', '!=', '4')->count(),
+                        'total' => (float) Order::visibleTo()->where('campaign_id', $campaign->id)->where('status', '!=', '4')->sum('total'),
+                    ],
+                ]),
+        ]);
     }
 
     public function create(): Response

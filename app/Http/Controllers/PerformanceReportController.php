@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Region;
@@ -45,13 +46,18 @@ class PerformanceReportController extends Controller
                 ->whereIn('orders.id', $orderIds)
                 ->select(DB::raw("coalesce(regions.name, 'Sem região') as label"), DB::raw('count(*) as orders_count'), DB::raw('sum(orders.total) as total'))
                 ->groupBy('label')->orderByDesc('total')->get(),
+            'salesByCampaign' => DB::table('orders')
+                ->leftJoin('campaigns', 'campaigns.id', '=', 'orders.campaign_id')
+                ->whereIn('orders.id', $orderIds)
+                ->select(DB::raw("coalesce(campaigns.name, 'Sem campanha') as label"), DB::raw('count(*) as orders_count'), DB::raw('sum(orders.total) as total'))
+                ->groupBy('label')->orderByDesc('total')->get(),
             'topProducts' => DB::table('order_items')
                 ->join('products', 'products.id', '=', 'order_items.product_id')
                 ->whereIn('order_items.order_id', $orderIds)
                 ->select('products.id', 'products.name', 'products.category', 'products.brand', DB::raw('sum(order_items.quantity) as quantity'), DB::raw('sum(order_items.total) as total'))
                 ->groupBy('products.id', 'products.name', 'products.category', 'products.brand')
                 ->orderByDesc('total')->limit(12)->get(),
-            'orders' => (clone $allOrders)->with('customer.region', 'user:id,name')->latest()->paginate(20)->withQueryString(),
+            'orders' => (clone $allOrders)->with('customer.region', 'user:id,name', 'campaign:id,name')->latest()->paginate(20)->withQueryString(),
         ]);
     }
 
@@ -116,6 +122,7 @@ class PerformanceReportController extends Controller
             'user_id' => auth()->user()->canManageTeam() ? ($request->integer('user_id') ?: null) : auth()->id(),
             'region_id' => $request->integer('region_id') ?: null,
             'category' => $request->get('category') ?: null,
+            'campaign_id' => $request->integer('campaign_id') ?: null,
         ];
     }
 
@@ -125,7 +132,8 @@ class PerformanceReportController extends Controller
             ->whereBetween('created_at', [Carbon::parse($filters['start_date'])->startOfDay(), Carbon::parse($filters['end_date'])->endOfDay()])
             ->when($filters['user_id'], fn (Builder $query) => $query->where('user_id', $filters['user_id']))
             ->when($filters['region_id'], fn (Builder $query) => $query->whereHas('customer', fn (Builder $query) => $query->where('region_id', $filters['region_id'])))
-            ->when($filters['category'], fn (Builder $query) => $query->whereHas('orderItems.product', fn (Builder $query) => $query->where('category', $filters['category'])));
+            ->when($filters['category'], fn (Builder $query) => $query->whereHas('orderItems.product', fn (Builder $query) => $query->where('category', $filters['category'])))
+            ->when($filters['campaign_id'], fn (Builder $query) => $query->where('campaign_id', $filters['campaign_id']));
     }
 
     private function filterOptions(): array
@@ -138,6 +146,7 @@ class PerformanceReportController extends Controller
                 ? Region::where('status', true)->orderBy('name')->get(['id', 'name'])
                 : auth()->user()->regions()->where('status', true)->orderBy('name')->get(['regions.id', 'regions.name']),
             'categories' => Product::whereNotNull('category')->distinct()->orderBy('category')->pluck('category')->values(),
+            'campaigns' => Campaign::orderBy('name')->get(['id', 'name']),
         ];
     }
 }

@@ -13,12 +13,12 @@ import { ReportFilters } from './report-filters';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: route('app.dashboard') }, { title: 'Relatórios de vendas', href: route('app.reports.sales') }];
 
-export default function SalesReport({ filters, filterOptions, summary, statusBreakdown, salesByRegion, topProducts, orders }: any) {
+export default function SalesReport({ filters, filterOptions, summary, statusBreakdown, salesByRegion, salesByCampaign, topProducts, orders }: any) {
     return <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Relatórios de vendas" />
         <div className="flex flex-col gap-5 p-4">
             <PageTitle icon={<ChartNoAxesCombined className="h-8 w-8" />} title="Relatórios de vendas" description="Resultados comerciais, produtos e distribuição das vendas no período." />
-            <ReportFilters filters={filters} options={filterOptions} routeName="app.reports.sales" categories />
+            <ReportFilters filters={filters} options={filterOptions} routeName="app.reports.sales" categories campaigns />
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 <Metric icon={<CircleDollarSign />} label="Vendas válidas" value={`R$ ${maskMoney(summary.sales_total)}`} helper="Cancelamentos excluídos" />
                 <Metric icon={<ShoppingCart />} label="Pedidos válidos" value={summary.orders_count} helper="Pedidos não cancelados" />
@@ -26,12 +26,13 @@ export default function SalesReport({ filters, filterOptions, summary, statusBre
                 <Metric icon={<Store />} label="Clientes atendidos" value={summary.customers_count} helper="Clientes únicos no período" />
                 <Metric icon={<Ban />} label="Cancelamentos" value={summary.canceled_count} helper={`R$ ${maskMoney(summary.canceled_total)}`} danger />
             </div>
-            <div className="grid gap-4 xl:grid-cols-3">
+            <div className="grid gap-4 xl:grid-cols-4">
                 <SummaryList title="Pedidos por situação" rows={statusBreakdown.map((row: any) => ({ label: statusOrderByValue(row.status), count: row.orders_count, total: row.total }))} />
                 <SummaryList title="Vendas por região" rows={salesByRegion.map((row: any) => ({ label: row.label, count: row.orders_count, total: row.total }))} />
+                <SummaryList title="Vendas por campanha" rows={salesByCampaign.map((row: any) => ({ label: row.label, count: row.orders_count, total: row.total }))} />
                 <Card><CardHeader><CardTitle className="text-base">Produtos com maior faturamento</CardTitle></CardHeader><CardContent className="space-y-2">{topProducts.length ? topProducts.slice(0, 6).map((product: any, index: number) => <div key={product.id} className="flex items-center justify-between gap-3 rounded-lg border p-3"><div className="min-w-0"><div className="truncate font-medium">{index + 1}. {product.name}</div><div className="text-xs text-muted-foreground">{product.quantity} unidade(s)</div></div><strong className="whitespace-nowrap">R$ {maskMoney(product.total)}</strong></div>) : <Empty />}</CardContent></Card>
             </div>
-            <Card><CardHeader><CardTitle className="text-base">Pedidos do período</CardTitle></CardHeader><CardContent className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Pedido</TableHead><TableHead>Data</TableHead><TableHead>Cliente</TableHead><TableHead>Vendedor</TableHead><TableHead>Região</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader><TableBody>{orders.data.length ? orders.data.map((order: any) => <TableRow key={order.id}><TableCell className="font-medium">#{order.order_number}</TableCell><TableCell>{moment(order.created_at).format('DD/MM/YYYY')}</TableCell><TableCell>{order.customer?.name ?? '-'}</TableCell><TableCell>{order.user?.name ?? '-'}</TableCell><TableCell>{order.customer?.region?.name ?? '-'}</TableCell><TableCell><Badge variant={String(order.status) === '4' ? 'destructive' : 'secondary'}>{statusOrderByValue(order.status)}</Badge></TableCell><TableCell className="text-right font-medium">R$ {maskMoney(order.total)}</TableCell></TableRow>) : <TableRow><TableCell colSpan={7} className="h-20 text-center"><Empty /></TableCell></TableRow>}</TableBody></Table><AppPagination data={orders} /></CardContent></Card>
+            <Card><CardHeader><CardTitle className="text-base">Pedidos do período</CardTitle></CardHeader><CardContent className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Pedido</TableHead><TableHead>Data</TableHead><TableHead>Cliente</TableHead><TableHead>Vendedor</TableHead><TableHead>Região</TableHead><TableHead>Campanha</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader><TableBody>{orders.data.length ? orders.data.map((order: any) => <TableRow key={order.id}><TableCell className="font-medium">#{order.order_number}</TableCell><TableCell>{moment(order.created_at).format('DD/MM/YYYY')}</TableCell><TableCell>{order.customer?.name ?? '-'}</TableCell><TableCell>{order.user?.name ?? '-'}</TableCell><TableCell>{order.customer?.region?.name ?? '-'}</TableCell><TableCell>{order.campaign?.name ?? '-'}</TableCell><TableCell><Badge variant={String(order.status) === '4' ? 'destructive' : 'secondary'}>{statusOrderByValue(order.status)}</Badge></TableCell><TableCell className="text-right font-medium">R$ {maskMoney(order.total)}</TableCell></TableRow>) : <TableRow><TableCell colSpan={8} className="h-20 text-center"><Empty /></TableCell></TableRow>}</TableBody></Table><AppPagination data={orders} /></CardContent></Card>
         </div>
     </AppLayout>;
 }

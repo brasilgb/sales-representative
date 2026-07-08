@@ -10,11 +10,13 @@ import {
     BrainCircuit,
     CalendarDays,
     CogIcon,
+    HandCoins,
     ReceiptText,
     LayoutGrid,
     ListChecks,
     MapPinned,
     MessageSquareMore,
+    Megaphone,
     ShoppingCartIcon,
     UserIcon,
     UsersIcon,
@@ -81,7 +83,19 @@ const appNavItems: NavItem[] = [
         title: 'Inteligência',
         href: route('app.intelligence.index'),
         icon: BrainCircuit,
-        active: 'app.intelligence.*|app.campaigns.*',
+        active: 'app.intelligence.*',
+    },
+    {
+        title: 'Campanhas',
+        href: route('app.campaigns.index'),
+        icon: Megaphone,
+        active: 'app.campaigns.*',
+    },
+    {
+        title: 'Regras comerciais',
+        href: route('app.commercial-conditions.index'),
+        icon: HandCoins,
+        active: 'app.commercial-conditions.*',
     },
 ];
 
@@ -106,6 +120,8 @@ export function AppSidebar() {
     const featureByTitle: Record<string, string> = {
         Comissões: 'commissions',
         Inteligência: 'intelligence',
+        Campanhas: 'campaigns',
+        'Regras comerciais': 'commercial_conditions',
     };
     const visibleNavItems = appNavItems.filter((item) => {
         if (item.title === 'Equipe' && !auth.canManageSellers) {
@@ -113,6 +129,10 @@ export function AppSidebar() {
         }
 
         if (item.title === 'Regiões' && !auth.canManageTeam) {
+            return false;
+        }
+
+        if (item.title === 'Regras comerciais' && !auth.canManageTeam) {
             return false;
         }
 
@@ -130,8 +150,7 @@ export function AppSidebar() {
                     (canEditOwnUser && route().current('app.users.*')) ||
                     route().current('app.other-settings.*') ||
                     route().current('app.auxiliary-apps.*') ||
-                    route().current('app.subscription.*') ||
-                    route().current('app.commercial-conditions.*'),
+                    route().current('app.subscription.*'),
             ),
             items: [
                 ...(canEditOwnUser
@@ -148,15 +167,6 @@ export function AppSidebar() {
                     url: route('app.company.index'),
                     active: 'app.company.*',
                 },
-                ...(auth.canManageTeam && auth.planFeatures?.includes('commercial_conditions')
-                    ? [
-                          {
-                              title: 'Regras comerciais',
-                              url: route('app.commercial-conditions.index'),
-                              active: 'app.commercial-conditions.*',
-                          },
-                      ]
-                    : []),
                 {
                     title: 'Aplicativos auxiliares',
                     url: route('app.auxiliary-apps.index'),
