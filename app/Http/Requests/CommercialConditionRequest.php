@@ -20,9 +20,10 @@ class CommercialConditionRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'scope_type' => ['required', Rule::in(['global', 'customer', 'region', 'establishment_type'])],
+            'scope_type' => ['required', Rule::in(['global', 'customer', 'region', 'establishment_type', 'campaign'])],
             'customer_id' => ['nullable', Rule::requiredIf($this->input('scope_type') === 'customer'), Rule::exists('customers', 'id')->where('tenant_id', $tenantId)],
             'region_id' => ['nullable', Rule::requiredIf($this->input('scope_type') === 'region'), Rule::exists('regions', 'id')->where('tenant_id', $tenantId)],
+            'campaign_id' => ['nullable', Rule::requiredIf($this->input('scope_type') === 'campaign'), Rule::exists('campaigns', 'id')->where('tenant_id', $tenantId)],
             'establishment_type' => ['nullable', Rule::requiredIf($this->input('scope_type') === 'establishment_type'), 'string', 'max:50'],
             'price_adjustment_percentage' => ['required', 'numeric', 'between:-100,999'],
             'max_discount_percentage' => ['required', 'numeric', 'between:0,100'],
@@ -47,6 +48,7 @@ class CommercialConditionRequest extends FormRequest
                 match ($scopeType) {
                     'customer' => $query->where('customer_id', $this->integer('customer_id')),
                     'region' => $query->where('region_id', $this->integer('region_id')),
+                    'campaign' => $query->where('campaign_id', $this->integer('campaign_id')),
                     'establishment_type' => $query->where('establishment_type', $this->string('establishment_type')->value()),
                     default => null,
                 };

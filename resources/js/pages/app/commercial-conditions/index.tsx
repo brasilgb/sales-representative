@@ -20,6 +20,7 @@ const scopeLabels: Record<string, string> = {
     customer: 'Cliente',
     region: 'Região',
     establishment_type: 'Tipo de cliente',
+    campaign: 'Campanha',
 };
 
 export default function CommercialConditions({ conditions }: any) {
@@ -79,6 +80,7 @@ export default function CommercialConditions({ conditions }: any) {
                                                     {scopeLabels[condition.scope_type] ?? condition.scope_type}
                                                     {condition.customer ? ` | ${condition.customer.name}` : ''}
                                                     {condition.region ? ` | ${condition.region.name}` : ''}
+                                                    {condition.campaign ? ` | ${condition.campaign.name}` : ''}
                                                     {condition.establishment_type ? ` | ${condition.establishment_type}` : ''}
                                                 </div>
                                             </div>

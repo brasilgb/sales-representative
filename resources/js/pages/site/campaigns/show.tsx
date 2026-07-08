@@ -48,6 +48,15 @@ export default function CampaignCatalog({ campaign }: any) {
                     <div className="text-sm font-bold tracking-wider text-cyan-700 uppercase">Nossa recomendação</div>
                     <h2 className="mt-1 text-2xl font-black md:text-3xl">Confira os produtos escolhidos para você</h2>
                     <p className="mt-2 text-slate-600">Fale com nossa equipe para consultar condições e disponibilidade.</p>
+                    {campaign.commercial_rule && (
+                        <div className="mt-4 inline-flex flex-wrap gap-x-4 gap-y-1 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200">
+                            <span>{campaign.commercial_rule.name}</span>
+                            {Number(campaign.commercial_rule.minimum_order_amount) > 0 && (
+                                <span>Pedido mínimo: {Number(campaign.commercial_rule.minimum_order_amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                            )}
+                            {campaign.commercial_rule.payment_terms && <span>Pagamento: {campaign.commercial_rule.payment_terms}</span>}
+                        </div>
+                    )}
                 </div>
 
                 {products.length ? (
@@ -68,8 +77,15 @@ export default function CampaignCatalog({ campaign }: any) {
                                     {product.reference && <div className="text-xs font-bold tracking-wide text-cyan-700 uppercase">Ref. {product.reference}</div>}
                                     <h3 className="mt-2 text-lg font-bold">{product.name}</h3>
                                     {product.description && <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{product.description}</p>}
-                                    <div className="mt-5 text-2xl font-black text-emerald-700">
-                                        {Number(product.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                    <div className="mt-5">
+                                        {product.campaign_price != null && Number(product.campaign_price) !== Number(product.price) && (
+                                            <div className="text-sm text-slate-500 line-through">
+                                                {Number(product.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                            </div>
+                                        )}
+                                        <div className="text-2xl font-black text-emerald-700">
+                                            {Number(product.campaign_price ?? product.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                        </div>
                                     </div>
                                 </div>
                             </article>

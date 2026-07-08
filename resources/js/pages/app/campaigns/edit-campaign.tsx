@@ -112,7 +112,7 @@ export default function EditCampaign({ campaign, products, regions, brands, cate
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="audience_type">Para quem</Label>
-                                <select id="audience_type" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm" value={data.audience_type} onChange={(event) => setData('audience_type', event.target.value)}>
+                                <select id="audience_type" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm" value={data.audience_type} onChange={(event) => setData((current) => ({ ...current, audience_type: event.target.value, region_id: '' }))}>
                                     {audienceTypes.map((audience) => <option key={audience.value} value={audience.value}>{audience.label}</option>)}
                                 </select>
                                 {errors.audience_type && <div className="text-sm text-red-500">{errors.audience_type}</div>}

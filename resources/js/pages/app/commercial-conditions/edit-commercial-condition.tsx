@@ -18,14 +18,16 @@ const scopeTypes = [
     { value: 'customer', label: 'Cliente' },
     { value: 'region', label: 'Região' },
     { value: 'establishment_type', label: 'Tipo de cliente' },
+    { value: 'campaign', label: 'Campanha' },
 ];
 
-export default function EditCommercialCondition({ condition, customers, regions, establishmentTypes }: any) {
+export default function EditCommercialCondition({ condition, customers, regions, campaigns, establishmentTypes }: any) {
     const { data, setData, patch, processing, errors } = useForm({
         name: condition.name ?? '',
         scope_type: condition.scope_type ?? 'global',
         customer_id: condition.customer_id ?? '',
         region_id: condition.region_id ?? '',
+        campaign_id: condition.campaign_id ?? '',
         establishment_type: condition.establishment_type ?? '',
         price_adjustment_percentage: condition.price_adjustment_percentage ?? '0',
         max_discount_percentage: condition.max_discount_percentage ?? '0',
@@ -127,6 +129,27 @@ export default function EditCommercialCondition({ condition, customers, regions,
                                     ))}
                                 </select>
                                 {errors.region_id && <div className="text-sm text-red-500">{errors.region_id}</div>}
+                            </div>
+                        )}
+
+                        {data.scope_type === 'campaign' && (
+                            <div className="grid gap-2">
+                                <Label htmlFor="campaign_id">Campanha</Label>
+                                <select
+                                    id="campaign_id"
+                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
+                                    value={data.campaign_id}
+                                    onChange={(event) => setData('campaign_id', event.target.value)}
+                                >
+                                    <option value="">Selecione</option>
+                                    {campaigns.map((campaign: any) => (
+                                        <option key={campaign.id} value={campaign.id}>
+                                            {campaign.name}{campaign.status ? '' : ' (inativa)'}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.campaign_id && <div className="text-sm text-red-500">{errors.campaign_id}</div>}
+                                <div className="text-xs text-muted-foreground">Esta regra será aplicada somente aos preços exibidos nesta campanha.</div>
                             </div>
                         )}
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CommercialConditionRequest;
+use App\Models\Campaign;
 use App\Models\CommercialCondition;
 use App\Models\Customer;
 use App\Models\Order;
@@ -25,7 +26,7 @@ class CommercialConditionController extends Controller
         $this->authorizeFeature('commercial_conditions');
 
         $search = $request->get('q');
-        $conditions = CommercialCondition::with('customer', 'region')
+        $conditions = CommercialCondition::with('customer', 'region', 'campaign:id,name')
             ->when($search, fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
             ->orderBy('name')
             ->paginate(12);
@@ -237,6 +238,7 @@ class CommercialConditionController extends Controller
         return [
             'customers' => Customer::visibleTo()->orderBy('name')->get(['id', 'name']),
             'regions' => Region::where('status', true)->orderBy('name')->get(['id', 'name']),
+            'campaigns' => Campaign::orderByDesc('status')->orderBy('name')->get(['id', 'name', 'status']),
             'establishmentTypes' => [
                 ['value' => 'petshop', 'label' => 'Petshop'],
                 ['value' => 'clinica_veterinaria', 'label' => 'Clínica veterinária'],
@@ -258,6 +260,10 @@ class CommercialConditionController extends Controller
 
         if ($data['scope_type'] !== 'region') {
             $data['region_id'] = null;
+        }
+
+        if ($data['scope_type'] !== 'campaign') {
+            $data['campaign_id'] = null;
         }
 
         if ($data['scope_type'] !== 'establishment_type') {

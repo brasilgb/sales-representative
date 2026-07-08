@@ -112,9 +112,29 @@ class CampaignController extends Controller
 
     public function publicCatalog(string $token): Response
     {
-        $campaign = Campaign::withoutGlobalScopes()->where('public_token', $token)->where('status', true)->with(['products' => fn ($query) => $query->where('enabled', true), 'tenant'])->firstOrFail();
+        $campaign = Campaign::withoutGlobalScopes()->where('public_token', $token)->where('status', true)->with([
+            'products' => fn ($query) => $query->where('enabled', true),
+            'tenant',
+            'commercialCondition',
+        ])->firstOrFail();
         abort_if($campaign->starts_at && $campaign->starts_at->isFuture(), 404);
         abort_if($campaign->ends_at && $campaign->ends_at->isPast(), 404);
+
+        $commercialCondition = $campaign->commercialCondition;
+
+        if ($commercialCondition?->status) {
+            $campaign->products->each(function (Product $product) use ($commercialCondition) {
+                $product->setAttribute('campaign_price', $commercialCondition->adjustedPrice((float) $product->price));
+            });
+
+            $campaign->setAttribute('commercial_rule', [
+                'name' => $commercialCondition->name,
+                'minimum_order_amount' => $commercialCondition->minimum_order_amount,
+                'payment_terms' => $commercialCondition->payment_terms,
+            ]);
+        }
+
+        $campaign->unsetRelation('commercialCondition');
 
         return Inertia::render('site/campaigns/show', ['campaign' => $campaign]);
     }

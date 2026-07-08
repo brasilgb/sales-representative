@@ -16,6 +16,7 @@ class CommercialCondition extends Model
         'scope_type',
         'customer_id',
         'region_id',
+        'campaign_id',
         'establishment_type',
         'price_adjustment_percentage',
         'max_discount_percentage',
@@ -44,6 +45,11 @@ class CommercialCondition extends Model
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class);
+    }
+
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(Campaign::class);
     }
 
     public function scopeActive(Builder $query): Builder

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Campaign extends Model
@@ -55,6 +56,11 @@ class Campaign extends Model
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class);
+    }
+
+    public function commercialCondition(): HasOne
+    {
+        return $this->hasOne(CommercialCondition::class)->where('scope_type', 'campaign')->where('status', true);
     }
 
     public function scopeActive(Builder $query): Builder
