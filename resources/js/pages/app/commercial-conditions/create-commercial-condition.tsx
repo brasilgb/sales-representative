@@ -182,9 +182,13 @@ export default function CreateCommercialCondition({ customers, regions, campaign
                                     id="price_adjustment_percentage"
                                     type="number"
                                     step="0.01"
+                                    min="-100"
+                                    max="999"
                                     value={data.price_adjustment_percentage}
                                     onChange={(event) => setData('price_adjustment_percentage', event.target.value)}
                                 />
+                                <div className="text-xs text-muted-foreground">Use valor negativo para desconto. Ex.: -10 reduz o preço em 10%.</div>
+                                {errors.price_adjustment_percentage && <div className="text-sm text-red-500">{errors.price_adjustment_percentage}</div>}
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="max_discount_percentage">Desconto máximo (%)</Label>
@@ -196,6 +200,8 @@ export default function CreateCommercialCondition({ customers, regions, campaign
                                     value={data.max_discount_percentage}
                                     onChange={(event) => setData('max_discount_percentage', event.target.value)}
                                 />
+                                <div className="text-xs text-muted-foreground">Limite para descontos adicionais no pedido; este campo não aceita valor negativo.</div>
+                                {errors.max_discount_percentage && <div className="text-sm text-red-500">{errors.max_discount_percentage}</div>}
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="minimum_order_amount">Pedido mínimo</Label>
