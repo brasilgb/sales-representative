@@ -75,7 +75,7 @@ function unMask(value: string) {
 
 function maskMoney(value: string | number | null | undefined) {
     if (value !== null && value !== undefined && value !== '') {
-        var valorAlterado = typeof value === 'number' ? value.toFixed(2) : String(value);
+        let valorAlterado = typeof value === 'number' ? value.toFixed(2) : String(value);
         valorAlterado = valorAlterado.replace(/\D/g, ""); // Remove todos os não dígitos
         valorAlterado = valorAlterado.replace(/(\d+)(\d{2})$/, "$1,$2"); // Adiciona a parte de centavos
         valorAlterado = valorAlterado.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Adiciona pontos a cada três dígitos
@@ -86,7 +86,7 @@ function maskMoney(value: string | number | null | undefined) {
 
 function maskMoneyDot(value: string) {
     if (value) {
-        var valorAlterado = value;
+        let valorAlterado = value;
         valorAlterado = valorAlterado.replace(/\D/g, ""); // Remove todos os não dígitos
         valorAlterado = valorAlterado.replace(/(\d+)(\d{2})$/, "$1.$2"); // Adiciona a parte de centavos
         valorAlterado = valorAlterado;

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Campaign;
 use App\Models\CommercialCondition;
 use App\Models\Customer;
 use App\Models\Flex;
@@ -67,6 +68,7 @@ class ApiOrderController extends Controller
         });
         $validatedData = $request->validate([
             'customer_id' => ['required', $customerRule],
+            'campaign_id' => ['nullable', Rule::exists('campaigns', 'id')->where('tenant_id', $tenantId)],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => [
                 'required',
@@ -85,7 +87,13 @@ class ApiOrderController extends Controller
 
         try {
             $customer = Customer::visibleTo()->findOrFail($validatedData['customer_id']);
-            $commercialCondition = CommercialCondition::resolveForCustomer($customer);
+            $campaign = isset($validatedData['campaign_id'])
+                ? Campaign::active()->with(['products:id', 'commercialCondition'])->findOrFail($validatedData['campaign_id'])
+                : null;
+            abort_if($campaign?->audience_type === 'region' && $campaign->region_id !== $customer->region_id, 422, 'A campanha não é válida para a região deste cliente.');
+            $customerCondition = CommercialCondition::resolveForCustomer($customer);
+            $commercialCondition = $campaign?->commercialCondition ?? $customerCondition;
+            $campaignProductIds = $campaign?->products->modelKeys() ?? [];
 
             DB::beginTransaction();
 
@@ -101,8 +109,11 @@ class ApiOrderController extends Controller
                     throw new \Exception('Estoque insuficiente para o produto: '.$product->name);
                 }
 
-                $price = $commercialCondition
-                    ? $commercialCondition->adjustedPrice((float) $product->price)
+                $itemCondition = $campaign && in_array($product->id, $campaignProductIds, true)
+                    ? $campaign->commercialCondition
+                    : $customerCondition;
+                $price = $itemCondition
+                    ? $itemCondition->adjustedPrice((float) $product->price)
                     : (float) $product->price;
                 $itemTotal = round($price * (int) $item['quantity'], 2);
                 $subtotal += $itemTotal;
@@ -154,6 +165,7 @@ class ApiOrderController extends Controller
             $order = Order::create([
                 'customer_id' => $validatedData['customer_id'],
                 'commercial_condition_id' => $commercialCondition?->id,
+                'campaign_id' => $campaign?->id,
                 'order_number' => Order::exists() ? Order::latest()->first()->order_number + 1 : 1,
                 'flex' => $flexAmount,
                 'discount' => $discountAmount,

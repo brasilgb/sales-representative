@@ -16,6 +16,7 @@ class Order extends Model
         'user_id',
         'customer_id',
         'commercial_condition_id',
+        'campaign_id',
         'order_number',
         'flex',
         'discount',
@@ -30,7 +31,10 @@ class Order extends Model
         'next_delivery_at',
     ];
 
-    protected function casts(): array { return ['is_recurring' => 'boolean', 'next_delivery_at' => 'date']; }
+    protected function casts(): array
+    {
+        return ['is_recurring' => 'boolean', 'next_delivery_at' => 'date'];
+    }
 
     protected static function booted(): void
     {
@@ -59,6 +63,11 @@ class Order extends Model
     public function commercialCondition(): BelongsTo
     {
         return $this->belongsTo(CommercialCondition::class);
+    }
+
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(Campaign::class);
     }
 
     public function scopeVisibleTo(Builder $query, ?User $user = null): Builder

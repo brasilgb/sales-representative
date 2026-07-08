@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Campaign;
 use App\Models\CommercialCondition;
 use App\Models\Customer;
 use App\Models\Order;
@@ -28,7 +29,15 @@ final class OrderUpdateService
             FlexBalance::reverse((float) $order->flex, (float) $order->discount);
 
             $customer = Customer::visibleTo()->findOrFail($data['customer_id']);
-            $condition = CommercialCondition::resolveForCustomer($customer);
+            $campaign = $order->campaign_id
+                ? Campaign::with(['products:id', 'commercialCondition'])->find($order->campaign_id)
+                : null;
+            if ($campaign?->audience_type === 'region' && $campaign->region_id !== $customer->region_id) {
+                throw new RuntimeException('A campanha não é válida para a região deste cliente.');
+            }
+            $customerCondition = CommercialCondition::resolveForCustomer($customer);
+            $condition = $campaign?->commercialCondition ?? $customerCondition;
+            $campaignProductIds = $campaign?->products->modelKeys() ?? [];
             $subtotal = 0;
             $items = [];
 
@@ -40,7 +49,10 @@ final class OrderUpdateService
                     throw new RuntimeException('Estoque insuficiente para o produto: '.$product->name);
                 }
 
-                $price = $condition ? $condition->adjustedPrice((float) $product->price) : (float) $product->price;
+                $itemCondition = $campaign && in_array($product->id, $campaignProductIds, true)
+                    ? $campaign->commercialCondition
+                    : $customerCondition;
+                $price = $itemCondition ? $itemCondition->adjustedPrice((float) $product->price) : (float) $product->price;
                 $itemTotal = round($price * $quantity, 2);
                 $subtotal += $itemTotal;
                 $items[] = ['product_id' => $product->id, 'quantity' => $quantity, 'price' => $price, 'name' => $product->name, 'total' => $itemTotal];

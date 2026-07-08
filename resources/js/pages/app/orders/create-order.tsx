@@ -47,7 +47,7 @@ type OrderItem = {
     total: string;
 };
 
-export default function CreateOrder({ customers, products, flex, selectedCustomerId }: any) {
+export default function CreateOrder({ customers, products, campaigns, flex, selectedCustomerId }: any) {
     const initialCustomer = customers.find((customer: any) => customer.id === selectedCustomerId) ?? null;
     const [selectedCustomer, setSelectedCustomer] = useState<any | null>(initialCustomer);
     const [items, setItems] = useState<OrderItem[]>([]);
@@ -68,6 +68,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
 
     const { data, setData, post, processing, errors } = useForm({
         customer_id: initialCustomer?.id ?? '',
+        campaign_id: '',
         flex: '',
         discount: '',
         adjusted_total: '',
@@ -78,7 +79,11 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
         is_recurring: false as boolean,
     });
 
-    const selectedCondition = selectedCustomer?.commercial_condition ?? null;
+    const availableCampaigns = campaigns.filter(
+        (campaign: any) => campaign.audience_type === 'all' || Number(campaign.region_id) === Number(selectedCustomer?.region_id),
+    );
+    const selectedCampaign = availableCampaigns.find((campaign: any) => String(campaign.id) === String(data.campaign_id)) ?? null;
+    const selectedCondition = selectedCampaign?.commercial_condition ?? selectedCustomer?.commercial_condition ?? null;
     const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.quantity * Number(item.price), 0), [items]);
     const adjustedTotal = data.adjusted_total_was_edited ? Number(data.adjusted_total || 0) : subtotal;
     const manualDiscount = Number(data.discount || 0);
@@ -97,7 +102,9 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
     const pricedProducts = useMemo(
         () =>
             products.map((product: any) => {
-                const adjustment = Number(selectedCondition?.price_adjustment_percentage ?? 0);
+                const isCampaignProduct = selectedCampaign?.products?.some((campaignProduct: any) => campaignProduct.id === product.id);
+                const priceCondition = isCampaignProduct ? selectedCampaign?.commercial_condition : selectedCustomer?.commercial_condition;
+                const adjustment = Number(priceCondition?.price_adjustment_percentage ?? 0);
                 const price = Number(product.price) * (1 + adjustment / 100);
 
                 return {
@@ -106,7 +113,7 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                     base_price: product.price,
                 };
             }),
-        [products, selectedCondition],
+        [products, selectedCampaign, selectedCustomer],
     );
 
     useEffect(() => {
@@ -168,9 +175,22 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
         setData((currentData: any) => ({
             ...currentData,
             customer_id: customer?.id ?? '',
+            campaign_id: '',
             items: [],
             total: '',
             payment_condition: customer?.commercial_condition?.payment_terms ?? '',
+        }));
+    };
+
+    const changeCampaign = (campaignId: string) => {
+        const campaign = availableCampaigns.find((item: any) => String(item.id) === campaignId);
+
+        setItems([]);
+        setData((currentData: any) => ({
+            ...currentData,
+            campaign_id: campaignId,
+            items: [],
+            payment_condition: campaign?.commercial_condition?.payment_terms ?? selectedCustomer?.commercial_condition?.payment_terms ?? '',
         }));
     };
 
@@ -249,6 +269,25 @@ export default function CreateOrder({ customers, products, flex, selectedCustome
                                 }}
                             />
                             <InputError className="mt-2" message={errors.customer_id} />
+
+                            {selectedCustomer && availableCampaigns.length > 0 && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="campaign_id">Campanha</Label>
+                                    <select
+                                        id="campaign_id"
+                                        className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                                        value={data.campaign_id}
+                                        onChange={(event) => changeCampaign(event.target.value)}
+                                    >
+                                        <option value="">Sem campanha</option>
+                                        {availableCampaigns.map((campaign: any) => (
+                                            <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
+                                        ))}
+                                    </select>
+                                    <InputError message={errors.campaign_id} />
+                                    {selectedCampaign && <div className="text-xs text-muted-foreground">Os produtos da campanha usarão seus valores promocionais.</div>}
+                                </div>
+                            )}
 
                             {selectedCustomer && (
                                 <div className="grid gap-3 rounded-md border p-3 text-sm md:grid-cols-4">

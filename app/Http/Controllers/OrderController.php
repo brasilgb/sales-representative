@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Campaign;
 use App\Models\CommercialCondition;
 use App\Models\Customer;
 use App\Models\Flex;
@@ -65,6 +66,10 @@ class OrderController extends Controller
             'customers' => $customers,
             'flex' => $flex,
             'selectedCustomerId' => $selectedCustomerId,
+            'campaigns' => Campaign::active()
+                ->with(['products:id', 'commercialCondition'])
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
@@ -85,6 +90,7 @@ class OrderController extends Controller
         });
         $validatedData = $request->validate([
             'customer_id' => ['required', $customerRule],
+            'campaign_id' => ['nullable', Rule::exists('campaigns', 'id')->where('tenant_id', $tenantId)],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => [
                 'required',
@@ -104,14 +110,23 @@ class OrderController extends Controller
 
         try {
             $customer = Customer::visibleTo()->findOrFail($validatedData['customer_id']);
-            $commercialCondition = CommercialCondition::resolveForCustomer($customer);
+            $campaign = isset($validatedData['campaign_id'])
+                ? Campaign::active()->with(['products:id', 'commercialCondition'])->findOrFail($validatedData['campaign_id'])
+                : null;
+            abort_if($campaign?->audience_type === 'region' && $campaign->region_id !== $customer->region_id, 422, 'A campanha não é válida para a região deste cliente.');
+            $customerCondition = CommercialCondition::resolveForCustomer($customer);
+            $commercialCondition = $campaign?->commercialCondition ?? $customerCondition;
+            $campaignProductIds = $campaign?->products->modelKeys() ?? [];
 
             DB::beginTransaction();
 
             $subtotal = 0;
             foreach ($validatedData['items'] as $item) {
                 $product = Product::findOrFail($item['product_id']);
-                $expectedPrice = $commercialCondition ? $commercialCondition->adjustedPrice((float) $product->price) : (float) $product->price;
+                $itemCondition = $campaign && in_array($product->id, $campaignProductIds, true)
+                    ? $campaign->commercialCondition
+                    : $customerCondition;
+                $expectedPrice = $itemCondition ? $itemCondition->adjustedPrice((float) $product->price) : (float) $product->price;
 
                 if (abs((float) $item['price'] - $expectedPrice) > 0.01) {
                     throw new \Exception('Preço divergente da condição comercial para o produto: '.$product->name);
@@ -154,6 +169,7 @@ class OrderController extends Controller
             $order = Order::create([
                 'customer_id' => $validatedData['customer_id'],
                 'commercial_condition_id' => $commercialCondition?->id,
+                'campaign_id' => $campaign?->id,
                 'order_number' => Order::exists() ? Order::latest()->first()->order_number + 1 : 1,
                 'flex' => $flexAmount,
                 'discount' => $discountAmount,

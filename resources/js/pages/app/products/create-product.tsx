@@ -93,7 +93,7 @@ export default function CreateProduct() {
 
     const referenceDataSelected = async (e: any) => {
         e.preventDefault();
-        let valueReference = e.target.value;
+        const valueReference = e.target.value;
 
         try {
             const getPartsForPartNumber = await apisales.get(`/getproducts/${valueReference}`);

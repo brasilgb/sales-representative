@@ -39,7 +39,7 @@ class ApiHomeController extends Controller
                         });
                 });
             })
-            ->with('region:id,name')
+            ->with(['region:id,name', 'products:id', 'commercialCondition'])
             ->withCount('products')
             ->orderBy('ends_at')
             ->get()

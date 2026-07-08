@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Admin\Plan;
+use App\Models\Campaign;
 use App\Models\CommercialCondition;
 use App\Models\Customer;
 use App\Models\Flex;
@@ -96,6 +97,59 @@ test('android order uses server commercial price without flex for any quantity',
         ->and((float) $order->orderItems()->firstOrFail()->price)->toBe(120.0)
         ->and($product->fresh()->quantity)->toBe(20 - $quantity);
 })->with([1, 5, 10]);
+
+test('order selected from a campaign uses its price and records the campaign', function () {
+    $tenant = mvpTenant('solo', 'campaign-order');
+    $owner = mvpUser($tenant, User::ROLE_OWNER, 'campaign-order');
+    Sanctum::actingAs($owner);
+
+    $customer = Customer::create([
+        'name' => 'Cliente da campanha',
+        'cnpj' => '93970859000101',
+    ]);
+    $product = Product::create([
+        'name' => 'Produto da campanha',
+        'reference' => 'CAMP-ORDER-001',
+        'unity' => 'UN',
+        'measure' => 1,
+        'price' => 100,
+        'quantity' => 10,
+        'min_quantity' => 1,
+        'enabled' => true,
+    ]);
+    $campaign = Campaign::create([
+        'name' => 'Campanha com desconto',
+        'scope_type' => 'product',
+        'audience_type' => 'all',
+        'status' => true,
+    ]);
+    $campaign->products()->attach($product);
+    $condition = CommercialCondition::create([
+        'name' => 'Preço da campanha',
+        'scope_type' => 'campaign',
+        'campaign_id' => $campaign->id,
+        'price_adjustment_percentage' => -15,
+        'max_discount_percentage' => 0,
+        'minimum_order_amount' => 0,
+        'payment_terms' => 'À vista',
+        'commission_percentage' => 4,
+        'status' => true,
+    ]);
+
+    $this->postJson('/api/orders', [
+        'customer_id' => $customer->id,
+        'campaign_id' => $campaign->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 2]],
+    ])->assertCreated()
+        ->assertJsonPath('order.campaign_id', $campaign->id)
+        ->assertJsonPath('order.total', 170)
+        ->assertJsonPath('order.payment_condition', 'À vista');
+
+    $order = Order::firstOrFail();
+    expect($order->campaign_id)->toBe($campaign->id)
+        ->and($order->commercial_condition_id)->toBe($condition->id)
+        ->and((float) $order->orderItems()->firstOrFail()->price)->toBe(85.0);
+});
 
 test('seller can use the mobile visit agenda for their assigned region', function () {
     $tenant = mvpTenant('equipe', 'visits');
