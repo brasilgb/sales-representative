@@ -307,6 +307,7 @@ class OrderController extends Controller
      */
     public function destroy(Order $order)
     {
+        $this->authorizeOrderManagement();
         $this->authorizeVisibleOrder($order);
 
         // Alternativa: verifique se o pedido pode ser deletado
@@ -351,6 +352,7 @@ class OrderController extends Controller
 
     public function setValueStatusOrder(Request $request, Order $order)
     {
+        $this->authorizeOrderManagement();
         $this->authorizeVisibleOrder($order);
         $validated = $request->validate(['status' => ['required', Rule::in(['1', '2', '3', '4'])]]);
 
@@ -368,6 +370,7 @@ class OrderController extends Controller
 
     public function cancelOrder(Order $order)
     {
+        $this->authorizeOrderManagement();
         $this->authorizeVisibleOrder($order);
 
         // 💡 Verificação inicial: não se pode cancelar um pedido já cancelado.
@@ -452,5 +455,10 @@ class OrderController extends Controller
     private function authorizeVisibleOrder(Order $order): void
     {
         abort_unless(Order::visibleTo()->whereKey($order->id)->exists(), 404);
+    }
+
+    private function authorizeOrderManagement(): void
+    {
+        abort_unless(auth()->user()?->canManageTeam(), 403);
     }
 }

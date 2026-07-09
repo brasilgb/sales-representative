@@ -1,4 +1,3 @@
-import ActionDelete from '@/components/action-delete';
 import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,7 +56,7 @@ export default function Expenses({ expenses, summary, filters, users, canManageT
                             <TableCell><div className="max-w-[320px]"><div>{expense.category === 'mileage' ? `${Number(expense.kilometers).toLocaleString('pt-BR')} km` : expense.description || '-'}</div></div></TableCell>
                             <TableCell className="font-medium">{expense.category === 'mileage' ? '-' : money(expense.amount)}</TableCell>
                             <TableCell>{expense.receipt_url ? <Button size="icon" variant="outline" asChild title="Ver comprovante"><a href={expense.receipt_url} target="_blank" rel="noreferrer"><FileText className="h-4 w-4" /></a></Button> : '-'}</TableCell>
-                            <TableCell><div className="flex justify-end gap-2"><Button asChild size="icon" className="bg-orange-500 text-white hover:bg-orange-600"><Link href={route('app.expenses.edit', expense.id)}><Edit className="h-4 w-4" /></Link></Button><ActionDelete title="esta despesa" url="app.expenses.destroy" param={expense.id} /></div></TableCell>
+                            <TableCell><div className="flex justify-end gap-2"><Button asChild size="icon" className="bg-orange-500 text-white hover:bg-orange-600"><Link href={route('app.expenses.edit', expense.id)}><Edit className="h-4 w-4" /></Link></Button></div></TableCell>
                         </TableRow>
                     )) : <TableRow><TableCell colSpan={canManageTeam ? 7 : 6} className="h-20 text-center">Nenhuma despesa encontrada no período.</TableCell></TableRow>}</TableBody>
                     <TableFooter><TableRow><TableCell colSpan={canManageTeam ? 7 : 6}><AppPagination data={expenses} /></TableCell></TableRow></TableFooter>

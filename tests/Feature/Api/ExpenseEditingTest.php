@@ -48,4 +48,10 @@ test('android user can edit their own expense', function () {
         ->assertJsonPath('description', 'Almoço com cliente');
 
     expect((float) $expense->fresh()->amount)->toBe(32.5);
+
+    $this->deleteJson("/api/expenses/{$expense->id}")
+        ->assertStatus(405)
+        ->assertJsonPath('message', 'Despesas não podem ser excluídas. Edite o lançamento quando precisar corrigi-lo.');
+
+    expect($expense->fresh())->not->toBeNull();
 });

@@ -48,6 +48,8 @@ class ProductController extends Controller
      */
     public function create()
     {
+        $this->authorizeProductManagement();
+
         return Inertia::render('app/products/create-product');
     }
 
@@ -56,6 +58,7 @@ class ProductController extends Controller
      */
     public function store(ProductRequest $request): RedirectResponse
     {
+        $this->authorizeProductManagement();
         $data = $request->validated();
         $image = $request->file('image');
         unset($data['image'], $data['remove_image']);
@@ -122,6 +125,8 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
+        $this->authorizeProductManagement();
+
         return Inertia::render('app/products/edit-product', ['product' => $product]);
     }
 
@@ -130,6 +135,8 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
+        $this->authorizeProductManagement();
+
         return Redirect::route('app.products.show', ['product' => $product->id]);
     }
 
@@ -138,6 +145,7 @@ class ProductController extends Controller
      */
     public function update(ProductRequest $request, Product $product): RedirectResponse
     {
+        $this->authorizeProductManagement();
         $data = $request->validated();
         $image = $request->file('image');
         $removeImage = (bool) ($data['remove_image'] ?? false);
@@ -165,6 +173,7 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        $this->authorizeProductManagement();
         if ($product->image_path) {
             Storage::disk('public')->delete($product->image_path);
         }
@@ -182,5 +191,10 @@ class ProductController extends Controller
             'success' => true,
             'product' => $product,
         ]);
+    }
+
+    private function authorizeProductManagement(): void
+    {
+        abort_unless(auth()->user()?->canManageTeam(), 403);
     }
 }

@@ -5,9 +5,9 @@ import InputSearch from '@/components/inputSearch';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { BreadcrumbItem } from '@/types';
+import { BreadcrumbItem, SharedData } from '@/types';
 import { maskMoney } from '@/Utils/mask';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { BoxIcon, Edit, MessageCircle, Plus } from 'lucide-react';
 import moment from 'moment';
 
@@ -48,6 +48,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export default function Products({ products, publicCatalogUrl }: any) {
+    const { auth } = usePage<SharedData>().props;
     const whatsappMessage = encodeURIComponent(`Olá! Confira nosso catálogo de produtos com valores e referências: ${publicCatalogUrl}`);
 
     return (
@@ -72,12 +73,12 @@ export default function Products({ products, publicCatalogUrl }: any) {
                             <span>Enviar catálogo</span>
                         </a>
                     </Button>
-                    <Button variant="default" asChild className="w-full whitespace-nowrap sm:w-auto">
+                    {!auth.isSeller && <Button variant="default" asChild className="w-full whitespace-nowrap sm:w-auto">
                         <Link href={route('app.products.create')}>
                             <Plus className="h-4 w-4" />
                             <span>Novo produto</span>
                         </Link>
-                    </Button>
+                    </Button>}
                 </div>
             </div>
 
@@ -93,7 +94,7 @@ export default function Products({ products, publicCatalogUrl }: any) {
                                 <TableHead>Estoque</TableHead>
                                 <TableHead>Preço</TableHead>
                                 <TableHead>Cadastro</TableHead>
-                                <TableHead className="min-w-[120px]"></TableHead>
+                                {!auth.isSeller && <TableHead className="min-w-[120px]"></TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -135,7 +136,7 @@ export default function Products({ products, publicCatalogUrl }: any) {
                                         <TableCell>{product.quantity}</TableCell>
                                         <TableCell>R$ {maskMoney(product.price)}</TableCell>
                                         <TableCell>{moment(product.created_at).format('DD/MM/YYYY')}</TableCell>
-                                        <TableCell className="min-w-[120px]">
+                                        {!auth.isSeller && <TableCell className="min-w-[120px]">
                                             <div className="flex flex-wrap justify-end gap-2">
                                                 <Button
                                                     asChild
@@ -149,12 +150,12 @@ export default function Products({ products, publicCatalogUrl }: any) {
                                                 </Button>
                                                 <ActionDelete title={'este produto'} url={'app.products.destroy'} param={product.id} />
                                             </div>
-                                        </TableCell>
+                                        </TableCell>}
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="h-16 text-center">
+                                    <TableCell colSpan={auth.isSeller ? 6 : 7} className="h-16 text-center">
                                         Não há dados a serem mostrados no momento.
                                     </TableCell>
                                 </TableRow>
@@ -162,7 +163,7 @@ export default function Products({ products, publicCatalogUrl }: any) {
                         </TableBody>
                         <TableFooter>
                             <TableRow>
-                                <TableCell colSpan={7}>
+                                <TableCell colSpan={auth.isSeller ? 6 : 7}>
                                     <AppPagination data={products} />
                                 </TableCell>
                             </TableRow>

@@ -132,6 +132,10 @@ export function AppSidebar() {
             return false;
         }
 
+        if (auth.isSeller && item.title === 'Clientes') {
+            return false;
+        }
+
         if (item.title === 'Regras comerciais' && !auth.canManageTeam) {
             return false;
         }

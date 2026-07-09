@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Building, Cog, Copyright, Folder, HandCoins, LayoutGrid, UserCog } from 'lucide-react';
+import { Building, Cog, Copyright, HandCoins, LayoutGrid, MessageSquareMore, UserCog } from 'lucide-react';
 import AppLogo from './app-logo';
 import NavMainCollapsible from './nav-main-collapsible';
 const mainAdminItems = [
@@ -25,6 +25,12 @@ const mainAdminItems = [
         href: route('admin.users.index'),
         icon: UserCog,
         active: 'admin.users.*',
+    },
+    {
+        title: 'Ajustes/Avaliações',
+        href: route('admin.feedback.index'),
+        icon: MessageSquareMore,
+        active: 'admin.feedback.*',
     },
     {
         title: 'Configurações',

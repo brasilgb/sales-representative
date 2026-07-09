@@ -109,15 +109,7 @@ class ExpenseController extends Controller
 
     public function destroy(Expense $expense): RedirectResponse
     {
-        $this->authorizeExpense($expense);
-
-        if ($expense->receipt_path) {
-            Storage::disk('public')->delete($expense->receipt_path);
-        }
-
-        $expense->delete();
-
-        return redirect()->route('app.expenses.index')->with('success', 'Despesa excluída com sucesso!');
+        abort(405, 'Despesas não podem ser excluídas. Edite o lançamento quando precisar corrigi-lo.');
     }
 
     private function expenseData(ExpenseRequest $request): array

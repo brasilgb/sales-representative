@@ -7,10 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { BreadcrumbItem } from '@/types';
+import { BreadcrumbItem, SharedData } from '@/types';
 import { statusOrder } from '@/Utils/dataSelect';
+import { statusOrderByValue } from '@/Utils/functions';
 import { maskMoney } from '@/Utils/mask';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { CalendarDaysIcon, Pencil, Plus, ShoppingCartIcon } from 'lucide-react';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
@@ -27,6 +28,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Orders({ orders }: any) {
+    const { auth } = usePage<SharedData>().props;
     const [messageStatus, setMessageStatus] = useState<string>('');
 
     useEffect(() => {
@@ -113,8 +115,8 @@ export default function Orders({ orders }: any) {
                                         </TableCell>
                                         <TableCell>{moment(order.created_at).format('DD/MM/YYYY')}</TableCell>
                                         <TableCell>
-                                            {order.status == '4' ? (
-                                                <Badge variant="destructive">Pedido cancelado</Badge>
+                                            {auth.isSeller || order.status == '4' ? (
+                                                <Badge variant={String(order.status) === '4' ? 'destructive' : 'secondary'}>{statusOrderByValue(order.status)}</Badge>
                                             ) : (
                                                 <AppSelect
                                                     setMessageStatus={setMessageStatus}
@@ -128,7 +130,7 @@ export default function Orders({ orders }: any) {
                                         <TableCell className="min-w-[120px]">
                                             <div className="flex flex-wrap justify-end gap-2">
                                                 <Button asChild size="icon" variant="outline" title={String(order.status) === '4' ? 'Consultar pedido' : 'Editar pedido'}><Link href={route('app.orders.edit', order.id)} aria-label={`${String(order.status) === '4' ? 'Consultar' : 'Editar'} pedido ${order.order_number}`}><Pencil className="h-4 w-4" /></Link></Button>
-                                                <ActionDelete title={'este pedido'} url={'app.orders.destroy'} param={order.id} />
+                                                {!auth.isSeller && <ActionDelete title={'este pedido'} url={'app.orders.destroy'} param={order.id} />}
                                             </div>
                                         </TableCell>
                                     </TableRow>

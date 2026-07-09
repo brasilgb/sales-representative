@@ -79,11 +79,7 @@ class ApiExpenseController extends Controller
 
     public function destroy(Expense $expense): JsonResponse
     {
-        $this->authorizeExpense($expense);
-        abort_if($expense->receipt_path, 409, 'Exclua esta despesa pelo sistema web, pois ela possui comprovante.');
-        $expense->delete();
-
-        return response()->json(null, 204);
+        abort(405, 'Despesas não podem ser excluídas. Edite o lançamento quando precisar corrigi-lo.');
     }
 
     private function validatedData(Request $request): array
