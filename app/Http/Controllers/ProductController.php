@@ -18,24 +18,61 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->get('q');
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'category' => ['nullable', 'string', 'max:60'],
+            'brand' => ['nullable', 'string', 'max:80'],
+            'line' => ['nullable', 'string', 'max:80'],
+        ]);
+        $search = trim($filters['q'] ?? '');
 
         $query = Product::orderBy('id', 'DESC');
 
         if ($search) {
             $query->where(function ($query) use ($search) {
                 $query->where('name', 'like', '%'.$search.'%')
-                    ->orWhere('reference', 'like', '%'.$search.'%')
-                    ->orWhere('barcode', 'like', '%'.$search.'%')
-                    ->orWhere('brand', 'like', '%'.$search.'%')
-                    ->orWhere('category', 'like', '%'.$search.'%');
+                    ->orWhere('reference', 'like', '%'.$search.'%');
             });
         }
 
-        $products = $query->paginate(12);
+        $query
+            ->when($filters['category'] ?? null, fn ($query, $category) => $query->where('category', $category))
+            ->when($filters['brand'] ?? null, fn ($query, $brand) => $query->where('brand', $brand))
+            ->when($filters['line'] ?? null, fn ($query, $line) => $query->where('line', $line));
+
+        $products = $query->paginate(12)->withQueryString();
 
         return Inertia::render('app/products/index', [
             'products' => $products,
+            'filters' => [
+                'q' => $search,
+                'category' => $filters['category'] ?? '',
+                'brand' => $filters['brand'] ?? '',
+                'line' => $filters['line'] ?? '',
+            ],
+            'filterOptions' => [
+                'categories' => Product::query()
+                    ->whereNotNull('category')
+                    ->where('category', '<>', '')
+                    ->distinct()
+                    ->orderBy('category')
+                    ->pluck('category')
+                    ->values(),
+                'brands' => Product::query()
+                    ->whereNotNull('brand')
+                    ->where('brand', '<>', '')
+                    ->distinct()
+                    ->orderBy('brand')
+                    ->pluck('brand')
+                    ->values(),
+                'lines' => Product::query()
+                    ->whereNotNull('line')
+                    ->where('line', '<>', '')
+                    ->distinct()
+                    ->orderBy('line')
+                    ->pluck('line')
+                    ->values(),
+            ],
             'publicCatalogUrl' => route('catalog.public', [
                 'token' => $request->user()->tenant->public_catalog_token,
                 'v' => $request->user()->tenant->updated_at?->timestamp,

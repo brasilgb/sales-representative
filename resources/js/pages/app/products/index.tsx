@@ -1,15 +1,17 @@
 import ActionDelete from '@/components/action-delete';
 import AppPagination, { PaginationSummary } from '@/components/app-pagination';
 import { Icon } from '@/components/icon';
-import InputSearch from '@/components/inputSearch';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem, SharedData } from '@/types';
 import { maskMoney } from '@/Utils/mask';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { BoxIcon, Edit, MessageCircle, Plus } from 'lucide-react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { BoxIcon, Edit, MessageCircle, Plus, RotateCcw, Search } from 'lucide-react';
 import moment from 'moment';
+import { type FormEvent } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -47,9 +49,24 @@ const categoryLabels: Record<string, string> = {
     outro: 'Outro',
 };
 
-export default function Products({ products, publicCatalogUrl }: any) {
+export default function Products({ products, publicCatalogUrl, filters, filterOptions }: any) {
     const { auth } = usePage<SharedData>().props;
     const whatsappMessage = encodeURIComponent(`Olá! Confira nosso catálogo de produtos com valores e referências: ${publicCatalogUrl}`);
+    const { data, setData, processing } = useForm({
+        q: filters?.q ?? '',
+        category: filters?.category ?? '',
+        brand: filters?.brand ?? '',
+        line: filters?.line ?? '',
+    });
+
+    function submitFilters(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        router.get(route('app.products.index'), data, { preserveState: true, replace: true });
+    }
+
+    function clearFilters() {
+        router.get(route('app.products.index'), {}, { preserveState: true, replace: true });
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -62,11 +79,71 @@ export default function Products({ products, publicCatalogUrl }: any) {
                 </div>
             </div>
 
-            <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="w-full min-w-0 lg:max-w-[420px] lg:flex-1">
-                    <InputSearch placeholder="Buscar produto por nome, referência, marca ou categoria" url="app.products.index" />
-                </div>
-                <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto lg:shrink-0 lg:justify-end">
+            <div className="flex flex-col gap-3 p-4 xl:flex-row xl:items-end xl:justify-between">
+                <form onSubmit={submitFilters} className="grid w-full min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1.2fr)_minmax(150px,0.7fr)_minmax(150px,0.7fr)_minmax(150px,0.7fr)_auto_auto]">
+                    <div className="grid gap-1">
+                        <label htmlFor="product-search" className="text-xs font-medium text-muted-foreground">Busca</label>
+                        <Input
+                            id="product-search"
+                            type="search"
+                            value={data.q}
+                            onChange={(event) => setData('q', event.target.value)}
+                            placeholder="Nome ou referência"
+                            autoComplete="off"
+                        />
+                    </div>
+                    <div className="grid gap-1">
+                        <label htmlFor="product-category" className="text-xs font-medium text-muted-foreground">Categoria</label>
+                        <select
+                            id="product-category"
+                            value={data.category}
+                            onChange={(event) => setData('category', event.target.value)}
+                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none"
+                        >
+                            <option value="">Todas</option>
+                            {(filterOptions?.categories ?? []).map((category: string) => (
+                                <option key={category} value={category}>{categoryLabels[category] ?? category}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="grid gap-1">
+                        <label htmlFor="product-brand" className="text-xs font-medium text-muted-foreground">Marca</label>
+                        <select
+                            id="product-brand"
+                            value={data.brand}
+                            onChange={(event) => setData('brand', event.target.value)}
+                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none"
+                        >
+                            <option value="">Todas</option>
+                            {(filterOptions?.brands ?? []).map((brand: string) => (
+                                <option key={brand} value={brand}>{brand}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="grid gap-1">
+                        <label htmlFor="product-line" className="text-xs font-medium text-muted-foreground">Linha</label>
+                        <select
+                            id="product-line"
+                            value={data.line}
+                            onChange={(event) => setData('line', event.target.value)}
+                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none"
+                        >
+                            <option value="">Todas</option>
+                            {(filterOptions?.lines ?? []).map((line: string) => (
+                                <option key={line} value={line}>{line}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <Button type="submit" disabled={processing} className="mt-5 w-full gap-2 sm:w-auto">
+                        <Search className="h-4 w-4" />
+                        Buscar
+                    </Button>
+                    <Button type="button" variant="outline" onClick={clearFilters} className="mt-5 w-full gap-2 sm:w-auto">
+                        <RotateCcw className="h-4 w-4" />
+                        Limpar
+                    </Button>
+                </form>
+                <div className="flex w-full flex-col gap-2 sm:flex-row xl:w-auto xl:shrink-0 xl:justify-end">
                     <Button asChild className="w-full whitespace-nowrap bg-emerald-600 text-white hover:bg-emerald-700 sm:w-auto">
                         <a href={`https://wa.me/?text=${whatsappMessage}`} target="_blank" rel="noreferrer">
                             <MessageCircle className="h-4 w-4" />
@@ -89,7 +166,10 @@ export default function Products({ products, publicCatalogUrl }: any) {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Produto</TableHead>
-                                <TableHead>Segmento pet</TableHead>
+                                <TableHead>Espécie</TableHead>
+                                <TableHead>Categoria</TableHead>
+                                <TableHead>Marca</TableHead>
+                                <TableHead>Linha</TableHead>
                                 <TableHead>Medidas</TableHead>
                                 <TableHead>Estoque</TableHead>
                                 <TableHead>Preço</TableHead>
@@ -118,22 +198,18 @@ export default function Products({ products, publicCatalogUrl }: any) {
                                                 </div>
                                             </div>
                                         </TableCell>
+                                        <TableCell>{speciesLabels[product.species] ?? 'Não informada'}</TableCell>
                                         <TableCell>
-                                            <div className="space-y-1">
-                                                <div className="text-sm">{categoryLabels[product.category] ?? 'Categoria não informada'}</div>
-                                                <div className="text-xs text-muted-foreground">
-                                                    {[speciesLabels[product.species], product.brand, product.line].filter(Boolean).join(' | ') ||
-                                                        'Sem segmentação'}
-                                                </div>
-                                            </div>
+                                            {categoryLabels[product.category] ?? 'Não informada'}
                                         </TableCell>
+                                        <TableCell>{product.brand || '-'}</TableCell>
+                                        <TableCell>{product.line || '-'}</TableCell>
+                                        <TableCell>{product.package_size || '-'}</TableCell>
                                         <TableCell>
-                                            <div className="space-y-1">
-                                                <div className="text-sm">{product.package_size || product.unity || '-'}</div>
-                                                <div className="text-xs text-muted-foreground">{product.measure || 'Medida não informada'}</div>
-                                            </div>
+                                            <Badge variant={Number(product.quantity) > 0 ? 'default' : 'destructive'} className={Number(product.quantity) > 0 ? 'bg-emerald-600 hover:bg-emerald-600' : ''}>
+                                                {product.quantity} un.
+                                            </Badge>
                                         </TableCell>
-                                        <TableCell>{product.quantity}</TableCell>
                                         <TableCell>R$ {maskMoney(product.price)}</TableCell>
                                         <TableCell>{moment(product.created_at).format('DD/MM/YYYY')}</TableCell>
                                         {!auth.isSeller && <TableCell className="min-w-[120px]">
@@ -155,7 +231,7 @@ export default function Products({ products, publicCatalogUrl }: any) {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={auth.isSeller ? 6 : 7} className="h-16 text-center">
+                                    <TableCell colSpan={auth.isSeller ? 9 : 10} className="h-16 text-center">
                                         Não há dados a serem mostrados no momento.
                                     </TableCell>
                                 </TableRow>
@@ -163,7 +239,7 @@ export default function Products({ products, publicCatalogUrl }: any) {
                         </TableBody>
                         <TableFooter>
                             <TableRow>
-                                <TableCell colSpan={auth.isSeller ? 6 : 7}>
+                                <TableCell colSpan={auth.isSeller ? 9 : 10}>
                                     <AppPagination data={products} />
                                 </TableCell>
                             </TableRow>
