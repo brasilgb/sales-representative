@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney, maskMoneyDot } from '@/Utils/mask';
+import { reactSelectThemeStyles } from '@/Utils/react-select-theme';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Switch } from '@/components/ui/switch';
 import { AlertTriangle, ArrowLeft, ClipboardList, RotateCcw, ShoppingCartIcon, UserIcon } from 'lucide-react';
@@ -264,19 +265,7 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                                 onChange={changeCustomer}
                                 placeholder="Selecione o cliente"
                                 className="rounded-md border border-input text-sm text-foreground shadow-xs"
-                                styles={{
-                                    control: (baseStyles) => ({
-                                        ...baseStyles,
-                                        border: 'none',
-                                        background: 'transparent',
-                                        boxShadow: 'none',
-                                        minHeight: '36px',
-                                    }),
-                                    menuList: (baseStyles) => ({
-                                        ...baseStyles,
-                                        fontSize: '14px',
-                                    }),
-                                }}
+                                styles={reactSelectThemeStyles}
                             />
                             <InputError className="mt-2" message={errors.customer_id} />
 

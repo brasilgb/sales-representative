@@ -75,6 +75,21 @@ html {
         font-family: var(--font-sans);
     }
 
+    select {
+        color: var(--foreground);
+        color-scheme: light;
+    }
+
+    select option,
+    select optgroup {
+        background-color: var(--popover);
+        color: var(--popover-foreground);
+    }
+
+    .dark select {
+        color-scheme: dark;
+    }
+
     .font-brand {
         font-family: var(--font-brand);
     }

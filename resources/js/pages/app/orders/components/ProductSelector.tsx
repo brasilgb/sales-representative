@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { reactSelectThemeStyles } from '@/Utils/react-select-theme';
 import { BoxIcon, Plus } from 'lucide-react';
 import React, { useState } from 'react';
 import Select from 'react-select';
@@ -54,24 +55,7 @@ export function ProductSelector({ products, onAddProduct }: Props) {
                             placeholder="Pesquise por referência ou nome"
                             noOptionsMessage={() => 'Nenhum produto encontrado'}
                             className="rounded-md border border-gray-300 p-0 text-gray-700 shadow-xs focus-within:ring-2 focus-within:ring-blue-500"
-                            styles={{
-                                control: (baseStyles, state) => ({
-                                    ...baseStyles,
-                                    fontSize: '14px',
-                                    boxShadow: 'none',
-                                    border: 'none',
-                                    background: 'transparent',
-                                    minHeight: '38px',
-                                }),
-                                dropdownIndicator: (base) => ({
-                                    ...base,
-
-                                }),
-                                menuList: (base) => ({
-                                    ...base,
-                                    fontSize: '14px',
-                                }),
-                            }}
+                            styles={reactSelectThemeStyles}
                         />
                     </div>
                     <div className="grid gap-2">
