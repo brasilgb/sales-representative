@@ -11,6 +11,8 @@ interface OrderItem {
   name: string;
   quantity: number;
   price: number;
+  discount_percentage: number;
+  total: string;
 }
 
 interface Props {
@@ -19,7 +21,7 @@ interface Props {
 }
 
 export function OrderSummary({ items, onRemoveItem }: Props) {
-  const total = items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  const total = items.reduce((sum, item) => sum + Number(item.total), 0);
 
   return (
     <Card className="mb-4 p-2">
@@ -30,6 +32,7 @@ export function OrderSummary({ items, onRemoveItem }: Props) {
             <TableHead className="p-2">Produto</TableHead>
             <TableHead className="p-2">Quantidade</TableHead>
             <TableHead className="p-2">Preço Unitário</TableHead>
+            <TableHead className="p-2">Desconto</TableHead>
             <TableHead className="p-2">Total</TableHead>
             <TableHead className="p-2">Ações</TableHead>
           </TableRow>
@@ -40,7 +43,8 @@ export function OrderSummary({ items, onRemoveItem }: Props) {
               <TableCell className="p-2">{item.name}</TableCell>
               <TableCell className="p-2">{item.quantity}</TableCell>
               <TableCell className="p-2">R$ {maskMoney(item.price.toString())}</TableCell>
-              <TableCell className="p-2">R$ {maskMoney((item.quantity * item.price).toFixed(2))}</TableCell>
+              <TableCell className="p-2">{Number(item.discount_percentage).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%</TableCell>
+              <TableCell className="p-2">R$ {maskMoney(item.total)}</TableCell>
               <TableCell className="p-2">
                 <Button
                   variant="destructive"
@@ -55,7 +59,7 @@ export function OrderSummary({ items, onRemoveItem }: Props) {
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={3} className="text-right font-bold p-2">Total:</TableCell>
+            <TableCell colSpan={4} className="text-right font-bold p-2">Total:</TableCell>
             <TableCell colSpan={2} className="font-bold p-2">R$ {maskMoney(total.toFixed(2))}</TableCell>
           </TableRow>
         </TableFooter>

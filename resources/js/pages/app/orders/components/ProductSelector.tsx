@@ -18,18 +18,20 @@ interface Product {
 
 interface Props {
     products: Product[];
-    onAddProduct: (product: Product, quantity: number) => void;
+    onAddProduct: (product: Product, quantity: number, discountPercentage: number) => void;
 }
 
 export function ProductSelector({ products, onAddProduct }: Props) {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
+    const [discountPercentage, setDiscountPercentage] = useState<number>(0);
 
     const handleAdd = () => {
         if (selectedProduct && quantity > 0) {
-            onAddProduct(selectedProduct, quantity);
+            onAddProduct(selectedProduct, quantity, discountPercentage);
             setSelectedProduct(null);
             setQuantity(1);
+            setDiscountPercentage(0);
         }
     };
 
@@ -40,7 +42,7 @@ export function ProductSelector({ products, onAddProduct }: Props) {
     return (
         <Card className="mb-4 p-4">
             <CardTitle className="mb-4 flex items-center gap-2 text-base font-bold"><BoxIcon className="h-5 w-5" /> Adicionar produto ao pedido</CardTitle>
-            <div className="grid items-end gap-3 md:grid-cols-[minmax(0,1fr)_120px_auto]">
+            <div className="grid items-end gap-3 md:grid-cols-[minmax(0,1fr)_120px_160px_auto]">
                     <div className="grid min-w-0 gap-2">
                         <Label>Produto</Label>
                         <Select
@@ -80,6 +82,18 @@ export function ProductSelector({ products, onAddProduct }: Props) {
                             value={quantity}
                             onChange={(e) => setQuantity(Number(e.target.value))}
                             min="1"
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="order-product-discount">Desconto individual (%)</Label>
+                        <Input
+                            id="order-product-discount"
+                            type="number"
+                            value={discountPercentage}
+                            onChange={(e) => setDiscountPercentage(Math.min(Math.max(Number(e.target.value), 0), 100))}
+                            min="0"
+                            max="100"
+                            step="0.01"
                         />
                     </div>
                 <Button

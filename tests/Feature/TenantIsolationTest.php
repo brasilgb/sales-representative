@@ -364,6 +364,37 @@ test('order applies price discount payment terms and commission from commercial 
         ->and($product->fresh()->quantity)->toBe(8);
 });
 
+test('web order applies and persists an individual product discount', function () {
+    $tenant = isolationTenant('web-item-discount');
+    $owner = isolationOwner($tenant, 'web-item-discount');
+    $this->actingAs($owner);
+    $customer = isolationCustomer($tenant, $owner, 'web-item-discount');
+    $product = isolationProduct($tenant, 'web-item-discount');
+    $product->update(['price' => 50, 'quantity' => 10]);
+    Flex::create(['value' => 0]);
+
+    $this->post(route('app.orders.store'), [
+        'customer_id' => $customer->id,
+        'items' => [[
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'price' => 50,
+            'name' => $product->name,
+            'total' => 75,
+            'discount_percentage' => 25,
+        ]],
+    ])->assertRedirect(route('app.orders.index'));
+
+    $order = Order::withoutGlobalScopes()->where('tenant_id', $tenant->id)->firstOrFail();
+    $item = $order->orderItems()->firstOrFail();
+
+    expect((float) $order->subtotal)->toBe(75.0)
+        ->and((float) $order->total)->toBe(75.0)
+        ->and((float) $item->discount_percentage)->toBe(25.0)
+        ->and((float) $item->discount_amount)->toBe(25.0)
+        ->and((float) $item->total)->toBe(75.0);
+});
+
 test('order rejects divergent price excessive discount and minimum order violation', function () {
     $tenant = isolationTenant('21');
     $owner = isolationOwner($tenant, '21');

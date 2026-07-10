@@ -97,6 +97,7 @@ class OrderController extends Controller
                 Rule::exists('products', 'id')->where('tenant_id', $tenantId),
             ],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'gt:0'], // 'gt:0' é uma boa adição
+            'items.*.discount_percentage' => ['nullable', 'numeric', 'between:0,100'],
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.name' => ['required', 'string'], // min:0 não é necessário aqui
             'items.*.total' => ['required', 'numeric', 'min:0'],
@@ -134,7 +135,9 @@ class OrderController extends Controller
                     throw new \Exception('Preço divergente da condição comercial para o produto: '.$product->name);
                 }
 
-                $subtotal += $expectedPrice * (int) $item['quantity'];
+                $grossItemTotal = round($expectedPrice * (int) $item['quantity'], 2);
+                $itemDiscountPercentage = round((float) ($item['discount_percentage'] ?? 0), 2);
+                $subtotal += $grossItemTotal - round($grossItemTotal * ($itemDiscountPercentage / 100), 2);
                 if ($campaign && in_array($product->id, $campaignProductIds, true)) {
                     $campaignQuantity += (int) $item['quantity'];
                 }
@@ -195,12 +198,18 @@ class OrderController extends Controller
 
             // 2. Preparar e criar os itens do pedido
             $orderItemsData = collect($validatedData['items'])->map(function ($item) {
+                $grossItemTotal = round((float) $item['price'] * (int) $item['quantity'], 2);
+                $discountPercentage = round((float) ($item['discount_percentage'] ?? 0), 2);
+                $discountAmount = round($grossItemTotal * ($discountPercentage / 100), 2);
+
                 return [
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
+                    'discount_percentage' => $discountPercentage,
+                    'discount_amount' => $discountAmount,
                     'name' => $item['name'],
-                    'total' => round((float) $item['price'] * (int) $item['quantity'], 2),
+                    'total' => round($grossItemTotal - $discountAmount, 2),
                 ];
             })->toArray();
 
@@ -276,6 +285,7 @@ class OrderController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.discount_percentage' => ['nullable', 'numeric', 'between:0,100'],
             'adjusted_total' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_condition' => ['nullable', 'string', 'max:120'],

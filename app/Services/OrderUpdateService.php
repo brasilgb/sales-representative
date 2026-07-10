@@ -54,12 +54,23 @@ final class OrderUpdateService
                     ? $campaign->commercialCondition
                     : $customerCondition;
                 $price = $itemCondition ? $itemCondition->adjustedPrice((float) $product->price) : (float) $product->price;
-                $itemTotal = round($price * $quantity, 2);
+                $discountPercentage = round((float) ($item['discount_percentage'] ?? 0), 2);
+                $grossItemTotal = round($price * $quantity, 2);
+                $itemDiscountAmount = round($grossItemTotal * ($discountPercentage / 100), 2);
+                $itemTotal = round($grossItemTotal - $itemDiscountAmount, 2);
                 $subtotal += $itemTotal;
                 if ($campaign && in_array($product->id, $campaignProductIds, true)) {
                     $campaignQuantity += $quantity;
                 }
-                $items[] = ['product_id' => $product->id, 'quantity' => $quantity, 'price' => $price, 'name' => $product->name, 'total' => $itemTotal];
+                $items[] = [
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                    'price' => $price,
+                    'discount_percentage' => $discountPercentage,
+                    'discount_amount' => $itemDiscountAmount,
+                    'name' => $product->name,
+                    'total' => $itemTotal,
+                ];
                 $product->decrement('quantity', $quantity);
             }
 

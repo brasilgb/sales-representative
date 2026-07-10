@@ -43,6 +43,7 @@ type OrderItem = {
     product_id: number;
     quantity: number;
     price: number;
+    discount_percentage: number;
     name: string;
     total: string;
 };
@@ -84,7 +85,7 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
     );
     const selectedCampaign = availableCampaigns.find((campaign: any) => String(campaign.id) === String(data.campaign_id)) ?? null;
     const selectedCondition = selectedCampaign?.commercial_condition ?? selectedCustomer?.commercial_condition ?? null;
-    const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.quantity * Number(item.price), 0), [items]);
+    const subtotal = useMemo(() => items.reduce((sum, item) => sum + Number(item.total), 0), [items]);
     const adjustedTotal = data.adjusted_total_was_edited ? Number(data.adjusted_total || 0) : subtotal;
     const manualDiscount = Number(data.discount || 0);
     const flexAmount = Math.max(adjustedTotal - subtotal, 0);
@@ -138,7 +139,8 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
         post(route('app.orders.store'));
     };
 
-    const handleProductAdd = (product: any, quantity: number) => {
+    const handleProductAdd = (product: any, quantity: number, discountPercentage: number) => {
+        const calculateTotal = (amount: number) => (Number(product.price) * amount * (1 - discountPercentage / 100)).toFixed(2);
         setItems((prevItems) => {
             const existingItem = prevItems.find((item) => item.product_id === product.id);
 
@@ -148,7 +150,9 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                         ? {
                               ...item,
                               quantity: item.quantity + quantity,
-                              total: (Number(item.price) * (item.quantity + quantity)).toFixed(2),
+                              price: Number(product.price),
+                              discount_percentage: discountPercentage,
+                              total: calculateTotal(item.quantity + quantity),
                           }
                         : item,
                 );
@@ -160,8 +164,9 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                     product_id: product.id,
                     quantity,
                     price: Number(product.price),
+                    discount_percentage: discountPercentage,
                     name: product.name,
-                    total: (Number(product.price) * quantity).toFixed(2),
+                    total: calculateTotal(quantity),
                 },
             ];
         });
@@ -214,8 +219,9 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                         product_id: product.id,
                         quantity: Number(item.quantity),
                         price: Number(item.price ?? product.price),
+                        discount_percentage: Number(item.discount_percentage ?? 0),
                         name: product.name,
-                        total: (Number(item.price ?? product.price) * Number(item.quantity)).toFixed(2),
+                        total: (Number(item.price ?? product.price) * Number(item.quantity) * (1 - Number(item.discount_percentage ?? 0) / 100)).toFixed(2),
                     };
                 })
                 .filter(Boolean),

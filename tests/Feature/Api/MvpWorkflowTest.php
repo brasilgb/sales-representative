@@ -373,6 +373,57 @@ test('order editing recalculates stock flex totals and rolls back invalid change
         ->and((float) Order::findOrFail($orderId)->total)->toBe(35.0);
 });
 
+test('mobile orders apply and persist an individual product discount', function () {
+    $tenant = mvpTenant('solo', 'item-discount');
+    $owner = mvpUser($tenant, User::ROLE_OWNER, 'item-discount');
+    Sanctum::actingAs($owner);
+    Flex::create(['value' => 50]);
+    $customer = Customer::create(['name' => 'Cliente desconto', 'cnpj' => '52998224725']);
+    $product = Product::create([
+        'name' => 'Produto com desconto', 'reference' => 'DESC-001', 'description' => 'Teste',
+        'unity' => 'UN', 'measure' => 1, 'price' => 10, 'quantity' => 10, 'min_quantity' => 1, 'enabled' => true,
+    ]);
+
+    $created = $this->postJson('/api/orders', [
+        'customer_id' => $customer->id,
+        'items' => [[
+            'product_id' => $product->id,
+            'quantity' => 3,
+            'discount_percentage' => 10,
+        ]],
+    ])->assertCreated()
+        ->assertJsonPath('order.subtotal', 27)
+        ->assertJsonPath('order.total', 27)
+        ->assertJsonPath('order.order_items.0.discount_percentage', '10.00')
+        ->assertJsonPath('order.order_items.0.discount_amount', '3.00')
+        ->assertJsonPath('order.order_items.0.total', '27.00');
+
+    $this->putJson('/api/orders/'.$created->json('order.id'), [
+        'customer_id' => $customer->id,
+        'items' => [[
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'discount_percentage' => 25,
+        ]],
+        'adjusted_total' => 15,
+        'discount' => 0,
+    ])->assertOk()
+        ->assertJsonPath('order.subtotal', 15)
+        ->assertJsonPath('order.total', 15)
+        ->assertJsonPath('order.order_items.0.discount_percentage', '25.00')
+        ->assertJsonPath('order.order_items.0.discount_amount', '5.00');
+
+    $this->postJson('/api/orders', [
+        'customer_id' => $customer->id,
+        'items' => [[
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'discount_percentage' => 101,
+        ]],
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors('items.0.discount_percentage');
+});
+
 test('mobile api blocks inactive users and tenants without an active subscription', function () {
     $activeTenant = mvpTenant('equipe', 'inactive-user');
     $inactiveSeller = mvpUser($activeTenant, User::ROLE_SELLER, 'inactive-user');

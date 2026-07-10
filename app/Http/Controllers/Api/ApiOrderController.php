@@ -75,6 +75,7 @@ class ApiOrderController extends Controller
                 Rule::exists('products', 'id')->where('tenant_id', $tenantId),
             ],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'gt:0'], // 'gt:0' é uma boa adição
+            'items.*.discount_percentage' => ['nullable', 'numeric', 'between:0,100'],
             'items.*.price' => ['nullable', 'numeric', 'min:0'],
             'items.*.name' => ['nullable', 'string'],
             'items.*.total' => ['nullable', 'numeric', 'min:0'],
@@ -117,7 +118,10 @@ class ApiOrderController extends Controller
                 $price = $itemCondition
                     ? $itemCondition->adjustedPrice((float) $product->price)
                     : (float) $product->price;
-                $itemTotal = round($price * (int) $item['quantity'], 2);
+                $discountPercentage = round((float) ($item['discount_percentage'] ?? 0), 2);
+                $grossItemTotal = round($price * (int) $item['quantity'], 2);
+                $itemDiscountAmount = round($grossItemTotal * ($discountPercentage / 100), 2);
+                $itemTotal = round($grossItemTotal - $itemDiscountAmount, 2);
                 $subtotal += $itemTotal;
                 if ($campaign && in_array($product->id, $campaignProductIds, true)) {
                     $campaignQuantity += (int) $item['quantity'];
@@ -127,6 +131,8 @@ class ApiOrderController extends Controller
                     'product_id' => $product->id,
                     'quantity' => (int) $item['quantity'],
                     'price' => $price,
+                    'discount_percentage' => $discountPercentage,
+                    'discount_amount' => $itemDiscountAmount,
                     'name' => $product->name,
                     'total' => $itemTotal,
                 ];
@@ -255,6 +261,7 @@ class ApiOrderController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.discount_percentage' => ['nullable', 'numeric', 'between:0,100'],
             'adjusted_total' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_condition' => ['nullable', 'string', 'max:120'],

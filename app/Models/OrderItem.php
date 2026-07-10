@@ -15,9 +15,19 @@ class OrderItem extends Model
         'product_id',
         'quantity',
         'price',
+        'discount_percentage',
+        'discount_amount',
         'name',
         'total',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'discount_percentage' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
+        ];
+    }
 
     public function order(): BelongsTo
     {
