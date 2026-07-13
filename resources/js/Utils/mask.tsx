@@ -94,6 +94,24 @@ function maskMoneyDot(value: string) {
     }
 }
 
+function maskSignedMoney(value: string | number | null | undefined) {
+    if (value === null || value === undefined || value === '') return '';
+
+    const rawValue = String(value);
+    const negative = typeof value === 'number' ? value < 0 : rawValue.includes('-');
+    const amount = typeof value === 'number' ? Math.abs(value) : Number(rawValue.replace(/\D/g, '') || 0) / 100;
+    const formatted = amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    return `${negative ? '-' : ''}R$ ${formatted}`;
+}
+
+function signedMoneyToNumber(value: string) {
+    const negative = value.includes('-');
+    const amount = Number(value.replace(/\D/g, '') || 0) / 100;
+
+    return negative ? -amount : amount;
+}
+
 function createSlug(title: string) {
     if (title) {
         return title
@@ -105,4 +123,4 @@ function createSlug(title: string) {
     }
 }
 
-export { maskCep, maskPhone, maskDate, maskCpfCnpj, maskCnpj, unMask, maskMoney, maskMoneyDot, maskWhatsApp, createSlug };
+export { maskCep, maskPhone, maskDate, maskCpfCnpj, maskCnpj, unMask, maskMoney, maskMoneyDot, maskSignedMoney, signedMoneyToNumber, maskWhatsApp, createSlug };

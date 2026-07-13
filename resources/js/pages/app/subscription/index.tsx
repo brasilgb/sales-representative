@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/toaster';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem, SharedData } from '@/types';
@@ -15,7 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Assinatura', href: '#' },
 ];
 
-export default function Subscription({ tenant, plans, blockedReason, onTrial }: any) {
+export default function Subscription({ tenant, plans, blockedReason, onTrial, inGracePeriod, graceDaysRemaining }: any) {
     const { auth } = usePage<SharedData>().props;
     const toast = useToast();
     const [selectedPeriods, setSelectedPeriods] = useState<Record<number, number>>(() =>
@@ -38,6 +39,7 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial }: 
                 if (result.approved) {
                     window.clearInterval(interval);
                     setPixData(null);
+                    toast.success('Pagamento confirmado! Assinatura ativada.');
                     router.reload();
                 }
             } catch {
@@ -87,13 +89,14 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial }: 
                 </div>
             </div>
 
-            {pixData && (
-                <div className="p-4 pt-0">
-                    <Card className="mx-auto max-w-xl">
-                        <CardHeader>
-                            <CardTitle className="text-base">Pagamento Pix</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-center">
+            <Dialog open={Boolean(pixData)} onOpenChange={(open) => !open && setPixData(null)}>
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Pagamento Pix</DialogTitle>
+                        <DialogDescription>Escaneie o QR Code ou copie o código Pix. A confirmação será automática.</DialogDescription>
+                    </DialogHeader>
+                    {pixData && (
+                        <div className="space-y-4 text-center">
                             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                                 <LoaderCircle className="h-4 w-4 animate-spin" />
                                 Aguardando confirmação do Mercado Pago
@@ -115,10 +118,13 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial }: 
                                 <Copy className="h-4 w-4" />
                                 Copiar código Pix
                             </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
+                            <Button type="button" variant="ghost" className="w-full" onClick={() => setPixData(null)}>
+                                Fechar e pagar depois
+                            </Button>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
 
             <div className="p-4">
                 <Card className="max-w-xl">
@@ -137,6 +143,7 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial }: 
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {onTrial && <Badge>Teste grátis até {new Date(tenant.trial_ends_at).toLocaleDateString('pt-BR')}</Badge>}
+                            {inGracePeriod && <Badge variant="destructive">Carência: bloqueio em {graceDaysRemaining} {graceDaysRemaining === 1 ? 'dia' : 'dias'}</Badge>}
                             <Badge variant={blockedReason ? 'destructive' : 'secondary'}>{blockedReason ?? 'Assinatura ativa'}</Badge>
                         </div>
                         <div className="text-sm text-muted-foreground">
@@ -171,7 +178,7 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial }: 
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-3 gap-2">
-                                    {plan.periods?.map((period: any) => (
+                                    {plan.periods?.filter((period: any) => [1, 6, 12].includes(Number(period.interval_count))).map((period: any) => (
                                         <Button
                                             key={period.id}
                                             type="button"

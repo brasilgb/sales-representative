@@ -28,7 +28,7 @@ export function CTASection({ trialDays, individualMonthlyPrice, teamMonthlyPrice
             </Button>
           </div>
           {individualMonthlyPrice && teamMonthlyPrice && (
-            <p className="mt-6 text-sm text-muted-foreground">Plano individual por R$ {maskMoney(individualMonthlyPrice)}/mês · Equipe com até 8 vendedores por R$ {maskMoney(teamMonthlyPrice)}/mês.</p>
+            <p className="mt-6 text-sm text-muted-foreground">Plano individual por R$ {maskMoney(individualMonthlyPrice)}/mês · Equipe com até 8 vendedores por R$ {maskMoney(teamMonthlyPrice)}/mês ou R$ {maskMoney(Number(teamMonthlyPrice) * 12 * 0.8)}/ano com 20% OFF · Acima de 8 vendedores, consulte-nos.</p>
           )}
         </div>
       </div>

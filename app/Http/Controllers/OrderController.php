@@ -98,6 +98,7 @@ class OrderController extends Controller
             ],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'gt:0'], // 'gt:0' é uma boa adição
             'items.*.discount_percentage' => ['nullable', 'numeric', 'between:0,100'],
+            'items.*.discount_amount' => ['nullable', 'numeric'],
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.name' => ['required', 'string'], // min:0 não é necessário aqui
             'items.*.total' => ['required', 'numeric', 'min:0'],
@@ -136,8 +137,13 @@ class OrderController extends Controller
                 }
 
                 $grossItemTotal = round($expectedPrice * (int) $item['quantity'], 2);
-                $itemDiscountPercentage = round((float) ($item['discount_percentage'] ?? 0), 2);
-                $subtotal += $grossItemTotal - round($grossItemTotal * ($itemDiscountPercentage / 100), 2);
+                $itemAdjustment = array_key_exists('discount_amount', $item)
+                    ? round((float) $item['discount_amount'], 2)
+                    : -round($grossItemTotal * ((float) ($item['discount_percentage'] ?? 0) / 100), 2);
+                if ($grossItemTotal + $itemAdjustment < 0) {
+                    throw new \Exception('O desconto individual não pode superar o valor do item.');
+                }
+                $subtotal += $grossItemTotal + $itemAdjustment;
                 if ($campaign && in_array($product->id, $campaignProductIds, true)) {
                     $campaignQuantity += (int) $item['quantity'];
                 }
@@ -199,17 +205,21 @@ class OrderController extends Controller
             // 2. Preparar e criar os itens do pedido
             $orderItemsData = collect($validatedData['items'])->map(function ($item) {
                 $grossItemTotal = round((float) $item['price'] * (int) $item['quantity'], 2);
-                $discountPercentage = round((float) ($item['discount_percentage'] ?? 0), 2);
-                $discountAmount = round($grossItemTotal * ($discountPercentage / 100), 2);
+                $adjustmentAmount = array_key_exists('discount_amount', $item)
+                    ? round((float) $item['discount_amount'], 2)
+                    : -round($grossItemTotal * ((float) ($item['discount_percentage'] ?? 0) / 100), 2);
+                $discountPercentage = array_key_exists('discount_amount', $item)
+                    ? ($grossItemTotal > 0 ? round(($adjustmentAmount / $grossItemTotal) * 100, 2) : 0)
+                    : round((float) ($item['discount_percentage'] ?? 0), 2);
 
                 return [
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'discount_percentage' => $discountPercentage,
-                    'discount_amount' => $discountAmount,
+                    'discount_amount' => array_key_exists('discount_amount', $item) ? $adjustmentAmount : abs($adjustmentAmount),
                     'name' => $item['name'],
-                    'total' => round($grossItemTotal - $discountAmount, 2),
+                    'total' => round($grossItemTotal + $adjustmentAmount, 2),
                 ];
             })->toArray();
 
@@ -286,6 +296,7 @@ class OrderController extends Controller
             'items.*.product_id' => ['required', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.discount_percentage' => ['nullable', 'numeric', 'between:0,100'],
+            'items.*.discount_amount' => ['nullable', 'numeric'],
             'adjusted_total' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_condition' => ['nullable', 'string', 'max:120'],

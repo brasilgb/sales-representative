@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { reactSelectThemeStyles } from '@/Utils/react-select-theme';
-import { BoxIcon, Plus } from 'lucide-react';
+import { maskSignedMoney, signedMoneyToNumber } from '@/Utils/mask';
+import { BoxIcon, CircleHelp, Plus } from 'lucide-react';
 import React, { useState } from 'react';
 import Select from 'react-select';
 
@@ -19,20 +21,20 @@ interface Product {
 
 interface Props {
     products: Product[];
-    onAddProduct: (product: Product, quantity: number, discountPercentage: number) => void;
+    onAddProduct: (product: Product, quantity: number, adjustmentAmount: number) => void;
 }
 
 export function ProductSelector({ products, onAddProduct }: Props) {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
-    const [discountPercentage, setDiscountPercentage] = useState<number>(0);
+    const [adjustmentInput, setAdjustmentInput] = useState('');
 
     const handleAdd = () => {
         if (selectedProduct && quantity > 0) {
-            onAddProduct(selectedProduct, quantity, discountPercentage);
+            onAddProduct(selectedProduct, quantity, signedMoneyToNumber(adjustmentInput));
             setSelectedProduct(null);
             setQuantity(1);
-            setDiscountPercentage(0);
+            setAdjustmentInput('');
         }
     };
 
@@ -69,15 +71,24 @@ export function ProductSelector({ products, onAddProduct }: Props) {
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="order-product-discount">Desconto individual (%)</Label>
+                        <div className="flex items-center gap-1.5">
+                            <Label htmlFor="order-product-discount">Ajuste individual (R$)</Label>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button type="button" aria-label="Ajuda sobre o ajuste individual" className="text-muted-foreground hover:text-foreground">
+                                        <CircleHelp className="h-4 w-4" />
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>Negativo dá desconto; positivo acrescenta.</TooltipContent>
+                            </Tooltip>
+                        </div>
                         <Input
                             id="order-product-discount"
-                            type="number"
-                            value={discountPercentage}
-                            onChange={(e) => setDiscountPercentage(Math.min(Math.max(Number(e.target.value), 0), 100))}
-                            min="0"
-                            max="100"
-                            step="0.01"
+                            type="text"
+                            inputMode="decimal"
+                            placeholder="R$ 0,00"
+                            value={maskSignedMoney(adjustmentInput)}
+                            onChange={(e) => setAdjustmentInput(`${e.target.value.includes('-') ? '-' : ''}${e.target.value.replace(/\D/g, '')}`)}
                         />
                     </div>
                 <Button

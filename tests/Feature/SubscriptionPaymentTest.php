@@ -5,6 +5,7 @@ use App\Models\Payment;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\MercadoPagoService;
+use App\Support\PlanLimits;
 use Illuminate\Support\Str;
 
 function paymentAccount(): array
@@ -48,6 +49,30 @@ function signedWebhookHeaders(string $paymentId, string $secret): array
         'x-signature' => 'ts='.$timestamp.',v1='.hash_hmac('sha256', $manifest, $secret),
     ];
 }
+
+test('subscription remains accessible during three day grace period and blocks afterwards', function () {
+    [, , $tenant] = paymentAccount();
+
+    $tenant->update([
+        'trial_ends_at' => now()->subDays(2),
+        'expiration_date' => now()->subDays(2),
+        'payment' => false,
+    ]);
+
+    $limits = PlanLimits::forTenant($tenant->fresh());
+    expect($limits->isInGracePeriod())->toBeTrue()
+        ->and($limits->subscriptionBlockedReason())->toBeNull()
+        ->and($limits->graceDaysRemaining())->toBeGreaterThanOrEqual(1);
+
+    $tenant->update([
+        'trial_ends_at' => now()->subDays(4),
+        'expiration_date' => now()->subDays(4),
+    ]);
+
+    $expiredLimits = PlanLimits::forTenant($tenant->fresh());
+    expect($expiredLimits->isInGracePeriod())->toBeFalse()
+        ->and($expiredLimits->subscriptionBlockedReason())->toBe('Período de teste expirado');
+});
 
 test('pix generation stores pending payment without activating subscription', function () {
     [$plan, $period, $tenant, $user] = paymentAccount();

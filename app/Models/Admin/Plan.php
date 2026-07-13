@@ -36,7 +36,7 @@ class Plan extends Model
     {
         return $this->hasMany(Period::class)
             ->where('interval', 'month')
-            ->whereIn('interval_count', [1, 3, 6])
+            ->whereIn('interval_count', [1, 3, 6, 12])
             ->orderBy('interval_count');
     }
 }

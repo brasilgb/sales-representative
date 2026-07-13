@@ -53,7 +53,7 @@ class ApiAuthController extends BaseController
                     Rule::exists('periods', 'id')->where(fn ($query) => $query
                         ->where('plan_id', $request->input('plan_id'))
                         ->where('interval', 'month')
-                        ->whereIn('interval_count', [1, 3, 6])),
+                        ->whereIn('interval_count', [1, 6, 12])),
                 ],
             ],
             [],
@@ -78,7 +78,7 @@ class ApiAuthController extends BaseController
                     ->findOrFail($request->integer('plan_id'));
                 $period = Period::where('plan_id', $plan->id)
                     ->where('interval', 'month')
-                    ->whereIn('interval_count', [1, 3, 6])
+                    ->whereIn('interval_count', [1, 6, 12])
                     ->findOrFail($request->integer('billing_period_id'));
             } else {
                 $accountType = $request->plan_type === Tenant::PLAN_INDIVIDUAL ? Tenant::PLAN_INDIVIDUAL : Tenant::PLAN_TEAM;

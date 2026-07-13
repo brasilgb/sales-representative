@@ -11,7 +11,7 @@ interface OrderItem {
   name: string;
   quantity: number;
   price: number;
-  discount_percentage: number;
+  discount_amount: number;
   total: string;
 }
 
@@ -32,7 +32,7 @@ export function OrderSummary({ items, onRemoveItem }: Props) {
             <TableHead className="p-2">Produto</TableHead>
             <TableHead className="p-2">Quantidade</TableHead>
             <TableHead className="p-2">Preço Unitário</TableHead>
-            <TableHead className="p-2">Desconto</TableHead>
+            <TableHead className="p-2">Ajuste</TableHead>
             <TableHead className="p-2">Total</TableHead>
             <TableHead className="p-2">Ações</TableHead>
           </TableRow>
@@ -43,7 +43,13 @@ export function OrderSummary({ items, onRemoveItem }: Props) {
               <TableCell className="p-2">{item.name}</TableCell>
               <TableCell className="p-2">{item.quantity}</TableCell>
               <TableCell className="p-2">R$ {maskMoney(item.price.toString())}</TableCell>
-              <TableCell className="p-2">{Number(item.discount_percentage).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%</TableCell>
+              <TableCell className="p-2">
+                {Number(item.discount_amount) < 0
+                  ? <span className="font-medium text-emerald-600">Desconto: − R$ {maskMoney(Math.abs(Number(item.discount_amount)))}</span>
+                  : Number(item.discount_amount) > 0
+                    ? <span className="font-medium text-amber-600">Acréscimo: + R$ {maskMoney(Number(item.discount_amount))}</span>
+                    : <span className="text-muted-foreground">Sem ajuste</span>}
+              </TableCell>
               <TableCell className="p-2">R$ {maskMoney(item.total)}</TableCell>
               <TableCell className="p-2">
                 <Button

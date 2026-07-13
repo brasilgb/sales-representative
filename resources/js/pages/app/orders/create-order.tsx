@@ -44,7 +44,7 @@ type OrderItem = {
     product_id: number;
     quantity: number;
     price: number;
-    discount_percentage: number;
+    discount_amount: number;
     name: string;
     total: string;
 };
@@ -140,8 +140,8 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
         post(route('app.orders.store'));
     };
 
-    const handleProductAdd = (product: any, quantity: number, discountPercentage: number) => {
-        const calculateTotal = (amount: number) => (Number(product.price) * amount * (1 - discountPercentage / 100)).toFixed(2);
+    const handleProductAdd = (product: any, quantity: number, adjustmentAmount: number) => {
+        const calculateTotal = (amount: number) => Math.max(Number(product.price) * amount + adjustmentAmount, 0).toFixed(2);
         setItems((prevItems) => {
             const existingItem = prevItems.find((item) => item.product_id === product.id);
 
@@ -152,7 +152,7 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                               ...item,
                               quantity: item.quantity + quantity,
                               price: Number(product.price),
-                              discount_percentage: discountPercentage,
+                              discount_amount: adjustmentAmount,
                               total: calculateTotal(item.quantity + quantity),
                           }
                         : item,
@@ -165,7 +165,7 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                     product_id: product.id,
                     quantity,
                     price: Number(product.price),
-                    discount_percentage: discountPercentage,
+                    discount_amount: adjustmentAmount,
                     name: product.name,
                     total: calculateTotal(quantity),
                 },
@@ -220,9 +220,11 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                         product_id: product.id,
                         quantity: Number(item.quantity),
                         price: Number(item.price ?? product.price),
-                        discount_percentage: Number(item.discount_percentage ?? 0),
+                        discount_amount: Number(item.discount_percentage ?? 0) > 0
+                            ? -Math.abs(Number(item.discount_amount ?? 0))
+                            : Number(item.discount_amount ?? 0),
                         name: product.name,
-                        total: (Number(item.price ?? product.price) * Number(item.quantity) * (1 - Number(item.discount_percentage ?? 0) / 100)).toFixed(2),
+                        total: Math.max(Number(item.price ?? product.price) * Number(item.quantity) + (Number(item.discount_percentage ?? 0) > 0 ? -Math.abs(Number(item.discount_amount ?? 0)) : Number(item.discount_amount ?? 0)), 0).toFixed(2),
                     };
                 })
                 .filter(Boolean),

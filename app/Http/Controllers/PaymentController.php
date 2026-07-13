@@ -28,7 +28,7 @@ class PaymentController extends Controller
         $plan = Plan::where('is_public', true)->findOrFail($data['plan_id']);
         $period = Period::where('plan_id', $plan->id)
             ->where('interval', 'month')
-            ->whereIn('interval_count', [1, 3, 6])
+            ->whereIn('interval_count', [1, 6, 12])
             ->findOrFail($data['period_id']);
 
         if ((float) $period->price <= 0) {

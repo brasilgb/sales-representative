@@ -13,14 +13,22 @@ class SubscriptionController extends Controller
 {
     public function index(Request $request): Response
     {
-        $tenant = $request->user()->tenant()->with(['planModel.periods', 'billingPeriod'])->firstOrFail();
+        $tenant = $request->user()->tenant()->with([
+            'planModel.periods' => fn ($query) => $query->whereIn('interval_count', [1, 6, 12]),
+            'billingPeriod',
+        ])->firstOrFail();
         $planLimits = PlanLimits::forTenant($tenant);
 
         return Inertia::render('app/subscription/index', [
             'tenant' => $tenant,
-            'plans' => Plan::with('periods')->where('is_public', true)->orderBy('price')->get(),
+            'plans' => Plan::with(['periods' => fn ($query) => $query->whereIn('interval_count', [1, 6, 12])])
+                ->where('is_public', true)
+                ->orderBy('price')
+                ->get(),
             'blockedReason' => $planLimits->subscriptionBlockedReason(),
             'onTrial' => $tenant->isOnTrial(),
+            'inGracePeriod' => $planLimits->isInGracePeriod(),
+            'graceDaysRemaining' => $planLimits->graceDaysRemaining(),
         ]);
     }
 

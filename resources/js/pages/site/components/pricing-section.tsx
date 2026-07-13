@@ -8,8 +8,8 @@ import { useState } from 'react';
 
 const periodLabels: Record<number, string> = {
     1: 'Mensal',
-    3: 'Trimestral',
-    6: 'Semestral',
+    6: 'Semestral · 10% OFF',
+    12: 'Anual · 20% OFF',
 };
 
 const accountTypeLabels: Record<string, string> = {
@@ -29,7 +29,7 @@ const sellerCapacityLabels: Record<string, string> = {
 
 const sellerCapacityDescriptions: Record<string, string> = {
     individual: 'Ideal para vendedor autônomo ou operação individual.',
-    team: 'Acima de 8 vendedores, montamos uma condição personalizada.',
+    team: 'Valor válido para equipes com até 8 vendedores. Acima disso, consulte nossa equipe comercial.',
 };
 
 const featureLabels: Record<string, string> = {
@@ -57,11 +57,11 @@ export function PricingSection({ plans }: { plans: any[] }) {
             <div className="container mx-auto px-4">
                 <div className="mx-auto mb-10 max-w-3xl text-center">
                     <h2 className="mb-4 text-3xl font-bold tracking-tight text-balance md:text-5xl">Escolha pelo tamanho da sua equipe</h2>
-                    <p className="text-lg text-muted-foreground text-balance">Um plano para quem vende sozinho e outro para equipes com até 8 vendedores. Selecione o período para ver o valor total da cobrança.</p>
+                    <p className="text-lg text-muted-foreground text-balance">Planos com 10% de desconto no semestre e 20% no ano. O plano Equipe atende até 8 vendedores; para equipes maiores, consulte uma condição personalizada.</p>
                 </div>
 
                 <div className="mx-auto mb-10 flex w-fit flex-wrap justify-center gap-2 rounded-lg border bg-background p-2">
-                    {[1, 3, 6].map((months) => (
+                    {[1, 6, 12].map((months) => (
                         <Button key={months} type="button" variant={selectedMonths === months ? 'default' : 'ghost'} onClick={() => setSelectedMonths(months)}>
                             {periodLabels[months]}
                         </Button>
@@ -72,6 +72,9 @@ export function PricingSection({ plans }: { plans: any[] }) {
                     {plans.map((plan) => {
                         const period = plan.periods?.find((item: any) => Number(item.interval_count) === selectedMonths);
                         const isTeam = plan.account_type === 'team';
+                        const monthlyPeriod = plan.periods?.find((item: any) => Number(item.interval_count) === 1);
+                        const fullPeriodPrice = monthlyPeriod ? Number(monthlyPeriod.price) * selectedMonths : null;
+                        const savings = period && fullPeriodPrice ? fullPeriodPrice - Number(period.price) : 0;
 
                         return (
                             <Card key={plan.id} className={`relative flex flex-col border-border ${isTeam ? 'border-primary shadow-lg' : ''}`}>
@@ -82,10 +85,15 @@ export function PricingSection({ plans }: { plans: any[] }) {
                                     <CardDescription className="leading-relaxed">{accountTypeDescriptions[plan.account_type] ?? plan.description}</CardDescription>
                                     <div className="mt-4">
                                         <span className="text-4xl font-bold">{period ? `R$ ${maskMoney(period.price)}` : 'Sob consulta'}</span>
-                                        <span className="ml-2 text-muted-foreground">{selectedMonths === 1 ? '/mês' : `/a cada ${selectedMonths} meses`}</span>
+                                        <span className="ml-2 text-muted-foreground">
+                                            {selectedMonths === 1 ? '/mês' : selectedMonths === 6 ? '/semestre' : '/ano'}
+                                        </span>
                                     </div>
                                     {period && selectedMonths > 1 && (
-                                        <div className="text-sm text-muted-foreground">Equivale a R$ {maskMoney(Number(period.price) / selectedMonths)} por mês</div>
+                                        <div className="space-y-1 text-sm text-muted-foreground">
+                                            <div>Equivale a R$ {maskMoney(Number(period.price) / selectedMonths)} por mês</div>
+                                            {savings > 0 && <div className="font-medium text-primary">Você economiza R$ {maskMoney(savings)}</div>}
+                                        </div>
                                     )}
                                     <div className="mt-1 text-sm text-muted-foreground">{plan.trial_days} dias para testar sem cartão</div>
                                 </CardHeader>
@@ -98,6 +106,14 @@ export function PricingSection({ plans }: { plans: any[] }) {
                                         <p className="text-sm leading-6 text-muted-foreground">
                                             {sellerCapacityDescriptions[plan.account_type] ?? 'Plano conforme o tamanho da sua operação comercial.'}
                                         </p>
+                                        {isTeam && (
+                                            <a
+                                                href="https://wa.me/5551998931325?text=Tenho%20uma%20equipe%20com%20mais%20de%208%20vendedores%20e%20quero%20consultar%20uma%20condição%20personalizada"
+                                                className="mt-3 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
+                                            >
+                                                Mais de 8 vendedores? Consulte-nos
+                                            </a>
+                                        )}
                                     </div>
                                     <div className="rounded-md border border-border bg-background p-4">
                                         <div className="mb-2 flex items-center gap-2 text-sm font-medium">

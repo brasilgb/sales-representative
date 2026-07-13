@@ -13,6 +13,8 @@ use Illuminate\Support\Str;
 
 class PlanLimits
 {
+    public const GRACE_DAYS = 3;
+
     public function __construct(private readonly Tenant $tenant)
     {
         $this->tenant->loadMissing('planModel');
@@ -87,14 +89,26 @@ class PlanLimits
         }
 
         if ($this->tenant->trial_ends_at && ! $this->tenant->payment) {
+            if ($this->isInGracePeriod()) {
+                return null;
+            }
+
             return 'Período de teste expirado';
         }
 
         if (! $this->tenant->payment) {
+            if ($this->isInGracePeriod()) {
+                return null;
+            }
+
             return 'Pagamento pendente';
         }
 
         if ($this->tenant->expiration_date && Carbon::parse($this->tenant->expiration_date)->isPast()) {
+            if ($this->isInGracePeriod()) {
+                return null;
+            }
+
             return 'Assinatura expirada';
         }
 
@@ -103,6 +117,45 @@ class PlanLimits
         }
 
         return null;
+    }
+
+    public function graceEndsAt(): ?Carbon
+    {
+        $endsAt = $this->tenant->payment
+            ? $this->tenant->expiration_date
+            : ($this->tenant->trial_ends_at ?? $this->tenant->expiration_date);
+
+        if (! $endsAt) {
+            return null;
+        }
+
+        $endsAt = Carbon::parse($endsAt);
+        if ($this->tenant->expiration_date && $endsAt->isSameDay(Carbon::parse($this->tenant->expiration_date))) {
+            $endsAt = $endsAt->endOfDay();
+        }
+
+        return $endsAt->addDays(self::GRACE_DAYS);
+    }
+
+    public function isInGracePeriod(): bool
+    {
+        $licenseEndsAt = $this->tenant->payment
+            ? $this->tenant->expiration_date
+            : ($this->tenant->trial_ends_at ?? $this->tenant->expiration_date);
+        $graceEndsAt = $this->graceEndsAt();
+
+        return $licenseEndsAt !== null
+            && Carbon::parse($licenseEndsAt)->isPast()
+            && $graceEndsAt?->isFuture();
+    }
+
+    public function graceDaysRemaining(): int
+    {
+        if (! $this->isInGracePeriod()) {
+            return 0;
+        }
+
+        return max(1, (int) ceil(now()->diffInDays($this->graceEndsAt(), false)));
     }
 
     public function featureLabel(string $feature): string

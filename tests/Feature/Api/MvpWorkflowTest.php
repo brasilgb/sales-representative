@@ -422,6 +422,22 @@ test('mobile orders apply and persist an individual product discount', function 
         ]],
     ])->assertUnprocessable()
         ->assertJsonValidationErrors('items.0.discount_percentage');
+
+    $this->postJson('/api/orders', [
+        'customer_id' => $customer->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 1, 'discount_amount' => -2]],
+    ])->assertCreated()
+        ->assertJsonPath('order.subtotal', 8)
+        ->assertJsonPath('order.order_items.0.discount_amount', '-2.00')
+        ->assertJsonPath('order.order_items.0.total', '8.00');
+
+    $this->postJson('/api/orders', [
+        'customer_id' => $customer->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 1, 'discount_amount' => 2]],
+    ])->assertCreated()
+        ->assertJsonPath('order.subtotal', 12)
+        ->assertJsonPath('order.order_items.0.discount_amount', '2.00')
+        ->assertJsonPath('order.order_items.0.total', '12.00');
 });
 
 test('mobile api blocks inactive users and tenants without an active subscription', function () {
@@ -439,8 +455,8 @@ test('mobile api blocks inactive users and tenants without an active subscriptio
     $expiredTenant = mvpTenant('solo', 'expired-subscription');
     $expiredTenant->update([
         'payment' => false,
-        'trial_ends_at' => now()->subDay(),
-        'expiration_date' => now()->subDay(),
+        'trial_ends_at' => now()->subDays(4),
+        'expiration_date' => now()->subDays(4),
     ]);
     $owner = mvpUser($expiredTenant, User::ROLE_OWNER, 'expired-subscription');
 

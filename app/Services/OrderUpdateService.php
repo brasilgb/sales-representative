@@ -54,10 +54,17 @@ final class OrderUpdateService
                     ? $campaign->commercialCondition
                     : $customerCondition;
                 $price = $itemCondition ? $itemCondition->adjustedPrice((float) $product->price) : (float) $product->price;
-                $discountPercentage = round((float) ($item['discount_percentage'] ?? 0), 2);
                 $grossItemTotal = round($price * $quantity, 2);
-                $itemDiscountAmount = round($grossItemTotal * ($discountPercentage / 100), 2);
-                $itemTotal = round($grossItemTotal - $itemDiscountAmount, 2);
+                $itemAdjustment = array_key_exists('discount_amount', $item)
+                    ? round((float) $item['discount_amount'], 2)
+                    : -round($grossItemTotal * ((float) ($item['discount_percentage'] ?? 0) / 100), 2);
+                if ($grossItemTotal + $itemAdjustment < 0) {
+                    throw new RuntimeException('O desconto individual não pode superar o valor do item.');
+                }
+                $discountPercentage = array_key_exists('discount_amount', $item)
+                    ? ($grossItemTotal > 0 ? round(($itemAdjustment / $grossItemTotal) * 100, 2) : 0)
+                    : round((float) ($item['discount_percentage'] ?? 0), 2);
+                $itemTotal = round($grossItemTotal + $itemAdjustment, 2);
                 $subtotal += $itemTotal;
                 if ($campaign && in_array($product->id, $campaignProductIds, true)) {
                     $campaignQuantity += $quantity;
@@ -67,7 +74,7 @@ final class OrderUpdateService
                     'quantity' => $quantity,
                     'price' => $price,
                     'discount_percentage' => $discountPercentage,
-                    'discount_amount' => $itemDiscountAmount,
+                    'discount_amount' => array_key_exists('discount_amount', $item) ? $itemAdjustment : abs($itemAdjustment),
                     'name' => $product->name,
                     'total' => $itemTotal,
                 ];
