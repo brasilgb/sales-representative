@@ -26,6 +26,7 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial, in
     );
     const [pixData, setPixData] = useState<any | null>(null);
     const [generatingPix, setGeneratingPix] = useState<number | null>(null);
+    const shouldShowPlans = Boolean(blockedReason || inGracePeriod);
     useEffect(() => {
         if (!pixData?.payment_id) return;
 
@@ -142,19 +143,25 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial, in
                             )}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            {onTrial && <Badge>Teste grátis até {new Date(tenant.trial_ends_at).toLocaleDateString('pt-BR')}</Badge>}
-                            {inGracePeriod && <Badge variant="destructive">Carência: bloqueio em {graceDaysRemaining} {graceDaysRemaining === 1 ? 'dia' : 'dias'}</Badge>}
-                            <Badge variant={blockedReason ? 'destructive' : 'secondary'}>{blockedReason ?? 'Assinatura ativa'}</Badge>
+                            {onTrial ? (
+                                <Badge>Período de teste</Badge>
+                            ) : inGracePeriod ? (
+                                <Badge variant="destructive">Pagamento pendente · bloqueio em {graceDaysRemaining} {graceDaysRemaining === 1 ? 'dia' : 'dias'}</Badge>
+                            ) : (
+                                <Badge variant={blockedReason ? 'destructive' : 'secondary'}>{blockedReason ?? 'Assinatura ativa'}</Badge>
+                            )}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                            Vencimento: {tenant.expiration_date ? new Date(tenant.expiration_date).toLocaleDateString('pt-BR') : 'não definido'}
+                            {onTrial
+                                ? `Teste grátis até ${new Date(tenant.trial_ends_at).toLocaleDateString('pt-BR')}`
+                                : `Vencimento da assinatura: ${tenant.expiration_date ? new Date(tenant.expiration_date).toLocaleDateString('pt-BR') : 'não definido'}`}
                         </div>
                     </CardContent>
                 </Card>
 
             </div>
 
-            <div className="mx-auto grid w-full max-w-5xl gap-4 p-4 pt-0 md:grid-cols-2">
+            {shouldShowPlans && <div className="mx-auto grid w-full max-w-5xl gap-4 p-4 pt-0 md:grid-cols-2">
                 {plans.map((plan: any) => {
                     const selectedPeriod = plan.periods?.find((period: any) => period.id === selectedPeriods[plan.id]) ?? plan.periods?.[0];
                     const current = tenant.plan === plan.id && tenant.billing_period_id === selectedPeriod?.id && !blockedReason;
@@ -217,7 +224,7 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial, in
                         </Card>
                     );
                 })}
-            </div>
+            </div>}
         </AppLayout>
     );
 }

@@ -18,16 +18,20 @@ class SubscriptionController extends Controller
             'billingPeriod',
         ])->firstOrFail();
         $planLimits = PlanLimits::forTenant($tenant);
+        $blockedReason = $planLimits->subscriptionBlockedReason();
+        $inGracePeriod = $planLimits->isInGracePeriod();
 
         return Inertia::render('app/subscription/index', [
             'tenant' => $tenant,
-            'plans' => Plan::with(['periods' => fn ($query) => $query->whereIn('interval_count', [1, 6, 12])])
-                ->where('is_public', true)
-                ->orderBy('price')
-                ->get(),
-            'blockedReason' => $planLimits->subscriptionBlockedReason(),
+            'plans' => ($blockedReason || $inGracePeriod)
+                ? Plan::with(['periods' => fn ($query) => $query->whereIn('interval_count', [1, 6, 12])])
+                    ->where('is_public', true)
+                    ->orderBy('price')
+                    ->get()
+                : [],
+            'blockedReason' => $blockedReason,
             'onTrial' => $tenant->isOnTrial(),
-            'inGracePeriod' => $planLimits->isInGracePeriod(),
+            'inGracePeriod' => $inGracePeriod,
             'graceDaysRemaining' => $planLimits->graceDaysRemaining(),
         ]);
     }

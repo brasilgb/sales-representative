@@ -2,12 +2,11 @@ import AppearanceTabs from '@/components/appearance-tabs';
 import HeadingSmall from '@/components/heading-small';
 import { Icon } from '@/components/icon';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { BreadcrumbItem, SharedData } from '@/types';
+import { BreadcrumbItem } from '@/types';
 import { maskMoney, maskCpfCnpj } from '@/Utils/mask';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { CogIcon, CreditCard } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -17,7 +16,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function OtherSettings({ tenant, blockedReason, onTrial }: any) {
-    const { auth } = usePage<SharedData>().props;
     const plan = tenant.plan_model;
     const period = tenant.billing_period;
     const licenseEnd = onTrial ? tenant.trial_ends_at : tenant.expiration_date;
@@ -69,11 +67,6 @@ export default function OtherSettings({ tenant, blockedReason, onTrial }: any) {
                             </div>
                         </div>
 
-                        {auth.canManageTeam && (
-                            <Button asChild>
-                                <Link href={route('app.subscription.index')}>Gerenciar licença</Link>
-                            </Button>
-                        )}
                     </CardContent>
                 </Card>
 
