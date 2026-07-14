@@ -1,5 +1,5 @@
 const brandName = 'VetorPet';
-const logoSrc = '/images/logo.png';
+const logoSrc = '/images/logo_pet.png';
 
 function BrandMark() {
     return <img src={logoSrc} alt="" width={40} height={40} className="size-10 object-contain" aria-hidden="true" />;
