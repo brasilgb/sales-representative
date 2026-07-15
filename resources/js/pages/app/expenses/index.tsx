@@ -12,12 +12,30 @@ import { FormEvent, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: route('app.dashboard') }, { title: 'Despesas', href: '#' }];
 const categoryLabels: Record<string, string> = { mileage: 'Quilometragem', food: 'Alimentação', lodging: 'Hospedagem', other: 'Outros gastos' };
+const monthLabels = [
+    'Janeiro',
+    'Fevereiro',
+    'Março',
+    'Abril',
+    'Maio',
+    'Junho',
+    'Julho',
+    'Agosto',
+    'Setembro',
+    'Outubro',
+    'Novembro',
+    'Dezembro',
+];
 const money = (value: number | string) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 export default function Expenses({ expenses, summary, filters, users, canManageTeam }: any) {
-    const [month, setMonth] = useState(filters.month);
+    const [month, setMonth] = useState(String(filters.month ?? new Date().toISOString().slice(0, 7)));
     const [category, setCategory] = useState(filters.category ?? '');
     const [userId, setUserId] = useState(filters.user_id ?? '');
+    const [year, selectedMonth] = month.split('-');
+
+    const updateMonth = (value: string) => setMonth(`${year}-${value}`);
+    const updateYear = (value: string) => setMonth(`${value}-${selectedMonth}`);
 
     const filter = (event: FormEvent) => {
         event.preventDefault();
@@ -37,7 +55,18 @@ export default function Expenses({ expenses, summary, filters, users, canManageT
 
             <form onSubmit={filter} className="flex flex-col gap-3 p-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="grid w-full gap-3 sm:grid-cols-2 lg:max-w-[700px] lg:grid-cols-3">
-                    <div className="grid gap-2"><Label htmlFor="month">Mês</Label><Input id="month" type="month" value={month} onChange={(event) => setMonth(event.target.value)} /></div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="month">Mês</Label>
+                        <div className="grid grid-cols-[1fr_96px] gap-2">
+                            <select id="month" className="flex h-9 rounded-md border border-input bg-transparent px-3 text-sm" value={selectedMonth} onChange={(event) => updateMonth(event.target.value)}>
+                                {monthLabels.map((label, index) => {
+                                    const value = String(index + 1).padStart(2, '0');
+                                    return <option key={value} value={value}>{label}</option>;
+                                })}
+                            </select>
+                            <Input aria-label="Ano" type="number" min="2000" max="2100" value={year} onChange={(event) => updateYear(event.target.value)} />
+                        </div>
+                    </div>
                     <div className="grid gap-2"><Label htmlFor="category">Categoria</Label><select id="category" className="flex h-9 rounded-md border border-input bg-transparent px-3 text-sm" value={category} onChange={(event) => setCategory(event.target.value)}><option value="">Todas</option>{Object.entries(categoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
                     {canManageTeam && <div className="grid gap-2"><Label htmlFor="user_id">Vendedor</Label><select id="user_id" className="flex h-9 rounded-md border border-input bg-transparent px-3 text-sm" value={userId} onChange={(event) => setUserId(event.target.value)}><option value="">Todos</option>{users.map((user: any) => <option key={user.id} value={user.id}>{user.name}</option>)}</select></div>}
                 </div>

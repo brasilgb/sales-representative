@@ -19,7 +19,11 @@ export default function Dashboard({ summary, campaignSales, recentOrders, status
         <div className="flex flex-col gap-5 p-4">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
                 <div><h1 className="text-2xl font-semibold">Visão geral</h1><p className="text-sm text-muted-foreground">Resumo executivo de {executivePeriod}.</p></div>
-                <div className="flex gap-2"><Button asChild variant="outline"><Link href={route('app.reports.sellers')}><UsersRound className="h-4 w-4" />Vendedores</Link></Button><Button asChild><Link href={route('app.reports.sales')}><ChartNoAxesCombined className="h-4 w-4" />Vendas</Link></Button></div>
+                <div className="flex flex-wrap gap-2">
+                    <Button asChild variant="outline"><Link href={route('app.reports.sellers')}><UsersRound className="h-4 w-4" />Vendedores</Link></Button>
+                    <Button asChild variant="outline"><Link href={route('app.reports.expenses')}><ReceiptText className="h-4 w-4" />Despesas</Link></Button>
+                    <Button asChild><Link href={route('app.reports.sales')}><ChartNoAxesCombined className="h-4 w-4" />Vendas</Link></Button>
+                </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

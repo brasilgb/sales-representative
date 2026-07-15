@@ -28,8 +28,8 @@ class PlanRequest extends FormRequest
             'account_type' => ['required', Rule::in(['individual', 'team'])],
             'description' => ['required', 'string', 'max:500'],
             'monthly_price' => ['required', 'numeric', 'min:0'],
-            'quarterly_price' => ['required', 'numeric', 'min:0'],
             'semiannual_price' => ['required', 'numeric', 'min:0'],
+            'annual_price' => ['required', 'numeric', 'min:0'],
         ];
     }
 
@@ -40,8 +40,8 @@ class PlanRequest extends FormRequest
             'description' => 'descrição',
             'account_type' => 'tipo de conta',
             'monthly_price' => 'valor mensal',
-            'quarterly_price' => 'valor trimestral',
             'semiannual_price' => 'valor semestral',
+            'annual_price' => 'valor anual',
         ];
     }
 }

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\MercadoPagoService;
 use App\Support\PlanLimits;
 use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia as Assert;
 
 function paymentAccount(): array
 {
@@ -74,6 +75,19 @@ test('subscription remains accessible during three day grace period and blocks a
         ->and($expiredLimits->subscriptionBlockedReason())->toBe('Período de teste expirado');
 });
 
+test('expired individual subscription only offers individual payment plans', function () {
+    [, , , $user] = paymentAccount();
+
+    $this->actingAs($user)
+        ->get(route('app.subscription.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('app/subscription/index')
+            ->where('accountType', Tenant::PLAN_INDIVIDUAL)
+            ->has('plans', 1)
+            ->where('plans.0.account_type', Tenant::PLAN_INDIVIDUAL));
+});
+
 test('pix generation stores pending payment without activating subscription', function () {
     [$plan, $period, $tenant, $user] = paymentAccount();
     config()->set('services.mercadopago.access_token', 'test-token');
@@ -115,6 +129,9 @@ test('pix generation stores pending payment without activating subscription', fu
         'qr_code_copy_paste' => 'pix-copia-e-cola',
         'payment_id' => 'mp-pending-1',
         'status' => 'pending',
+        'plan' => $plan->name,
+        'period' => $period->name,
+        'amount' => 59.90,
     ]);
 
     expect($tenant->fresh()->payment)->toBeFalse();
@@ -125,6 +142,21 @@ test('pix generation stores pending payment without activating subscription', fu
         'payment_id' => 'mp-pending-1',
         'status' => 'pending',
     ]);
+});
+
+test('pix generation rejects plans from another account type', function () {
+    [, , , $user] = paymentAccount();
+    $teamPlan = Plan::where('slug', 'equipe')->firstOrFail();
+    $teamPeriod = $teamPlan->periods()->where('interval_count', 1)->firstOrFail();
+
+    $service = Mockery::mock(MercadoPagoService::class);
+    $service->shouldNotReceive('createPixPayment');
+    $this->app->instance(MercadoPagoService::class, $service);
+
+    $this->actingAs($user)->postJson(route('app.subscription.pix'), [
+        'plan_id' => $teamPlan->id,
+        'period_id' => $teamPeriod->id,
+    ])->assertNotFound();
 });
 
 test('signed approved webhook activates subscription only once', function () {

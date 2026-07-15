@@ -24,6 +24,8 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/dashboard/export', [DashboardController::class, 'export'])->name('dashboard.export');
 Route::get('/reports/sales', [PerformanceReportController::class, 'sales'])->name('reports.sales');
 Route::get('/reports/sellers', [PerformanceReportController::class, 'sellers'])->name('reports.sellers');
+Route::get('/reports/expenses', [PerformanceReportController::class, 'expenses'])->name('reports.expenses');
+Route::get('/reports/expenses/pdf', [PerformanceReportController::class, 'expenseReport'])->name('reports.expenses.pdf');
 Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
 Route::patch('/subscription', [SubscriptionController::class, 'update'])->name('subscription.update');
 Route::post('/subscription/pix', [PaymentController::class, 'generatePix'])->name('subscription.pix');

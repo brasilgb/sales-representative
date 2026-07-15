@@ -16,7 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Assinatura', href: '#' },
 ];
 
-export default function Subscription({ tenant, plans, blockedReason, onTrial, inGracePeriod, graceDaysRemaining }: any) {
+export default function Subscription({ tenant, plans, accountType, blockedReason, onTrial, inGracePeriod, graceDaysRemaining }: any) {
     const { auth } = usePage<SharedData>().props;
     const toast = useToast();
     const [selectedPeriods, setSelectedPeriods] = useState<Record<number, number>>(() =>
@@ -27,6 +27,7 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial, in
     const [pixData, setPixData] = useState<any | null>(null);
     const [generatingPix, setGeneratingPix] = useState<number | null>(null);
     const shouldShowPlans = Boolean(blockedReason || inGracePeriod);
+    const accountTypeLabel = accountType === 'team' ? 'Equipe' : 'Individual';
     useEffect(() => {
         if (!pixData?.payment_id) return;
 
@@ -102,6 +103,10 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial, in
                                 <LoaderCircle className="h-4 w-4 animate-spin" />
                                 Aguardando confirmação do Mercado Pago
                             </div>
+                            <div className="rounded-md border bg-muted/30 p-3 text-left text-sm">
+                                <div className="font-medium">{pixData.plan} · {pixData.period}</div>
+                                <div className="text-muted-foreground">Valor: R$ {maskMoney(pixData.amount)}</div>
+                            </div>
                             <img
                                 src={`data:image/png;base64,${pixData.qr_code}`}
                                 alt="QR Code Pix"
@@ -161,7 +166,15 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial, in
 
             </div>
 
-            {shouldShowPlans && <div className="mx-auto grid w-full max-w-5xl gap-4 p-4 pt-0 md:grid-cols-2">
+            {shouldShowPlans && <div className="space-y-4 p-4 pt-0">
+                <div className="max-w-5xl">
+                    <div className="text-sm font-medium">Regularizar assinatura {accountTypeLabel.toLowerCase()}</div>
+                    <div className="text-sm text-muted-foreground">
+                        Escolha um período do plano {accountTypeLabel.toLowerCase()} para gerar a cobrança Pix.
+                    </div>
+                </div>
+
+                <div className="mx-auto grid w-full max-w-5xl gap-4 md:grid-cols-2">
                 {plans.map((plan: any) => {
                     const selectedPeriod = plan.periods?.find((period: any) => period.id === selectedPeriods[plan.id]) ?? plan.periods?.[0];
                     const current = tenant.plan === plan.id && tenant.billing_period_id === selectedPeriod?.id && !blockedReason;
@@ -224,6 +237,7 @@ export default function Subscription({ tenant, plans, blockedReason, onTrial, in
                         </Card>
                     );
                 })}
+                </div>
             </div>}
         </AppLayout>
     );

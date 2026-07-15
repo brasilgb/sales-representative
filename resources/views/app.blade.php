@@ -59,7 +59,8 @@
 
         <title inertia>{{ config('app.name', 'VetorPet') }}</title>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
+        <link rel="icon" type="image/png" href="/images/logo_pet.png">
+        <link rel="shortcut icon" href="/favicon.ico" sizes="any">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         <link rel="preconnect" href="https://fonts.bunny.net">

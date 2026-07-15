@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Campaign;
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Region;
@@ -17,6 +18,13 @@ use Inertia\Response;
 
 class PerformanceReportController extends Controller
 {
+    private const EXPENSE_CATEGORIES = [
+        'mileage' => 'Quilometragem',
+        'food' => 'Alimentação',
+        'lodging' => 'Hospedagem',
+        'other' => 'Outros gastos',
+    ];
+
     public function sales(Request $request): Response
     {
         $filters = $this->filters($request);
@@ -114,6 +122,103 @@ class PerformanceReportController extends Controller
         ]);
     }
 
+    public function expenses(Request $request): Response
+    {
+        $filters = $this->filters($request);
+        $expenses = $this->expensesQuery($filters);
+        $allExpenses = (clone $expenses)->with('user:id,name')->orderBy('expense_date')->get();
+        $users = auth()->user()->canManageTeam()
+            ? User::where('status', true)->orderBy('name')->get(['id', 'name'])
+            : User::whereKey(auth()->id())->get(['id', 'name']);
+
+        if ($filters['user_id']) {
+            $users = $users->where('id', $filters['user_id'])->values();
+        }
+
+        $bySeller = $users->map(function (User $user) use ($allExpenses) {
+            $sellerExpenses = $allExpenses->where('user_id', $user->id);
+            $amount = (float) $sellerExpenses->sum('amount');
+            $kilometers = (float) $sellerExpenses->sum('kilometers');
+            $count = $sellerExpenses->count();
+
+            return [
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'amount' => $amount,
+                'kilometers' => $kilometers,
+                'count' => $count,
+                'average_amount' => $count ? $amount / $count : 0,
+            ];
+        })->filter(fn (array $seller) => $seller['count'] > 0)->sortByDesc('amount')->values();
+
+        $byCategory = collect(self::EXPENSE_CATEGORIES)->map(function (string $label, string $category) use ($allExpenses) {
+            $categoryExpenses = $allExpenses->where('category', $category);
+
+            return [
+                'category' => $category,
+                'label' => $label,
+                'amount' => (float) $categoryExpenses->sum('amount'),
+                'kilometers' => (float) $categoryExpenses->sum('kilometers'),
+                'count' => $categoryExpenses->count(),
+            ];
+        })->values();
+
+        return Inertia::render('app/reports/expenses', [
+            'filters' => $filters,
+            'filterOptions' => [
+                'users' => auth()->user()->canManageTeam()
+                    ? User::where('status', true)->orderBy('name')->get(['id', 'name'])
+                    : collect([auth()->user()->only('id', 'name')]),
+                'categories' => collect(self::EXPENSE_CATEGORIES)->map(fn (string $name, string $id) => compact('id', 'name'))->values(),
+            ],
+            'summary' => [
+                'amount' => (float) $allExpenses->sum('amount'),
+                'kilometers' => (float) $allExpenses->sum('kilometers'),
+                'count' => $allExpenses->count(),
+                'sellers_count' => $allExpenses->pluck('user_id')->filter()->unique()->count(),
+            ],
+            'bySeller' => $bySeller,
+            'byCategory' => $byCategory,
+            'expenses' => (clone $expenses)->with('user:id,name')->latest('expense_date')->latest('id')->paginate(20)->withQueryString(),
+            'canManageTeam' => auth()->user()->canManageTeam(),
+        ]);
+    }
+
+    public function expenseReport(Request $request): Response
+    {
+        $filters = $this->filters($request);
+        $expenses = $this->expensesQuery($filters)
+            ->with('user:id,name')
+            ->orderBy('expense_date')
+            ->orderBy('id')
+            ->get();
+        $byCategory = collect(self::EXPENSE_CATEGORIES)->map(function (string $label, string $category) use ($expenses) {
+            $categoryExpenses = $expenses->where('category', $category);
+
+            return [
+                'category' => $category,
+                'label' => $label,
+                'amount' => (float) $categoryExpenses->sum('amount'),
+                'kilometers' => (float) $categoryExpenses->sum('kilometers'),
+                'count' => $categoryExpenses->count(),
+            ];
+        })->filter(fn (array $category) => $category['count'] > 0)->values();
+        $sellerId = $filters['user_id'];
+
+        return Inertia::render('app/reports/expense-report', [
+            'expenses' => $expenses,
+            'summary' => [
+                'amount' => (float) $expenses->sum('amount'),
+                'kilometers' => (float) $expenses->sum('kilometers'),
+                'count' => $expenses->count(),
+            ],
+            'byCategory' => $byCategory,
+            'filters' => $filters,
+            'sellerName' => $sellerId ? User::find($sellerId)?->name : null,
+            'categoryName' => $filters['category'] ? self::EXPENSE_CATEGORIES[$filters['category']] ?? $filters['category'] : null,
+        ]);
+    }
+
     private function filters(Request $request): array
     {
         return [
@@ -134,6 +239,14 @@ class PerformanceReportController extends Controller
             ->when($filters['region_id'], fn (Builder $query) => $query->whereHas('customer', fn (Builder $query) => $query->where('region_id', $filters['region_id'])))
             ->when($filters['category'], fn (Builder $query) => $query->whereHas('orderItems.product', fn (Builder $query) => $query->where('category', $filters['category'])))
             ->when($filters['campaign_id'], fn (Builder $query) => $query->where('campaign_id', $filters['campaign_id']));
+    }
+
+    private function expensesQuery(array $filters): Builder
+    {
+        return Expense::visibleTo()
+            ->whereBetween('expense_date', [$filters['start_date'], $filters['end_date']])
+            ->when($filters['user_id'], fn (Builder $query) => $query->where('user_id', $filters['user_id']))
+            ->when($filters['category'], fn (Builder $query) => $query->where('category', $filters['category']));
     }
 
     private function filterOptions(): array

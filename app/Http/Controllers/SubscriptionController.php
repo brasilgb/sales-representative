@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admin\Plan;
+use App\Models\Tenant;
 use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,15 +21,20 @@ class SubscriptionController extends Controller
         $planLimits = PlanLimits::forTenant($tenant);
         $blockedReason = $planLimits->subscriptionBlockedReason();
         $inGracePeriod = $planLimits->isInGracePeriod();
+        $accountType = $tenant->plan_type
+            ?: $tenant->planModel?->account_type
+            ?: Tenant::PLAN_INDIVIDUAL;
 
         return Inertia::render('app/subscription/index', [
             'tenant' => $tenant,
             'plans' => ($blockedReason || $inGracePeriod)
                 ? Plan::with(['periods' => fn ($query) => $query->whereIn('interval_count', [1, 6, 12])])
                     ->where('is_public', true)
+                    ->where('account_type', $accountType)
                     ->orderBy('price')
                     ->get()
                 : [],
+            'accountType' => $accountType,
             'blockedReason' => $blockedReason,
             'onTrial' => $tenant->isOnTrial(),
             'inGracePeriod' => $inGracePeriod,

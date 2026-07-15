@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Admin\Period;
 use App\Models\Admin\Plan;
 use App\Models\Payment;
+use App\Models\Tenant;
 use App\Services\MercadoPagoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,7 +26,14 @@ class PaymentController extends Controller
             'period_id' => ['required', 'integer', 'exists:periods,id'],
         ]);
 
-        $plan = Plan::where('is_public', true)->findOrFail($data['plan_id']);
+        $tenant = $request->user()->tenant()->with('planModel')->firstOrFail();
+        $accountType = $tenant->plan_type
+            ?: $tenant->planModel?->account_type
+            ?: Tenant::PLAN_INDIVIDUAL;
+
+        $plan = Plan::where('is_public', true)
+            ->where('account_type', $accountType)
+            ->findOrFail($data['plan_id']);
         $period = Period::where('plan_id', $plan->id)
             ->where('interval', 'month')
             ->whereIn('interval_count', [1, 6, 12])
@@ -39,7 +47,6 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Mercado Pago não configurado.'], 503);
         }
 
-        $tenant = $request->user()->tenant;
         $idempotencyKey = Str::uuid()->toString();
         $document = preg_replace('/\D/', '', (string) $tenant->cnpj);
         $paymentRequest = [
@@ -85,6 +92,9 @@ class PaymentController extends Controller
                 'qr_code_copy_paste' => $gatewayPayment->point_of_interaction->transaction_data->qr_code,
                 'payment_id' => (string) $gatewayPayment->id,
                 'status' => (string) ($gatewayPayment->status ?? 'pending'),
+                'plan' => $plan->name,
+                'period' => $period->name,
+                'amount' => (float) $period->price,
             ]);
         } catch (MPApiException $exception) {
             Log::error('Falha ao gerar cobrança Pix no Mercado Pago.', [

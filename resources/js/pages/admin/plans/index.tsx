@@ -56,8 +56,8 @@ export default function PlansIndex({ plans }: any) {
                                 <TableHead>Tipo</TableHead>
                                 <TableHead>Descrição</TableHead>
                                 <TableHead>Mensal</TableHead>
-                                <TableHead>Trimestral</TableHead>
                                 <TableHead>Semestral</TableHead>
+                                <TableHead>Anual</TableHead>
                                 <TableHead>Cadastro</TableHead>
                                 <TableHead></TableHead>
                             </TableRow>
@@ -70,7 +70,7 @@ export default function PlansIndex({ plans }: any) {
                                         <TableCell>{plan.name}</TableCell>
                                         <TableCell>{plan.account_type === 'team' ? 'Equipe' : 'Vendedor individual'}</TableCell>
                                         <TableCell>{plan.description}</TableCell>
-                                        {[1, 3, 6].map((months) => {
+                                        {[1, 6, 12].map((months) => {
                                             const period = plan.periods?.find((item: any) => Number(item.interval_count) === months);
                                             return <TableCell key={months}>{period ? `R$ ${Number(period.price).toFixed(2).replace('.', ',')}` : '-'}</TableCell>;
                                         })}

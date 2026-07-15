@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 const periodLabels: Record<number, string> = {
     1: 'Mensal',
-    6: 'Semestral · 10% OFF',
+    6: 'Semestral',
     12: 'Anual · 20% OFF',
 };
 
@@ -30,6 +30,19 @@ const sellerCapacityLabels: Record<string, string> = {
 const sellerCapacityDescriptions: Record<string, string> = {
     individual: 'Ideal para vendedor autônomo ou operação individual.',
     team: 'Valor válido para equipes com até 8 vendedores. Acima disso, consulte nossa equipe comercial.',
+};
+
+const officialPrices: Record<string, Record<number, number>> = {
+    solo: {
+        1: 39.90,
+        6: 239.40,
+        12: 383.04,
+    },
+    team: {
+        1: 139.90,
+        6: 755.46,
+        12: 1343.04,
+    },
 };
 
 const featureLabels: Record<string, string> = {
@@ -57,7 +70,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
             <div className="container mx-auto px-4">
                 <div className="mx-auto mb-10 max-w-3xl text-center">
                     <h2 className="mb-4 text-3xl font-bold tracking-tight text-balance md:text-5xl">Escolha pelo tamanho da sua equipe</h2>
-                    <p className="text-lg text-muted-foreground text-balance">Planos com 10% de desconto no semestre e 20% no ano. O plano Equipe atende até 8 vendedores; para equipes maiores, consulte uma condição personalizada.</p>
+                    <p className="text-lg text-muted-foreground text-balance">Planos mensal, semestral e anual para vendedor individual ou equipe. O plano Equipe atende até 8 vendedores; para equipes maiores, consulte uma condição personalizada.</p>
                 </div>
 
                 <div className="mx-auto mb-10 flex w-fit flex-wrap justify-center gap-2 rounded-lg border bg-background p-2">
@@ -73,8 +86,10 @@ export function PricingSection({ plans }: { plans: any[] }) {
                         const period = plan.periods?.find((item: any) => Number(item.interval_count) === selectedMonths);
                         const isTeam = plan.account_type === 'team';
                         const monthlyPeriod = plan.periods?.find((item: any) => Number(item.interval_count) === 1);
-                        const fullPeriodPrice = monthlyPeriod ? Number(monthlyPeriod.price) * selectedMonths : null;
-                        const savings = period && fullPeriodPrice ? fullPeriodPrice - Number(period.price) : 0;
+                        const price = period ? Number(period.price) : officialPrices[plan.slug]?.[selectedMonths];
+                        const monthlyPrice = monthlyPeriod ? Number(monthlyPeriod.price) : officialPrices[plan.slug]?.[1];
+                        const fullPeriodPrice = monthlyPrice ? monthlyPrice * selectedMonths : null;
+                        const savings = price && fullPeriodPrice ? fullPeriodPrice - price : 0;
 
                         return (
                             <Card key={plan.id} className={`relative flex flex-col border-border ${isTeam ? 'border-primary shadow-lg' : ''}`}>
@@ -84,14 +99,14 @@ export function PricingSection({ plans }: { plans: any[] }) {
                                     <CardTitle className="text-2xl">{accountTypeLabels[plan.account_type] ?? plan.name}</CardTitle>
                                     <CardDescription className="leading-relaxed">{accountTypeDescriptions[plan.account_type] ?? plan.description}</CardDescription>
                                     <div className="mt-4">
-                                        <span className="text-4xl font-bold">{period ? `R$ ${maskMoney(period.price)}` : 'Sob consulta'}</span>
+                                        <span className="text-4xl font-bold">{price ? `R$ ${maskMoney(price)}` : 'Sob consulta'}</span>
                                         <span className="ml-2 text-muted-foreground">
                                             {selectedMonths === 1 ? '/mês' : selectedMonths === 6 ? '/semestre' : '/ano'}
                                         </span>
                                     </div>
-                                    {period && selectedMonths > 1 && (
+                                    {price && selectedMonths > 1 && (
                                         <div className="space-y-1 text-sm text-muted-foreground">
-                                            <div>Equivale a R$ {maskMoney(Number(period.price) / selectedMonths)} por mês</div>
+                                            <div>Equivale a R$ {maskMoney(price / selectedMonths)} por mês</div>
                                             {savings > 0 && <div className="font-medium text-primary">Você economiza R$ {maskMoney(savings)}</div>}
                                         </div>
                                     )}

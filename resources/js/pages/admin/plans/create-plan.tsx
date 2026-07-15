@@ -8,7 +8,7 @@ import { useForm } from '@inertiajs/react';
 import { Plus, Save } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
-type PriceField = 'monthly_price' | 'quarterly_price' | 'semiannual_price';
+type PriceField = 'monthly_price' | 'semiannual_price' | 'annual_price';
 
 export default function CreatePlan() {
     const [open, setOpen] = useState(false);
@@ -17,8 +17,8 @@ export default function CreatePlan() {
         account_type: 'individual',
         description: '',
         monthly_price: '0.00',
-        quarterly_price: '0.00',
         semiannual_price: '0.00',
+        annual_price: '0.00',
     });
 
     const updatePrice = (field: PriceField, value: string) => {
@@ -80,8 +80,8 @@ export default function CreatePlan() {
                     <div className="grid gap-4 sm:grid-cols-3">
                         {([
                             ['monthly_price', 'Mensal'],
-                            ['quarterly_price', 'Trimestral'],
                             ['semiannual_price', 'Semestral'],
+                            ['annual_price', 'Anual'],
                         ] as const).map(([field, label]) => (
                             <div key={field} className="grid gap-2">
                                 <Label htmlFor={field}>{label}</Label>

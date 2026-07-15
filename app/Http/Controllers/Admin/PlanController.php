@@ -104,18 +104,18 @@ class PlanController extends Controller
     {
         $prices = [
             1 => $data['monthly_price'],
-            3 => $data['quarterly_price'],
             6 => $data['semiannual_price'],
+            12 => $data['annual_price'],
         ];
 
-        unset($data['monthly_price'], $data['quarterly_price'], $data['semiannual_price']);
+        unset($data['monthly_price'], $data['semiannual_price'], $data['annual_price']);
 
         return $prices;
     }
 
     private function syncPeriods(Plan $plan, array $prices): void
     {
-        $names = [1 => 'Mensal', 3 => 'Trimestral', 6 => 'Semestral'];
+        $names = [1 => 'Mensal', 6 => 'Semestral', 12 => 'Anual'];
 
         foreach ($prices as $months => $price) {
             $plan->periods()->updateOrCreate(
