@@ -10,6 +10,8 @@ export interface Auth {
     companyName?: string | null;
     planFeatures: string[];
     subscriptionBlockedReason?: string | null;
+    subscriptionInGracePeriod: boolean;
+    subscriptionGraceDaysRemaining: number;
 }
 
 export interface BreadcrumbItem {

@@ -6,7 +6,7 @@ import { BreadcrumbItem, SharedData } from '@/types';
 import { statusOrderByValue } from '@/Utils/functions';
 import { maskMoney } from '@/Utils/mask';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, BadgeDollarSign, Ban, ChartNoAxesCombined, CircleDollarSign, Clock3, Megaphone, ReceiptText, ShoppingCart, Store, Trophy, UsersRound, WalletCards } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BadgeDollarSign, Ban, ChartNoAxesCombined, CircleDollarSign, Clock3, CreditCard, Megaphone, ReceiptText, ShoppingCart, Store, Trophy, UsersRound, WalletCards } from 'lucide-react';
 import moment from 'moment';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: route('app.dashboard') }];
@@ -25,6 +25,27 @@ export default function Dashboard({ summary, campaignSales, recentOrders, status
                     <Button asChild><Link href={route('app.reports.sales')}><ChartNoAxesCombined className="h-4 w-4" />Vendas</Link></Button>
                 </div>
             </div>
+
+            {auth.subscriptionInGracePeriod && (
+                <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-950 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex gap-3">
+                        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                        <div>
+                            <div className="font-medium">Assinatura em período de tolerância</div>
+                            <div className="text-sm text-amber-800">
+                                Regularize o pagamento para evitar o bloqueio em {auth.subscriptionGraceDaysRemaining}{' '}
+                                {auth.subscriptionGraceDaysRemaining === 1 ? 'dia' : 'dias'}.
+                            </div>
+                        </div>
+                    </div>
+                    <Button asChild className="shrink-0 bg-amber-600 text-white hover:bg-amber-700">
+                        <Link href={route('app.subscription.index')}>
+                            <CreditCard className="h-4 w-4" />
+                            Pagar agora
+                        </Link>
+                    </Button>
+                </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <Metric icon={<CircleDollarSign />} label="Vendas no mês" value={`R$ ${maskMoney(summary.sales_total)}`} helper="Pedidos cancelados não entram" />

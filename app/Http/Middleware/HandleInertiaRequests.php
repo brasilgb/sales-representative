@@ -60,6 +60,8 @@ class HandleInertiaRequests extends Middleware
                 'companyName' => $request->user()?->tenant?->company,
                 'planFeatures' => $planLimits?->plan()?->features ?? [],
                 'subscriptionBlockedReason' => $planLimits?->subscriptionBlockedReason(),
+                'subscriptionInGracePeriod' => $planLimits?->isInGracePeriod() ?? false,
+                'subscriptionGraceDaysRemaining' => $planLimits?->graceDaysRemaining() ?? 0,
             ],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
