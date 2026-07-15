@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Car, Edit, FileText, Plus, ReceiptText, Search, WalletCards } from 'lucide-react';
+import { Car, Edit, FileOutput, FileText, Plus, ReceiptText, Search, WalletCards } from 'lucide-react';
 import moment from 'moment';
 import { FormEvent, useState } from 'react';
 
@@ -33,6 +33,9 @@ export default function Expenses({ expenses, summary, filters, users, canManageT
     const [category, setCategory] = useState(filters.category ?? '');
     const [userId, setUserId] = useState(filters.user_id ?? '');
     const [year, selectedMonth] = month.split('-');
+    const monthStart = `${month}-01`;
+    const monthEnd = new Date(Number(year), Number(selectedMonth), 0).toISOString().slice(0, 10);
+    const pdfFilters = { start_date: monthStart, end_date: monthEnd, category, user_id: userId };
 
     const updateMonth = (value: string) => setMonth(`${year}-${value}`);
     const updateYear = (value: string) => setMonth(`${value}-${selectedMonth}`);
@@ -70,7 +73,11 @@ export default function Expenses({ expenses, summary, filters, users, canManageT
                     <div className="grid gap-2"><Label htmlFor="category">Categoria</Label><select id="category" className="flex h-9 rounded-md border border-input bg-transparent px-3 text-sm" value={category} onChange={(event) => setCategory(event.target.value)}><option value="">Todas</option>{Object.entries(categoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
                     {canManageTeam && <div className="grid gap-2"><Label htmlFor="user_id">Vendedor</Label><select id="user_id" className="flex h-9 rounded-md border border-input bg-transparent px-3 text-sm" value={userId} onChange={(event) => setUserId(event.target.value)}><option value="">Todos</option>{users.map((user: any) => <option key={user.id} value={user.id}>{user.name}</option>)}</select></div>}
                 </div>
-                <div className="flex gap-2"><Button type="submit" className="bg-sky-600 text-white hover:bg-sky-700"><Search className="h-4 w-4" /> Filtrar</Button><Button asChild><Link href={route('app.expenses.create')}><Plus className="h-4 w-4" /> Nova despesa</Link></Button></div>
+                <div className="flex flex-wrap gap-2">
+                    <Button type="submit" className="bg-sky-600 text-white hover:bg-sky-700"><Search className="h-4 w-4" /> Filtrar</Button>
+                    <Button asChild variant="outline"><Link href={route('app.reports.expenses.pdf', pdfFilters)}><FileOutput className="h-4 w-4" /> Gerar PDF</Link></Button>
+                    <Button asChild><Link href={route('app.expenses.create')}><Plus className="h-4 w-4" /> Nova despesa</Link></Button>
+                </div>
             </form>
 
             <div className="p-4 pt-0">
