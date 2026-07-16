@@ -178,7 +178,6 @@ export default function Subscription({ tenant, plans, accountType, blockedReason
                 {plans.map((plan: any) => {
                     const selectedPeriod = plan.periods?.find((period: any) => period.id === selectedPeriods[plan.id]) ?? plan.periods?.[0];
                     const current = tenant.plan === plan.id && tenant.billing_period_id === selectedPeriod?.id && !blockedReason;
-                    const features = plan.features ?? [];
 
                     return (
                         <Card key={plan.id} className={current ? 'border-primary' : ''}>
@@ -214,12 +213,10 @@ export default function Subscription({ tenant, plans, accountType, blockedReason
                                     {plan.account_type === 'team' ? 'Plano para equipes com múltiplos vendedores.' : 'Plano para operação de vendedor individual.'}
                                 </div>
                                 <div className="space-y-2">
-                                    {features.slice(0, 6).map((feature: string) => (
-                                        <div key={feature} className="flex items-center gap-2 text-sm">
-                                            <Check className="h-4 w-4 text-primary" />
-                                            <span>{feature.replaceAll('_', ' ')}</span>
-                                        </div>
-                                    ))}
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Check className="h-4 w-4 text-primary" />
+                                        <span>Todos os recursos ativados</span>
+                                    </div>
                                 </div>
                                 {auth.canManageTeam && (
                                     <Button
