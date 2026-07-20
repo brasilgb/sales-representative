@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney, maskMoneyDot } from '@/Utils/mask';
@@ -77,6 +78,7 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
         adjusted_total_was_edited: false as boolean,
         total: '',
         payment_condition: initialCustomer?.commercial_condition?.payment_terms ?? '',
+        notes: '',
         items: [] as OrderItem[],
         is_recurring: false as boolean,
     });
@@ -422,6 +424,16 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
                                         onChange={(e) => setData('payment_condition', e.target.value)}
                                         placeholder="Ex.: 28/35 dias"
                                     />
+                                </div>
+                                <div className="grid gap-2 md:col-span-3">
+                                    <Label htmlFor="notes">Observações</Label>
+                                    <Textarea
+                                        id="notes"
+                                        value={data.notes}
+                                        onChange={(e) => setData('notes', e.target.value)}
+                                        placeholder="Observações do pedido, combinados ou instruções de entrega"
+                                    />
+                                    <InputError message={errors.notes} />
                                 </div>
                                 <div className="flex flex-col justify-center gap-1">
                                     <span className="text-sm text-muted-foreground">Subtotal</span>

@@ -85,6 +85,7 @@ class ApiOrderController extends Controller
             'total' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'total_was_edited' => ['nullable', 'boolean'],
             'payment_condition' => ['nullable', 'string', 'max:120'],
+            'notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
         try {
@@ -197,6 +198,7 @@ class ApiOrderController extends Controller
                 'total' => $total,
                 'status' => 1,
                 'payment_condition' => $validatedData['payment_condition'] ?? $commercialCondition?->payment_terms,
+                'notes' => $validatedData['notes'] ?? null,
                 'commission_percentage' => $commissionPercentage,
                 'commission_amount' => $commissionAmount,
             ]);
@@ -274,6 +276,7 @@ class ApiOrderController extends Controller
             'adjusted_total' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_condition' => ['nullable', 'string', 'max:120'],
+            'notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
         try {

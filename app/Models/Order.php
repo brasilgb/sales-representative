@@ -25,6 +25,7 @@ class Order extends Model
         'total',
         'status',
         'payment_condition',
+        'notes',
         'commission_percentage',
         'commission_amount',
         'is_recurring',

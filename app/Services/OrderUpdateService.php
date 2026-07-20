@@ -117,6 +117,7 @@ final class OrderUpdateService
                 'discount' => $discount,
                 'total' => $total,
                 'payment_condition' => $data['payment_condition'] ?? $condition?->payment_terms,
+                'notes' => $data['notes'] ?? null,
                 'commission_percentage' => $commissionPercentage,
                 'commission_amount' => round($total * ($commissionPercentage / 100), 2),
                 'is_recurring' => (bool) ($data['is_recurring'] ?? false),

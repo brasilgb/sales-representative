@@ -107,6 +107,7 @@ class OrderController extends Controller
             'adjusted_total' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'adjusted_total_was_edited' => ['nullable', 'boolean'],
             'payment_condition' => ['nullable', 'string', 'max:120'],
+            'notes' => ['nullable', 'string', 'max:5000'],
             'is_recurring' => ['nullable', 'boolean'],
         ]);
 
@@ -196,6 +197,7 @@ class OrderController extends Controller
                 'total' => $total,
                 'status' => 1,
                 'payment_condition' => $validatedData['payment_condition'] ?? $commercialCondition?->payment_terms,
+                'notes' => $validatedData['notes'] ?? null,
                 'commission_percentage' => $commissionPercentage,
                 'commission_amount' => $commissionAmount,
                 'is_recurring' => (bool) ($validatedData['is_recurring'] ?? false),
@@ -300,6 +302,7 @@ class OrderController extends Controller
             'adjusted_total' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_condition' => ['nullable', 'string', 'max:120'],
+            'notes' => ['nullable', 'string', 'max:5000'],
             'is_recurring' => ['nullable', 'boolean'],
         ]);
 
