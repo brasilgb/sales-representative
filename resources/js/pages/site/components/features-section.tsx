@@ -1,14 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    BarChart3,
-    BriefcaseBusiness,
-    CalendarCheck,
-    Package,
-    ShoppingCart,
-    Smartphone,
-    Tags,
-    Users,
-} from 'lucide-react';
+import { BarChart3, BriefcaseBusiness, CalendarCheck, Package, ShoppingCart, Smartphone, Tags, Users } from 'lucide-react';
 
 const platformHighlights = [
     {
@@ -63,39 +54,30 @@ const features = [
 
 export function FeaturesSection() {
     return (
-        <section id="recursos" className="relative overflow-hidden bg-[#0B1220] py-20 text-white sm:py-32">
-            <div className="absolute inset-0">
-                <div className="absolute top-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
-                <div className="absolute inset-0 bg-linear-to-b from-[#0d1c33] via-[#0B1220] to-[#08101d]" />
-            </div>
-
-            <div className="relative container mx-auto px-4">
+        <section id="recursos" className="bg-white py-24 text-slate-900 sm:py-32">
+            <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
                 <div className="mx-auto mb-16 max-w-3xl text-center">
-                    <span className="inline-flex rounded-full border border-white/12 bg-white/6 px-4 py-1 text-[0.7rem] font-semibold tracking-[0.26em] text-primary uppercase">
-                        O que você consegue fazer
-                    </span>
-                    <h2 className="mt-5 text-3xl font-bold tracking-tight text-balance sm:text-4xl">
+                    <p className="text-sm font-bold text-blue-700">O que você consegue fazer</p>
+                    <h2 className="mt-3 text-4xl font-bold tracking-[-0.04em] text-balance text-slate-950 sm:text-5xl">
                         Tudo o que sustenta a venda, sem espalhar a rotina em várias ferramentas
                     </h2>
-                    <p className="mt-4 text-lg leading-relaxed text-white/72">
-                        Prepare clientes, produtos e regras comerciais no painel. Em campo, consulte a carteira, registre visitas e monte pedidos no Android.
+                    <p className="mt-5 text-lg leading-8 text-slate-600">
+                        Prepare clientes, produtos e regras comerciais no painel. Em campo, consulte a carteira, registre visitas e monte pedidos no
+                        Android.
                     </p>
                 </div>
 
                 <div className="mb-12 grid gap-6 md:grid-cols-3">
                     {platformHighlights.map((highlight) => (
-                        <Card
-                            key={highlight.title}
-                            className="border-primary/25 bg-primary/10 text-white shadow-[0_18px_60px_rgba(0,0,0,0.2)] backdrop-blur-sm"
-                        >
+                        <Card key={highlight.title} className="border-slate-800 bg-slate-950 text-white shadow-xl shadow-slate-900/10">
                             <CardHeader>
-                                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-primary/30 bg-primary/15">
-                                    <highlight.icon className="h-6 w-6 text-primary" />
+                                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/15">
+                                    <highlight.icon className="h-6 w-6 text-blue-300" />
                                 </div>
                                 <CardTitle className="text-lg text-white">{highlight.title}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <CardDescription className="text-sm leading-relaxed text-white/72">{highlight.description}</CardDescription>
+                                <CardDescription className="text-sm leading-6 text-slate-400">{highlight.description}</CardDescription>
                             </CardContent>
                         </Card>
                     ))}
@@ -105,16 +87,16 @@ export function FeaturesSection() {
                     {features.map((feature) => (
                         <Card
                             key={feature.title}
-                            className="border-white/10 bg-white/[0.045] text-white shadow-[0_18px_60px_rgba(0,0,0,0.2)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.07]"
+                            className="border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-900/5"
                         >
                             <CardHeader>
-                                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 ring-1 ring-primary/10">
-                                    <feature.icon className="h-6 w-6 text-primary" />
+                                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
+                                    <feature.icon className="h-6 w-6 text-blue-700" />
                                 </div>
-                                <CardTitle className="text-lg text-white">{feature.title}</CardTitle>
+                                <CardTitle className="text-lg text-slate-950">{feature.title}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <CardDescription className="text-sm leading-relaxed text-white/68">{feature.description}</CardDescription>
+                                <CardDescription className="text-sm leading-6 text-slate-600">{feature.description}</CardDescription>
                             </CardContent>
                         </Card>
                     ))}

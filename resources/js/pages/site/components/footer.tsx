@@ -14,6 +14,26 @@ export function Footer() {
                         <p className="text-sm leading-relaxed text-white/60">
                             Gestão de vendas em campo para distribuidores e representantes de suprimentos para pet shops e clínicas veterinárias.
                         </p>
+                        <a
+                            href="https://abrasilsistemas.com.br"
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Desenvolvido por ABrasil Sistemas"
+                            className="group inline-flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-2.5 pr-4 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                            <span className="grid size-10 place-items-center overflow-hidden rounded-lg bg-white p-1">
+                                <img
+                                    src="/images/logo_ab.png"
+                                    alt="Desenvolvido por ABrasil Sistemas"
+                                    title="Desenvolvido por ABrasil Sistemas"
+                                    className="size-full object-contain"
+                                />
+                            </span>
+                            <span className="text-xs font-semibold tracking-wide text-white/60 transition group-hover:text-white">
+                                Desenvolvido por
+                                <strong className="mt-0.5 block text-white">ABrasil Sistemas</strong>
+                            </span>
+                        </a>
                     </div>
 
                     <div>

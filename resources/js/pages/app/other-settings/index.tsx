@@ -1,11 +1,9 @@
-import AppearanceTabs from '@/components/appearance-tabs';
-import HeadingSmall from '@/components/heading-small';
 import { Icon } from '@/components/icon';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { maskMoney, maskCpfCnpj } from '@/Utils/mask';
+import { maskCpfCnpj, maskMoney } from '@/Utils/mask';
 import { Head } from '@inertiajs/react';
 import { CogIcon, CreditCard } from 'lucide-react';
 
@@ -49,7 +47,9 @@ export default function OtherSettings({ tenant, blockedReason, onTrial }: any) {
                             <div>
                                 <div className="text-xs text-muted-foreground">Plano</div>
                                 <div className="font-medium">{plan?.name ?? 'Avaliação'}</div>
-                                <div className="text-sm text-muted-foreground">{plan?.account_type === 'team' ? 'Equipe' : 'Vendedor individual'}</div>
+                                <div className="text-sm text-muted-foreground">
+                                    {plan?.account_type === 'team' ? 'Equipe' : 'Vendedor individual'}
+                                </div>
                             </div>
                             <div>
                                 <div className="text-xs text-muted-foreground">Ciclo</div>
@@ -59,24 +59,15 @@ export default function OtherSettings({ tenant, blockedReason, onTrial }: any) {
                             <div>
                                 <div className="text-xs text-muted-foreground">Situação</div>
                                 <div className="mt-1">
-                                    <Badge variant={blockedReason ? 'destructive' : 'secondary'}>{onTrial ? 'Em avaliação' : (blockedReason ?? 'Licença ativa')}</Badge>
+                                    <Badge variant={blockedReason ? 'destructive' : 'secondary'}>
+                                        {onTrial ? 'Em avaliação' : (blockedReason ?? 'Licença ativa')}
+                                    </Badge>
                                 </div>
                                 <div className="mt-1 text-sm text-muted-foreground">
                                     {licenseEnd ? `Até ${new Date(licenseEnd).toLocaleDateString('pt-BR')}` : 'Vencimento não definido'}
                                 </div>
                             </div>
                         </div>
-
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">Configurações de aparência</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <HeadingSmall title="Tema do sistema" description="Altere a aparência do sistema entre claro, escuro ou conforme o dispositivo." />
-                        <AppearanceTabs />
                     </CardContent>
                 </Card>
             </div>
