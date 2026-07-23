@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 export type Appearance = 'light' | 'dark' | 'system';
 
+let controlPanelThemeEnabled = false;
+
 const prefersDark = () => {
     if (typeof window === 'undefined') {
         return false;
@@ -25,6 +27,20 @@ const applyTheme = (appearance: Appearance) => {
     document.documentElement.classList.toggle('dark', isDark);
 };
 
+const isControlPanelPage = (component: string) => /^(app|admin|settings)\//.test(component);
+
+export const syncAppearanceForPage = (component: string) => {
+    controlPanelThemeEnabled = isControlPanelPage(component);
+
+    if (!controlPanelThemeEnabled) {
+        document.documentElement.classList.remove('dark');
+        return;
+    }
+
+    const savedAppearance = (localStorage.getItem('appearance') as Appearance) || 'system';
+    applyTheme(savedAppearance);
+};
+
 const mediaQuery = () => {
     if (typeof window === 'undefined') {
         return null;
@@ -34,14 +50,16 @@ const mediaQuery = () => {
 };
 
 const handleSystemThemeChange = () => {
+    if (!controlPanelThemeEnabled) {
+        return;
+    }
+
     const currentAppearance = localStorage.getItem('appearance') as Appearance;
     applyTheme(currentAppearance || 'system');
 };
 
-export function initializeTheme() {
-    const savedAppearance = (localStorage.getItem('appearance') as Appearance) || 'system';
-
-    applyTheme(savedAppearance);
+export function initializeTheme(component: string) {
+    syncAppearanceForPage(component);
 
     // Add the event listener for system theme changes...
     mediaQuery()?.addEventListener('change', handleSystemThemeChange);
