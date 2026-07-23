@@ -1,3 +1,4 @@
+import AppearanceTabs from '@/components/appearance-tabs';
 import { Icon } from '@/components/icon';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskCpfCnpj, maskMoney } from '@/Utils/mask';
 import { Head } from '@inertiajs/react';
-import { CogIcon, CreditCard } from 'lucide-react';
+import { CogIcon, CreditCard, Palette } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('app.dashboard') },
@@ -30,6 +31,19 @@ export default function OtherSettings({ tenant, blockedReason, onTrial }: any) {
             </div>
 
             <div className="space-y-6 p-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <Palette className="h-5 w-5" />
+                            Tema do painel
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <p className="text-sm text-muted-foreground">Escolha como o painel de controle será exibido neste dispositivo.</p>
+                        <AppearanceTabs />
+                    </CardContent>
+                </Card>
+
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base">
