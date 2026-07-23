@@ -26,7 +26,7 @@ export default function AuthSimpleLayout({ children, title, description, width =
                 <div className="flex min-w-0 flex-col items-center gap-3 px-3 sm:px-6">
                     <Link href={route('home')} className="flex flex-col items-center gap-2 font-medium">
                         <div className="mb-2 flex items-center justify-center rounded-md">
-                            <AuthLogoIcon className="size-9 fill-current text-[var(--foreground)] dark:text-white" />
+                            <AuthLogoIcon />
                         </div>
                         <span className="sr-only">{title}</span>
                     </Link>
