@@ -285,6 +285,24 @@ class OrderController extends Controller
         return Redirect::route('app.orders.show', ['order' => $order->id]);
     }
 
+    public function printOrder(Request $request, Order $order)
+    {
+        $this->authorizeVisibleOrder($order);
+
+        $order->load([
+            'customer.region',
+            'orderItems.product',
+            'user',
+            'commercialCondition',
+            'campaign',
+        ]);
+
+        return Inertia::render('app/orders/print-order', [
+            'order' => $order,
+            'tenant' => $request->user()->tenant,
+        ]);
+    }
+
     /**
      * Update the specified resource in storage.
      */

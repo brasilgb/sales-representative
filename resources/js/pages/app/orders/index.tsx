@@ -12,7 +12,7 @@ import { statusOrder } from '@/Utils/dataSelect';
 import { statusOrderByValue } from '@/Utils/functions';
 import { maskMoney } from '@/Utils/mask';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { CalendarDaysIcon, Pencil, Plus, ShoppingCartIcon } from 'lucide-react';
+import { CalendarDaysIcon, Pencil, Plus, Printer, ShoppingCartIcon } from 'lucide-react';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 
@@ -129,6 +129,7 @@ export default function Orders({ orders }: any) {
                                         </TableCell>
                                         <TableCell className="min-w-[120px]">
                                             <div className="flex flex-wrap justify-end gap-2">
+                                                <Button asChild size="icon" variant="outline" title="Imprimir pedido"><a href={route('app.orders.print', order.id)} target="_blank" rel="noreferrer" aria-label={`Imprimir pedido ${order.order_number}`}><Printer className="h-4 w-4" /></a></Button>
                                                 <Button asChild size="icon" variant="outline" title={String(order.status) === '4' ? 'Consultar pedido' : 'Editar pedido'}><Link href={route('app.orders.edit', order.id)} aria-label={`${String(order.status) === '4' ? 'Consultar' : 'Editar'} pedido ${order.order_number}`}><Pencil className="h-4 w-4" /></Link></Button>
                                                 {!auth.isSeller && <ActionDelete title={'este pedido'} url={'app.orders.destroy'} param={order.id} />}
                                             </div>

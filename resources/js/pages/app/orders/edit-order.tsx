@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney, maskSignedMoney, signedMoneyToNumber } from '@/Utils/mask';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, CircleHelp, Plus, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, CircleHelp, Plus, Printer, Save, Trash2 } from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -89,7 +89,7 @@ export default function EditOrder({ order, customers, products, flex }: any) {
         <form onSubmit={submit} className="flex flex-col gap-4 p-4">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div><h1 className="text-2xl font-semibold">Editar pedido #{order.order_number}</h1><p className="text-sm text-muted-foreground">Altere o cliente, os itens e os valores do pedido.</p></div>
-                <div className="flex gap-2"><Button asChild type="button" variant="outline"><Link href={route('app.orders.index')}><ArrowLeft className="h-4 w-4" />Voltar</Link></Button><Button type="submit" disabled={processing || canceled || !data.items.length}><Save className="h-4 w-4" />{processing ? 'Salvando...' : 'Salvar alterações'}</Button></div>
+                <div className="flex flex-wrap gap-2"><Button asChild type="button" variant="outline"><Link href={route('app.orders.index')}><ArrowLeft className="h-4 w-4" />Voltar</Link></Button><Button asChild type="button" variant="outline"><a href={route('app.orders.print', order.id)} target="_blank" rel="noreferrer"><Printer className="h-4 w-4" />Imprimir pedido</a></Button><Button type="submit" disabled={processing || canceled || !data.items.length}><Save className="h-4 w-4" />{processing ? 'Salvando...' : 'Salvar alterações'}</Button></div>
             </div>
             {canceled && <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">Pedidos cancelados ficam disponíveis apenas para consulta.</div>}
 

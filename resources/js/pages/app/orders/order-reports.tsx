@@ -108,7 +108,7 @@ export default function OrderReports({ orders, filters }: any) {
                         <Label htmlFor="end_date">Data final</Label>
                         <Input id="end_date" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
                     </div>
-                    <Button type="submit"><Search className="h-4 w-4" />Consultar</Button>
+                    <Button type="submit" className="self-end"><Search className="h-4 w-4" />Consultar</Button>
                 </form>
                 <div className="flex flex-col gap-2 sm:flex-row">
                     <Button variant="outline" asChild>

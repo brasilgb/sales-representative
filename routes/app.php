@@ -47,6 +47,7 @@ Route::resource('/campaigns', CampaignController::class);
 Route::get('/commissions', [CommercialConditionController::class, 'commissions'])->name('commissions.index');
 Route::get('/commissions/report', [CommercialConditionController::class, 'commissionReport'])->name('commissions.report');
 Route::resource('/commercial-conditions', CommercialConditionController::class);
+Route::get('/orders/{order}/print', [OrderController::class, 'printOrder'])->name('orders.print');
 Route::resource('/orders', OrderController::class);
 Route::get('/report', [OrderController::class, 'orderReport'])->name('orders.report');
 Route::resource('/products', ProductController::class);
