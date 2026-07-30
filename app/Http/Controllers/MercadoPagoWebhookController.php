@@ -22,7 +22,15 @@ class MercadoPagoWebhookController extends Controller
     public function __invoke(Request $request): JsonResponse
     {
         $secret = (string) config('services.mercadopago.webhook_secret');
-        $dataId = (string) ($request->query('data.id') ?? $request->input('data.id', ''));
+        $dataId = (string) (
+            $request->query('data.id')
+            ?? $request->query('id')
+            ?? $request->query('data_id')
+            ?? $request->input('data.id')
+            ?? $request->input('id')
+            ?? $request->input('data_id')
+            ?? ''
+        );
 
         if ($secret === '') {
             Log::critical('Webhook Mercado Pago recebido sem segredo configurado.');
@@ -41,6 +49,7 @@ class MercadoPagoWebhookController extends Controller
         } catch (InvalidWebhookSignatureException|\InvalidArgumentException $exception) {
             Log::warning('Assinatura inválida no webhook Mercado Pago.', [
                 'request_id' => $request->header('x-request-id'),
+                'data_id' => $dataId,
             ]);
 
             return response()->json(['error' => 'Unauthorized'], 401);
@@ -81,37 +90,11 @@ class MercadoPagoWebhookController extends Controller
                 $this->paymentPayload($gatewayPayment, $metadata, $plan, $period)
             );
 
-            if ((string) $gatewayPayment->status !== 'approved') {
+            $syncedPayment = $this->mercadoPagoService->syncPaymentStatus($payment, $gatewayPayment);
+
+            if ($syncedPayment->status !== 'approved') {
                 return response()->json(['status' => 'processed_not_approved']);
             }
-
-            DB::transaction(function () use ($payment, $gatewayPayment, $metadata, $plan, $period) {
-                $lockedPayment = Payment::lockForUpdate()->findOrFail($payment->id);
-                if ($lockedPayment->approved_at !== null) {
-                    return;
-                }
-
-                $tenant = Tenant::lockForUpdate()->findOrFail($metadata['tenant_id']);
-                $base = $tenant->expiration_date && $tenant->expiration_date->isFuture()
-                    ? $tenant->expiration_date->copy()
-                    : now();
-
-                $tenant->update([
-                    'plan' => $plan->id,
-                    'billing_period_id' => $period->id,
-                    'plan_type' => $plan->account_type,
-                    'payment' => true,
-                    'trial_ends_at' => null,
-                    'status' => 1,
-                    'expiration_date' => $base->addMonths((int) $period->interval_count),
-                ]);
-
-                $lockedPayment->update([
-                    'status' => (string) $gatewayPayment->status,
-                    'approved_at' => now(),
-                    'raw_response' => json_decode(json_encode($gatewayPayment), true),
-                ]);
-            });
 
             return response()->json(['status' => 'success']);
         } catch (\Throwable $exception) {

@@ -116,6 +116,10 @@ class PaymentController extends Controller
             ->where('payment_id', $paymentId)
             ->firstOrFail();
 
+        if ($payment->approved_at === null) {
+            $payment = $this->mercadoPagoService->syncPaymentStatus($payment);
+        }
+
         return response()->json([
             'payment_id' => $payment->payment_id,
             'status' => $payment->status,

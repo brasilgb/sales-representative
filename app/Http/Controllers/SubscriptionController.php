@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admin\Plan;
+use App\Models\Payment;
 use App\Models\Tenant;
+use App\Services\MercadoPagoService;
 use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,12 +14,28 @@ use Inertia\Response;
 
 class SubscriptionController extends Controller
 {
+    public function __construct(private readonly MercadoPagoService $mercadoPagoService) {}
+
     public function index(Request $request): Response
     {
         $tenant = $request->user()->tenant()->with([
             'planModel.periods' => fn ($query) => $query->whereIn('interval_count', [1, 6, 12]),
             'billingPeriod',
         ])->firstOrFail();
+
+        $pendingPayments = Payment::where('tenant_id', $tenant->id)
+            ->where('status', 'pending')
+            ->latest()
+            ->get();
+
+        foreach ($pendingPayments as $pendingPayment) {
+            $this->mercadoPagoService->syncPaymentStatus($pendingPayment);
+        }
+
+        if ($pendingPayments->isNotEmpty()) {
+            $tenant->refresh();
+        }
+
         $planLimits = PlanLimits::forTenant($tenant);
         $blockedReason = $planLimits->subscriptionBlockedReason();
         $inGracePeriod = $planLimits->isInGracePeriod();

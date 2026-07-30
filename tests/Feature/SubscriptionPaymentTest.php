@@ -185,7 +185,7 @@ test('signed approved webhook activates subscription only once', function () {
         ]),
     ];
 
-    $service = Mockery::mock(MercadoPagoService::class);
+    $service = Mockery::mock(MercadoPagoService::class)->makePartial();
     $service->shouldReceive('getPayment')->twice()->with('mp-approved-1')->andReturn($gatewayPayment);
     $this->app->instance(MercadoPagoService::class, $service);
     $url = route('webhooks.mercadopago').'?data.id=mp-approved-1';
@@ -218,3 +218,72 @@ test('webhook rejects invalid signature without consulting mercado pago', functi
         'x-signature' => 'ts=123,v1=invalid',
     ])->assertUnauthorized();
 });
+
+test('payment status polling syncs with mercado pago and activates subscription when approved', function () {
+    [$plan, $period, $tenant, $user] = paymentAccount();
+    config()->set('services.mercadopago.access_token', 'test-token');
+
+    $payment = Payment::create([
+        'tenant_id' => $tenant->id,
+        'plan_id' => $plan->id,
+        'period_id' => $period->id,
+        'payment_id' => 'mp-poll-approved-1',
+        'amount' => 59.90,
+        'status' => 'pending',
+        'idempotency_key' => (string) Str::uuid(),
+    ]);
+
+    $gatewayPayment = (object) [
+        'id' => 'mp-poll-approved-1',
+        'transaction_amount' => 59.90,
+        'status' => 'approved',
+    ];
+
+    $service = Mockery::mock(MercadoPagoService::class)->makePartial();
+    $service->shouldReceive('getPayment')->once()->with('mp-poll-approved-1')->andReturn($gatewayPayment);
+    $this->app->instance(MercadoPagoService::class, $service);
+
+    $this->actingAs($user)
+        ->getJson(route('app.subscription.payment-status', 'mp-poll-approved-1'))
+        ->assertOk()
+        ->assertJson([
+            'payment_id' => 'mp-poll-approved-1',
+            'status' => 'approved',
+            'approved' => true,
+        ]);
+
+    expect($tenant->fresh()->payment)->toBeTrue()
+        ->and($payment->fresh()->approved_at)->not->toBeNull();
+});
+
+test('subscription index page automatically syncs pending payments with mercado pago', function () {
+    [$plan, $period, $tenant, $user] = paymentAccount();
+    config()->set('services.mercadopago.access_token', 'test-token');
+
+    Payment::create([
+        'tenant_id' => $tenant->id,
+        'plan_id' => $plan->id,
+        'period_id' => $period->id,
+        'payment_id' => 'mp-index-approved-1',
+        'amount' => 59.90,
+        'status' => 'pending',
+        'idempotency_key' => (string) Str::uuid(),
+    ]);
+
+    $gatewayPayment = (object) [
+        'id' => 'mp-index-approved-1',
+        'transaction_amount' => 59.90,
+        'status' => 'approved',
+    ];
+
+    $service = Mockery::mock(MercadoPagoService::class)->makePartial();
+    $service->shouldReceive('getPayment')->once()->with('mp-index-approved-1')->andReturn($gatewayPayment);
+    $this->app->instance(MercadoPagoService::class, $service);
+
+    $this->actingAs($user)
+        ->get(route('app.subscription.index'))
+        ->assertOk();
+
+    expect($tenant->fresh()->payment)->toBeTrue();
+});
+
