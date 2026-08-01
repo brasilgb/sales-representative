@@ -1,11 +1,13 @@
 import { Head } from '@inertiajs/react';
 import { BenefitsSection } from '../components/benefits-section';
 import { CTASection } from '../components/cta-section';
+import { FAQSection } from '../components/faq-section';
 import { FeaturesSection } from '../components/features-section';
 import { Footer } from '../components/footer';
 import { Header } from '../components/header';
 import { HeroSection } from '../components/hero-section';
 import { PricingSection } from '../components/pricing-section';
+import { WhatsAppFloat } from '../components/whatsapp-float';
 
 export default function Home({ plans }: { plans: any[] }) {
     const trialDays = Number(plans[0]?.trial_days ?? 14);
@@ -24,9 +26,11 @@ export default function Home({ plans }: { plans: any[] }) {
                 <FeaturesSection />
                 <BenefitsSection />
                 <PricingSection plans={plans} />
+                <FAQSection trialDays={trialDays} />
                 <CTASection trialDays={trialDays} individualMonthlyPrice={monthlyPrice('individual')} teamMonthlyPrice={monthlyPrice('team')} />
             </main>
             <Footer />
+            <WhatsAppFloat />
         </div>
     );
 }

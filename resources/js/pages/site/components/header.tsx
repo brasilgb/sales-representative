@@ -19,23 +19,23 @@ export function Header() {
     };
 
     return (
-        <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 text-slate-900 backdrop-blur-xl">
+        <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-white/10 bg-[#08111f]/90 text-white backdrop-blur-xl">
             <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-12">
                 <Link href={route('home')} aria-label="VetorPet — página inicial">
-                    <BrandHorizontalLogo />
+                    <BrandHorizontalLogo inverted />
                 </Link>
 
                 {
                     // menu
                 }
                 <nav className="hidden items-center gap-8 md:flex">
-                    <a href="#recursos" className="text-sm font-semibold text-slate-600 transition-colors hover:text-blue-700">
+                    <a href="#recursos" className="text-sm font-semibold text-slate-300 transition-colors hover:text-white">
                         Recursos
                     </a>
-                    <a href="#beneficios" className="text-sm font-semibold text-slate-600 transition-colors hover:text-blue-700">
+                    <a href="#beneficios" className="text-sm font-semibold text-slate-300 transition-colors hover:text-white">
                         Benefícios
                     </a>
-                    <a href="#precos" className="text-sm font-semibold text-slate-600 transition-colors hover:text-blue-700">
+                    <a href="#precos" className="text-sm font-semibold text-slate-300 transition-colors hover:text-white">
                         Preços
                     </a>
                 </nav>
@@ -43,67 +43,80 @@ export function Header() {
                 <div className="flex items-center gap-4">
                     {auth.user ? (
                         <div className="hidden items-center gap-3 md:flex">
-                            <span className="max-w-40 truncate text-sm font-medium text-foreground" title={auth.user.name}>
+                            <span className="max-w-40 truncate text-sm font-medium text-white" title={auth.user.name}>
                                 {auth.user.name}
                             </span>
-                            <Button asChild className="rounded-lg bg-blue-700 font-bold text-white hover:bg-blue-800">
+                            <Button asChild className="rounded-full bg-cyan-300 font-extrabold text-slate-950 hover:bg-cyan-200">
                                 <Link href={route(dashboardRoute)}>Acessar painel</Link>
                             </Button>
                         </div>
                     ) : (
                         <>
-                            <Button asChild variant="ghost" className="hidden md:inline-flex">
+                            <Button
+                                asChild
+                                variant="ghost"
+                                className="hidden text-slate-300 hover:bg-white/5 hover:text-white md:inline-flex"
+                            >
                                 <Link href={route('login')}>Entrar</Link>
                             </Button>
-                            <Button asChild className="rounded-lg bg-blue-700 font-bold text-white hover:bg-blue-800">
+                            <Button asChild className="rounded-full bg-cyan-300 font-extrabold text-slate-950 hover:bg-cyan-200">
                                 <Link href={route('register')}>Começar Grátis</Link>
                             </Button>
                         </>
                     )}
                     {/* botao menu mobile */}
-                    <Button variant="ghost" size="icon" className="border border-slate-200 text-slate-700 md:hidden" onClick={handleMenuToggle}>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="border border-white/15 text-white hover:bg-white/10 hover:text-white md:hidden"
+                        onClick={handleMenuToggle}
+                    >
                         {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </Button>
                 </div>
             </div>
 
             {isMenuOpen && (
-                <div className="border-t border-slate-100 bg-white px-5 py-5 md:hidden">
+                <div className="border-t border-white/10 bg-[#08111f] px-5 py-5 md:hidden">
                     <nav className="flex flex-col gap-3">
                         <a
                             href="#recursos"
-                            className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                            className="rounded-md px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
                             onClick={handleLinkClick}
                         >
                             Recursos
                         </a>
                         <a
                             href="#beneficios"
-                            className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                            className="rounded-md px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
                             onClick={handleLinkClick}
                         >
                             Benefícios
                         </a>
                         <a
                             href="#precos"
-                            className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                            className="rounded-md px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
                             onClick={handleLinkClick}
                         >
                             Preços
                         </a>
                         {auth.user ? (
-                            <div className="mt-2 flex flex-col gap-2 border-t border-border pt-4">
-                                <span className="truncate px-2 text-sm font-medium text-foreground" title={auth.user.name}>
+                            <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-4">
+                                <span className="truncate px-2 text-sm font-medium text-white" title={auth.user.name}>
                                     {auth.user.name}
                                 </span>
-                                <Button asChild variant="default" className="justify-center">
+                                <Button asChild className="justify-center rounded-full bg-cyan-300 font-extrabold text-slate-950 hover:bg-cyan-200">
                                     <Link href={route(dashboardRoute)} onClick={handleLinkClick}>
                                         Acessar painel
                                     </Link>
                                 </Button>
                             </div>
                         ) : (
-                            <Button asChild variant="outline" className="mt-2 justify-center">
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="mt-2 justify-center border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white"
+                            >
                                 <Link href={route('login')} onClick={handleLinkClick}>
                                     Entrar
                                 </Link>

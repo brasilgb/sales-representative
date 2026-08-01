@@ -7,7 +7,7 @@
         ? "Consulte os produtos disponíveis no catálogo da {$catalogCompany}."
         : 'Organize clientes, catálogo, visitas, pedidos e equipe comercial do mercado pet.';
     $pageUrl = $isPublicCatalog ? request()->fullUrl() : config('app.url');
-    $shareImage = $catalogLogo ?: asset('images/logo.png');
+    $shareImage = $catalogLogo ?: asset('images/dashboard-vetorpet.webp');
 @endphp
 
 <!DOCTYPE html>
@@ -24,7 +24,12 @@
         <meta property="og:url" content="{{ $pageUrl }}">
         <meta property="og:image" content="{{ $shareImage }}">
         <meta property="og:image:secure_url" content="{{ $shareImage }}">
-        <meta property="og:image:alt" content="Logo {{ $isPublicCatalog ? $catalogCompany : 'VetorPet' }}">
+        <meta property="og:image:type" content="{{ $catalogLogo ? 'image/png' : 'image/webp' }}">
+        @unless ($catalogLogo)
+            <meta property="og:image:width" content="1926">
+            <meta property="og:image:height" content="934">
+        @endunless
+        <meta property="og:image:alt" content="{{ $isPublicCatalog ? "Logo {$catalogCompany}" : 'Painel do VetorPet' }}">
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="{{ $pageTitle }}">
         <meta name="twitter:description" content="{{ $pageDescription }}">

@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ReactNode } from 'react';
+import { WhatsAppFloat } from '@/pages/site/components/whatsapp-float';
 
 export default function LegalLayout({ children }: { children: ReactNode }) {
     return (
@@ -7,7 +8,7 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
             <header className="border-b border-white/10 bg-[#0B1220] text-white">
                 <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
                     <Link href={route('home')} className="flex items-center gap-3" aria-label="Voltar para a página inicial do VetorPet">
-                        <img src="/images/logo.png" alt="" className="h-9 w-9 object-contain" />
+                        <img src="/images/logo_pet.png" alt="" className="h-9 w-9 object-contain" />
                         <span className="text-xl font-bold">VetorPet</span>
                     </Link>
                     <Link href={route('login')} className="text-sm text-white/70 transition-colors hover:text-white">
@@ -29,6 +30,7 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
                     </div>
                 </div>
             </footer>
+            <WhatsAppFloat />
         </div>
     );
 }
