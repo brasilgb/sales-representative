@@ -313,7 +313,7 @@ export default function CreateProduct({ product }: any) {
                                 <div className="flex items-center gap-2">
                                     <Input
                                         type="number"
-                                        placeholder="+10 ou -3"
+                                        placeholder="10 ou -10"
                                         className="w-28"
                                         value={adjustForm.data.adjustment}
                                         onChange={(e) => adjustForm.setData('adjustment', e.target.value)}
@@ -322,6 +322,7 @@ export default function CreateProduct({ product }: any) {
                                         Ajustar estoque
                                     </Button>
                                 </div>
+                                <p className="text-xs text-muted-foreground">Número positivo adiciona, negativo (com -) remove do estoque.</p>
                                 {adjustForm.errors.adjustment && <div className="text-sm text-red-500">{adjustForm.errors.adjustment}</div>}
                             </div>
                         </div>
