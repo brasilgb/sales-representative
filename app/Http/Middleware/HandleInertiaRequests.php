@@ -54,6 +54,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'isSeller' => $request->user()?->isSeller() ?? false,
+                'isOwner' => $request->user()?->isOwner() ?? false,
                 'canManageTeam' => $request->user()?->canManageTeam() ?? false,
                 'canManageSellers' => $request->user()?->canManageSellers() ?? false,
                 'companyLogo' => $request->user()?->tenant?->logo_url,

@@ -4,6 +4,7 @@ import type { Config } from 'ziggy-js';
 export interface Auth {
     user: User;
     isSeller: boolean;
+    isOwner: boolean;
     canManageTeam: boolean;
     canManageSellers: boolean;
     companyLogo?: string | null;

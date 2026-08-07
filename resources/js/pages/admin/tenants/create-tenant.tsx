@@ -12,6 +12,7 @@ import InputError from "@/components/input-error";
 import Select from 'react-select';
 import { statusSaas } from "@/Utils/dataSelect";
 import AdminSidebarLayout from "@/layouts/admin/admin-sidebar-layout";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect } from "react";
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -52,7 +53,8 @@ export default function CreateTenant({ plans }: any) {
         plan: '',
         billing_period_id: '',
         status: '',
-        payment: '',
+        payment: true as boolean,
+        expiration_date: '',
         observations: '',
     });
 
@@ -344,6 +346,37 @@ export default function CreateTenant({ plans }: any) {
                                     }}
                                 />
                                 <InputError className="mt-2" message={errors.status} />
+                            </div>
+
+                        </div>
+
+                        <div className="grid md:grid-cols-4 gap-4 mt-4">
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="expiration_date">Vencimento</Label>
+                                <Input
+                                    type="date"
+                                    id="expiration_date"
+                                    value={data.expiration_date}
+                                    onChange={(e) => setData('expiration_date', e.target.value)}
+                                />
+                                <span className="text-xs text-muted-foreground">Em branco: recalculado pelo período do plano.</span>
+                                <InputError className="mt-2" message={(errors as any).expiration_date} />
+                            </div>
+
+                            <div className="md:col-span-3 flex items-start gap-2 pt-6">
+                                <Checkbox
+                                    id="payment"
+                                    checked={data.payment}
+                                    onCheckedChange={(checked) => setData('payment', checked === true)}
+                                />
+                                <div className="grid gap-1">
+                                    <Label htmlFor="payment">Liberar acesso (assinatura paga)</Label>
+                                    <span className="text-xs text-muted-foreground">
+                                        Libera a empresa com o plano selecionado, sem depender do pagamento no gateway.
+                                    </span>
+                                    <InputError className="mt-2" message={(errors as any).payment} />
+                                </div>
                             </div>
 
                         </div>

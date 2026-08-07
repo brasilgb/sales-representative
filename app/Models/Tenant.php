@@ -43,6 +43,7 @@ class Tenant extends Model
         'trial_ends_at',
         'plan_type',
         'owner_user_id',
+        'admin_flex',
     ];
 
     protected static function booted(): void
@@ -56,6 +57,7 @@ class Tenant extends Model
             'payment' => 'boolean',
             'expiration_date' => 'date',
             'trial_ends_at' => 'datetime',
+            'admin_flex' => 'decimal:2',
         ];
     }
 

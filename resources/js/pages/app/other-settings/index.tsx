@@ -1,12 +1,16 @@
 import AppearanceTabs from '@/components/appearance-tabs';
 import { Icon } from '@/components/icon';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import { BreadcrumbItem } from '@/types';
+import { BreadcrumbItem, SharedData } from '@/types';
 import { maskCpfCnpj, maskMoney } from '@/Utils/mask';
-import { Head } from '@inertiajs/react';
-import { CogIcon, CreditCard, Palette } from 'lucide-react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { CogIcon, CreditCard, Palette, Wallet } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('app.dashboard') },
@@ -15,9 +19,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function OtherSettings({ tenant, blockedReason, onTrial }: any) {
+    const { auth } = usePage<SharedData>().props;
     const plan = tenant.plan_model;
     const period = tenant.billing_period;
     const licenseEnd = onTrial ? tenant.trial_ends_at : tenant.expiration_date;
+
+    const { data, setData, patch, processing, errors, recentlySuccessful } = useForm({
+        admin_flex: tenant.admin_flex ?? '',
+    });
+
+    const submitAdminFlex = (e: any) => {
+        e.preventDefault();
+        patch(route('app.other-settings.admin-flex.update'));
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -84,6 +98,44 @@ export default function OtherSettings({ tenant, blockedReason, onTrial }: any) {
                         </div>
                     </CardContent>
                 </Card>
+
+                {auth.isOwner && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <Wallet className="h-5 w-5" />
+                                Flex Universal
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <p className="text-sm text-muted-foreground">
+                                Defina um valor fictício de Flex que só você, como administrador, verá como "Flex disponível" ao adicionar
+                                pedidos — sem consumir o saldo Flex real e compartilhado da equipe. Deixe em branco para usar o saldo real.
+                            </p>
+                            <form onSubmit={submitAdminFlex} className="flex flex-col gap-4 sm:flex-row sm:items-end">
+                                <div className="grid max-w-xs gap-2">
+                                    <Label htmlFor="admin_flex">Valor do Flex Universal (R$)</Label>
+                                    <Input
+                                        type="number"
+                                        id="admin_flex"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="Saldo real da equipe"
+                                        value={data.admin_flex}
+                                        onChange={(e) => setData('admin_flex', e.target.value)}
+                                    />
+                                    <InputError message={errors.admin_flex} />
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Button type="submit" disabled={processing}>
+                                        Salvar
+                                    </Button>
+                                    {recentlySuccessful && <span className="text-sm text-muted-foreground">Salvo!</span>}
+                                </div>
+                            </form>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </AppLayout>
     );

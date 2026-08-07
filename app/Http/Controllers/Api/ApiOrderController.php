@@ -184,6 +184,7 @@ class ApiOrderController extends Controller
 
             $commissionPercentage = (float) ($commercialCondition?->commission_percentage ?? 0);
             $commissionAmount = round($total * ($commissionPercentage / 100), 2);
+            $flexContext = FlexBalance::contextFor($request->user());
 
             // 1. Criação do Pedido principal
             $order = Order::create([
@@ -192,6 +193,7 @@ class ApiOrderController extends Controller
                 'campaign_id' => $campaign?->id,
                 'order_number' => Order::exists() ? Order::latest()->first()->order_number + 1 : 1,
                 'flex' => $flexAmount,
+                'uses_admin_flex' => $flexContext['is_admin_override'],
                 'discount' => $discountAmount,
                 'subtotal' => $subtotal,
                 'adjusted_total' => $adjustedTotal ?? round($subtotal + $flexAmount, 2),
@@ -212,7 +214,7 @@ class ApiOrderController extends Controller
             }
             // --- FIM DA NOVA LÓGICA ---
 
-            FlexBalance::apply($flexAmount, $discountAmount);
+            FlexBalance::commit($flexContext, $flexAmount, $discountAmount);
 
             DB::commit();
 
@@ -303,7 +305,7 @@ class ApiOrderController extends Controller
                     Product::lockForUpdate()->find($item->product_id)?->increment('quantity', $item->quantity);
                 }
 
-                FlexBalance::reverse((float) $order->flex, (float) $order->discount);
+                FlexBalance::release($order);
             }
             $order->orderItems()->delete();
             $order->delete();
@@ -318,11 +320,9 @@ class ApiOrderController extends Controller
         }
     }
 
-    public function getFlex()
+    public function getFlex(Request $request)
     {
-        $flex = Flex::first();
-
-        return response()->json($flex);
+        return response()->json(FlexBalance::contextFor($request->user()));
     }
 
     public function getDateOrders(Request $request)
@@ -403,7 +403,7 @@ class ApiOrderController extends Controller
                 }
             }
 
-            FlexBalance::reverse((float) $order->flex, (float) $order->discount);
+            FlexBalance::release($order);
 
             // 2. Atualiza o status do pedido para 'cancelado'
             $order::where('id', $order->id)->update(['status' => '4']);

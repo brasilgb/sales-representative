@@ -19,6 +19,7 @@ class Order extends Model
         'campaign_id',
         'order_number',
         'flex',
+        'uses_admin_flex',
         'discount',
         'subtotal',
         'adjusted_total',
@@ -34,7 +35,7 @@ class Order extends Model
 
     protected function casts(): array
     {
-        return ['is_recurring' => 'boolean', 'next_delivery_at' => 'date'];
+        return ['is_recurring' => 'boolean', 'next_delivery_at' => 'date', 'uses_admin_flex' => 'boolean'];
     }
 
     protected static function booted(): void

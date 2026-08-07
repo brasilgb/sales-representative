@@ -34,6 +34,8 @@ class TenantRequest extends FormRequest
                 Rule::exists('periods', 'id')->where(fn ($query) => $query->where('plan_id', $this->input('plan'))),
             ],
             'status' => ['required', Rule::in([1, 2, 5])],
+            'payment' => ['sometimes', 'nullable', 'boolean'],
+            'expiration_date' => ['nullable', 'date'],
         ];
     }
 
@@ -47,6 +49,8 @@ class TenantRequest extends FormRequest
             'status' => 'status',
             'plan' => 'plano',
             'billing_period_id' => 'periodo de cobranca',
+            'payment' => 'liberação de acesso',
+            'expiration_date' => 'vencimento',
         ];
     }
 }

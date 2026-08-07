@@ -9,8 +9,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OtherSettingController;
-use App\Http\Controllers\PerformanceReportController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PerformanceReportController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\SalesIntelligenceController;
@@ -33,6 +33,7 @@ Route::get('/subscription/payments/{paymentId}', [PaymentController::class, 'sta
 Route::get('/company', [CompanyController::class, 'index'])->name('company.index');
 Route::patch('/company', [CompanyController::class, 'update'])->name('company.update');
 Route::get('/other-settings', [OtherSettingController::class, 'index'])->name('other-settings.index');
+Route::patch('/other-settings/admin-flex', [OtherSettingController::class, 'updateAdminFlex'])->name('other-settings.admin-flex.update');
 Route::get('/auxiliary-apps', [AuxiliaryAppController::class, 'index'])->name('auxiliary-apps.index');
 Route::get('/feedback', [TenantFeedbackEntryController::class, 'index'])->name('feedback.index');
 Route::post('/feedback', [TenantFeedbackEntryController::class, 'store'])->name('feedback.store');

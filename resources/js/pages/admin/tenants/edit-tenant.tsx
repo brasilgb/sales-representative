@@ -12,6 +12,7 @@ import AdminSidebarLayout from "@/layouts/admin/admin-sidebar-layout";
 import InputError from "@/components/input-error";
 import Select from 'react-select';
 import { statusSaas } from "@/Utils/dataSelect";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -50,7 +51,8 @@ export default function EditTenant({ plans, tenant }: any) {
         plan: tenant?.plan,
         billing_period_id: tenant?.billing_period_id,
         status: tenant?.status,
-        payment: tenant?.payment,
+        payment: Boolean(tenant?.payment),
+        expiration_date: tenant?.expiration_date ? String(tenant.expiration_date).slice(0, 10) : '',
         observations: tenant?.observations,
     });
 
@@ -83,10 +85,11 @@ export default function EditTenant({ plans, tenant }: any) {
 
     const changePlan = (selected: any) => {
         const plan = plans.find((item: any) => item.id == selected?.value);
-        setData((current: any) => ({ ...current, plan: selected?.value, billing_period_id: plan?.periods?.[0]?.id ?? '' }));
+        // limpa o vencimento para o backend recalcular o ciclo do novo plano
+        setData((current: any) => ({ ...current, plan: selected?.value, billing_period_id: plan?.periods?.[0]?.id ?? '', expiration_date: '' }));
     };
 
-    const changeBillingPeriod = (selected: any) => setData('billing_period_id', selected?.value);
+    const changeBillingPeriod = (selected: any) => setData((current: any) => ({ ...current, billing_period_id: selected?.value, expiration_date: '' }));
 
     const changeStatus = (selected: any) => {
         setData('status', selected?.value);
@@ -342,6 +345,37 @@ export default function EditTenant({ plans, tenant }: any) {
                                     }}
                                 />
                                 <InputError className="mt-2" message={errors.status} />
+                            </div>
+
+                        </div>
+
+                        <div className="grid md:grid-cols-4 gap-4 mt-4">
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="expiration_date">Vencimento</Label>
+                                <Input
+                                    type="date"
+                                    id="expiration_date"
+                                    value={data.expiration_date}
+                                    onChange={(e) => setData('expiration_date', e.target.value)}
+                                />
+                                <span className="text-xs text-muted-foreground">Em branco: recalculado pelo período do plano.</span>
+                                <InputError className="mt-2" message={(errors as any).expiration_date} />
+                            </div>
+
+                            <div className="md:col-span-3 flex items-start gap-2 pt-6">
+                                <Checkbox
+                                    id="payment"
+                                    checked={data.payment}
+                                    onCheckedChange={(checked) => setData('payment', checked === true)}
+                                />
+                                <div className="grid gap-1">
+                                    <Label htmlFor="payment">Liberar acesso (assinatura paga)</Label>
+                                    <span className="text-xs text-muted-foreground">
+                                        Encerra o período de teste e libera a empresa com o plano selecionado, sem depender do pagamento no gateway.
+                                    </span>
+                                    <InputError className="mt-2" message={(errors as any).payment} />
+                                </div>
                             </div>
 
                         </div>

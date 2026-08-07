@@ -44,18 +44,8 @@ class TenantController extends Controller
      */
     public function store(TenantRequest $request): RedirectResponse
     {
-        $data = $request->all();
         $request->validated();
-        if (isset($data['plan'])) {
-            $plan = Plan::find($data['plan']);
-            $period = Period::where('plan_id', $plan?->id)->find($data['billing_period_id']);
-
-            if ($period) {
-                $data['expiration_date'] = Carbon::now()->addMonths((int) $period->interval_count);
-            }
-
-            $data['plan_type'] = $plan?->account_type;
-        }
+        $data = $this->applyPlan($request->all());
 
         Tenant::create($data);
 
@@ -85,20 +75,62 @@ class TenantController extends Controller
      */
     public function update(TenantRequest $request, Tenant $tenant): RedirectResponse
     {
-        $data = $request->validated();
-        if (isset($data['plan'])) {
-            $plan = Plan::find($data['plan']);
-            $period = Period::where('plan_id', $plan?->id)->find($data['billing_period_id']);
+        $data = $this->applyPlan($request->validated(), $tenant);
 
-            if ($period) {
-                $data['expiration_date'] = Carbon::now()->addMonths((int) $period->interval_count);
-            }
-
-            $data['plan_type'] = $plan?->account_type;
-        }
         $tenant->update($data);
 
         return redirect()->route('admin.tenants.show', ['tenant' => $tenant->id])->with('success', 'Empresa atualizada com sucess!');
+    }
+
+    /**
+     * Resolve os campos de assinatura a partir do plano escolhido pelo admin.
+     *
+     * Liberação manual: quando a empresa é marcada como paga (ou tem o plano trocado),
+     * o período de teste é encerrado e o vencimento é recalculado — mesmo efeito do
+     * pagamento aprovado no gateway. Sem isso, a empresa continuava presa em
+     * "Período de teste expirado" mesmo com o plano definido pelo painel.
+     */
+    private function applyPlan(array $data, ?Tenant $tenant = null): array
+    {
+        if (! isset($data['plan'])) {
+            return $data;
+        }
+
+        $plan = Plan::find($data['plan']);
+        $period = Period::where('plan_id', $plan?->id)->find($data['billing_period_id'] ?? null);
+
+        $data['plan_type'] = $plan?->account_type;
+        $data['payment'] = (bool) ($data['payment'] ?? $tenant?->payment ?? false);
+
+        $planChanged = $tenant === null
+            || (int) $tenant->plan !== (int) $data['plan']
+            || (int) $tenant->billing_period_id !== (int) ($period?->id ?? 0);
+
+        $endsTrial = $tenant?->trial_ends_at !== null && ($data['payment'] || $planChanged);
+
+        if ($data['payment'] || $planChanged) {
+            $data['trial_ends_at'] = null;
+        }
+
+        if (! empty($data['expiration_date'])) {
+            $data['expiration_date'] = Carbon::parse($data['expiration_date']);
+
+            return $data;
+        }
+
+        unset($data['expiration_date']);
+
+        $currentExpiration = $tenant?->expiration_date;
+        $needsNewCycle = $planChanged
+            || $endsTrial
+            || $currentExpiration === null
+            || $currentExpiration->copy()->endOfDay()->isPast();
+
+        if ($period && $needsNewCycle) {
+            $data['expiration_date'] = Carbon::now()->addMonths((int) $period->interval_count);
+        }
+
+        return $data;
     }
 
     public function updateStatus(Request $request, Tenant $tenant): RedirectResponse

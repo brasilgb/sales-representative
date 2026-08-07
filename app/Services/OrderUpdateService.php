@@ -26,7 +26,7 @@ final class OrderUpdateService
             foreach ($order->orderItems as $oldItem) {
                 Product::query()->lockForUpdate()->find($oldItem->product_id)?->increment('quantity', $oldItem->quantity);
             }
-            FlexBalance::reverse((float) $order->flex, (float) $order->discount);
+            FlexBalance::release($order);
 
             $customer = Customer::visibleTo()->findOrFail($data['customer_id']);
             $campaign = $order->campaign_id
@@ -108,12 +108,14 @@ final class OrderUpdateService
             }
 
             $commissionPercentage = (float) ($condition?->commission_percentage ?? 0);
+            $flexContext = FlexBalance::contextFor(auth()->user());
             $order->update([
                 'customer_id' => $customer->id,
                 'commercial_condition_id' => $condition?->id,
                 'subtotal' => $subtotal,
                 'adjusted_total' => $adjustedTotal,
                 'flex' => $flex,
+                'uses_admin_flex' => $flexContext['is_admin_override'],
                 'discount' => $discount,
                 'total' => $total,
                 'payment_condition' => $data['payment_condition'] ?? $condition?->payment_terms,
@@ -125,7 +127,7 @@ final class OrderUpdateService
             ]);
             $order->orderItems()->delete();
             $order->orderItems()->createMany($items);
-            FlexBalance::apply($flex, $discount);
+            FlexBalance::commit($flexContext, $flex, $discount);
 
             return $order->load('customer.region', 'orderItems', 'commercialCondition');
         });

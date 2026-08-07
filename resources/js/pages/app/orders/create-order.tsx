@@ -388,7 +388,7 @@ export default function CreateOrder({ customers, products, campaigns, flex, sele
 
                             <div className="grid gap-4 md:grid-cols-6">
                                 <div className="flex flex-col justify-center gap-1">
-                                    <Label>Flex disponível</Label>
+                                    <Label>Flex disponível{flex?.is_admin_override && ' (Universal)'}</Label>
                                     <Badge variant="default" className="w-fit text-base">
                                         R$ {maskMoney(flex ? flex?.value : '0.00')}
                                     </Badge>

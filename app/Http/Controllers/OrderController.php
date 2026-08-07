@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Campaign;
 use App\Models\CommercialCondition;
 use App\Models\Customer;
-use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\OrderUpdateService;
@@ -48,7 +47,7 @@ class OrderController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $products = Product::orderBy('name')->get();
         $customers = Customer::visibleTo()
@@ -58,7 +57,7 @@ class OrderController extends Controller
             ->each(function (Customer $customer) {
                 $customer->setAttribute('commercial_condition', CommercialCondition::resolveForCustomer($customer));
             });
-        $flex = Flex::first();
+        $flex = FlexBalance::contextFor($request->user());
         $selectedCustomerId = request()->integer('customer_id') ?: null;
 
         return Inertia::render('app/orders/create-order', [
@@ -183,6 +182,7 @@ class OrderController extends Controller
 
             $commissionPercentage = (float) ($commercialCondition?->commission_percentage ?? 0);
             $commissionAmount = round($total * ($commissionPercentage / 100), 2);
+            $flexContext = FlexBalance::contextFor($request->user());
 
             // 1. Criação do Pedido principal
             $order = Order::create([
@@ -191,6 +191,7 @@ class OrderController extends Controller
                 'campaign_id' => $campaign?->id,
                 'order_number' => Order::exists() ? Order::latest()->first()->order_number + 1 : 1,
                 'flex' => $flexAmount,
+                'uses_admin_flex' => $flexContext['is_admin_override'],
                 'discount' => $discountAmount,
                 'subtotal' => $subtotal,
                 'adjusted_total' => $adjustedTotal,
@@ -247,7 +248,7 @@ class OrderController extends Controller
             }
             // --- FIM DA NOVA LÓGICA ---
 
-            FlexBalance::apply($flexAmount, $discountAmount);
+            FlexBalance::commit($flexContext, $flexAmount, $discountAmount);
 
             DB::commit();
 
@@ -263,13 +264,13 @@ class OrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Order $order)
+    public function show(Request $request, Order $order)
     {
         $this->authorizeVisibleOrder($order);
 
         $products = Product::all();
         $customers = Customer::visibleTo()->orderBy('name')->get()->each(fn (Customer $customer) => $customer->setAttribute('commercial_condition', CommercialCondition::resolveForCustomer($customer)));
-        $flex = Flex::first();
+        $flex = FlexBalance::contextFor($request->user());
         // Carrega os relacionamentos necessários no modelo já injetado pela rota.
         $order->load('customer', 'orderItems');
 
@@ -373,7 +374,7 @@ class OrderController extends Controller
                     }
                 }
 
-                FlexBalance::reverse((float) $order->flex, (float) $order->discount);
+                FlexBalance::release($order);
             }
 
             // 2. Deleta os registros de order_items primeiro
@@ -438,7 +439,7 @@ class OrderController extends Controller
                 }
             }
 
-            FlexBalance::reverse((float) $order->flex, (float) $order->discount);
+            FlexBalance::release($order);
 
             // 2. Atualiza o status do pedido para 'cancelado'
             $order::where('id', $order->id)->update(['status' => '4']);
