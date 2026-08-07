@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem, SharedData } from '@/types';
-import { maskCpfCnpj, maskMoney } from '@/Utils/mask';
+import { maskCpfCnpj, maskMoney, maskMoneyDot } from '@/Utils/mask';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { CogIcon, CreditCard, Palette, Wallet } from 'lucide-react';
 
@@ -116,13 +116,12 @@ export default function OtherSettings({ tenant, blockedReason, onTrial }: any) {
                                 <div className="grid max-w-xs gap-2">
                                     <Label htmlFor="admin_flex">Valor do Flex Universal (R$)</Label>
                                     <Input
-                                        type="number"
+                                        type="text"
                                         id="admin_flex"
-                                        min="0"
-                                        step="0.01"
+                                        inputMode="numeric"
                                         placeholder="Saldo real da equipe"
-                                        value={data.admin_flex}
-                                        onChange={(e) => setData('admin_flex', e.target.value)}
+                                        value={maskMoney(data.admin_flex) ?? ''}
+                                        onChange={(e) => setData('admin_flex', maskMoneyDot(e.target.value) ?? '')}
                                     />
                                     <InputError message={errors.admin_flex} />
                                 </div>
