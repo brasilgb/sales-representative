@@ -7,8 +7,10 @@ use App\Models\Product;
 use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -218,6 +220,33 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()->route('app.products.index')->with('success', 'Produto excluido com sucesso!');
+    }
+
+    /**
+     * Ajusta o estoque somando/subtraindo uma diferença (+/-), em vez de sobrescrever um
+     * valor absoluto — evita perder decrementos/incrementos de pedidos feitos ao mesmo tempo.
+     */
+    public function adjustStock(Request $request, Product $product): RedirectResponse
+    {
+        $this->authorizeProductManagement();
+
+        $data = $request->validate([
+            'adjustment' => ['required', 'integer', 'not_in:0'],
+        ]);
+
+        DB::transaction(function () use ($product, $data) {
+            $locked = Product::lockForUpdate()->findOrFail($product->id);
+
+            if ($data['adjustment'] < 0 && $locked->quantity < abs($data['adjustment'])) {
+                throw ValidationException::withMessages([
+                    'adjustment' => "O ajuste deixaria o estoque negativo (disponível: {$locked->quantity}).",
+                ]);
+            }
+
+            $locked->increment('quantity', $data['adjustment']);
+        });
+
+        return back()->with('success', 'Estoque ajustado com sucesso!');
     }
 
     public function getProductsReference(Request $request)

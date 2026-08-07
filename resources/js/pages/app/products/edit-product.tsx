@@ -75,6 +75,22 @@ export default function CreateProduct({ product }: any) {
         _method: 'patch',
     });
 
+    // Mantém a "Quantidade" (somente leitura) sincronizada após um ajuste de estoque.
+    useEffect(() => {
+        setData((current: any) => ({ ...current, quantity: product.quantity }));
+    }, [product.quantity]);
+
+    const adjustForm = useForm({ adjustment: '' });
+
+    const applyStockAdjustment = (e: any) => {
+        e.preventDefault();
+        if (!adjustForm.data.adjustment) return;
+        adjustForm.patch(route('app.products.adjust-stock', product.id), {
+            preserveScroll: true,
+            onSuccess: () => adjustForm.reset('adjustment'),
+        });
+    };
+
     const imagePreview = useMemo(() => (data.image ? URL.createObjectURL(data.image) : product.image_url), [data.image, product.image_url]);
 
     useEffect(() => () => {
@@ -285,7 +301,7 @@ export default function CreateProduct({ product }: any) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="quantity">Quantidade</Label>
+                                <Label htmlFor="quantity">Quantidade em estoque</Label>
                                 <Input
                                     type="number"
                                     id="quantity"
@@ -294,6 +310,19 @@ export default function CreateProduct({ product }: any) {
                                     readOnly
                                 />
                                 {errors.quantity && <div className="text-sm text-red-500">{errors.quantity}</div>}
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        type="number"
+                                        placeholder="+10 ou -3"
+                                        className="w-28"
+                                        value={adjustForm.data.adjustment}
+                                        onChange={(e) => adjustForm.setData('adjustment', e.target.value)}
+                                    />
+                                    <Button type="button" variant="outline" size="sm" disabled={adjustForm.processing} onClick={applyStockAdjustment}>
+                                        Ajustar estoque
+                                    </Button>
+                                </div>
+                                {adjustForm.errors.adjustment && <div className="text-sm text-red-500">{adjustForm.errors.adjustment}</div>}
                             </div>
                         </div>
 

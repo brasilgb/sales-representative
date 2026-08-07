@@ -52,6 +52,7 @@ Route::get('/orders/{order}/print', [OrderController::class, 'printOrder'])->nam
 Route::resource('/orders', OrderController::class);
 Route::get('/report', [OrderController::class, 'orderReport'])->name('orders.report');
 Route::resource('/products', ProductController::class);
+Route::patch('/products/{product}/adjust-stock', [ProductController::class, 'adjustStock'])->name('products.adjust-stock');
 Route::get('/settings', fn () => redirect()->route('app.other-settings.index'))->name('settings.index');
 Route::resource('/users', UserController::class);
 Route::get('/refproducts/{reference}', [ProductController::class, 'getProductsReference']);
