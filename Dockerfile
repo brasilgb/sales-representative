@@ -1,7 +1,7 @@
-FROM php:8.4-cli
+FROM php:8.4-fpm
 
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
-    sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list
+COPY sophos-ca.crt /usr/local/share/ca-certificates/sophos-ca.crt
+RUN update-ca-certificates
 
 RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev libxml2-dev zip unzip libzip-dev \
@@ -15,6 +15,6 @@ COPY . .
 
 RUN composer install --no-interaction --optimize-autoloader
 
-EXPOSE 8000
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+EXPOSE 9000
