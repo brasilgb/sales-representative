@@ -8,15 +8,16 @@ import {
     BookOpenText,
     BoxIcon,
     BrainCircuit,
+    Bug,
     CalendarDays,
     CogIcon,
     HandCoins,
-    ReceiptText,
     LayoutGrid,
     ListChecks,
     MapPinned,
-    MessageSquareMore,
     Megaphone,
+    MessageSquareMore,
+    ReceiptText,
     ShoppingCartIcon,
     UserIcon,
     UsersIcon,
@@ -184,6 +185,43 @@ export function AppSidebar() {
             ],
         },
     ];
+    // Controle de Pragas: só existe no menu para tenants com o módulo ativo
+    // (auth.activeModules) e cada item exige a permissão correspondente do
+    // usuário (auth.pestControlPermissions expande para tudo se for owner).
+    const hasPestControl = auth.activeModules?.includes('pest_control');
+    const pestControlPermissions = auth.pestControlPermissions ?? [];
+    const pestControlSubItems = [
+        ...(pestControlPermissions.includes('pest_control.visits.view') ||
+        pestControlPermissions.includes('pest_control.visits.create') ||
+        pestControlPermissions.includes('pest_control.visits.edit')
+            ? [{ title: 'Agenda de visitas', url: route('app.pest-control.visits.index'), active: 'app.pest-control.visits.*' }]
+            : []),
+        ...(pestControlPermissions.includes('pest_control.units.view') || pestControlPermissions.includes('pest_control.units.manage')
+            ? [{ title: 'Estabelecimentos', url: route('app.pest-control.establishments.index'), active: 'app.pest-control.establishments.*' }]
+            : []),
+        ...(pestControlPermissions.includes('pest_control.points.view') || pestControlPermissions.includes('pest_control.points.manage')
+            ? [{ title: 'Pontos de controle', url: route('app.pest-control.points.index'), active: 'app.pest-control.points.*' }]
+            : []),
+        ...(pestControlPermissions.includes('pest_control.settings.manage')
+            ? [{ title: 'Produtos e categorias', url: route('app.pest-control.catalog.index'), active: 'app.pest-control.catalog.*' }]
+            : []),
+        ...(pestControlPermissions.includes('pest_control.operators.manage')
+            ? [{ title: 'Técnicos/operadores', url: route('app.pest-control.operators.index'), active: 'app.pest-control.operators.*' }]
+            : []),
+    ];
+    const pestControlItems =
+        hasPestControl && pestControlSubItems.length > 0
+            ? [
+                  {
+                      title: 'Controle de Pragas',
+                      url: '#',
+                      icon: Bug,
+                      isActive: Boolean(route().current('app.pest-control.*')),
+                      items: pestControlSubItems,
+                  },
+              ]
+            : [];
+
     const reportItems = [
         {
             title: 'Relatórios',
@@ -215,6 +253,7 @@ export function AppSidebar() {
             <SidebarContent>
                 <NavMain items={visibleNavItems} />
                 <NavMainCollapsible items={reportItems} />
+                {pestControlItems.length > 0 && <NavMainCollapsible items={pestControlItems} />}
                 <NavMainCollapsible items={settingsItems} />
             </SidebarContent>
 

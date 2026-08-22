@@ -11,6 +11,17 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OtherSettingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PerformanceReportController;
+use App\Http\Controllers\PestControl\CatalogController as PestControlCatalogController;
+use App\Http\Controllers\PestControl\ControlPointController as PestControlControlPointController;
+use App\Http\Controllers\PestControl\EstablishmentController as PestControlEstablishmentController;
+use App\Http\Controllers\PestControl\LookupController as PestControlLookupController;
+use App\Http\Controllers\PestControl\OperatorController as PestControlOperatorController;
+use App\Http\Controllers\PestControl\PestSpeciesController as PestControlPestSpeciesController;
+use App\Http\Controllers\PestControl\ProductController as PestControlProductController;
+use App\Http\Controllers\PestControl\VisitController as PestControlVisitController;
+use App\Http\Controllers\PestControl\VisitInspectionController as PestControlVisitInspectionController;
+use App\Http\Controllers\PestControl\VisitMediaController as PestControlVisitMediaController;
+use App\Http\Controllers\PestControl\VisitSignatureController as PestControlVisitSignatureController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\SalesIntelligenceController;
@@ -18,6 +29,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TenantFeedbackEntryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VisitController;
+use App\Models\TenantModule;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -58,3 +70,40 @@ Route::resource('/users', UserController::class);
 Route::get('/refproducts/{reference}', [ProductController::class, 'getProductsReference']);
 Route::patch('/statusorder/{order}', [OrderController::class, 'setValueStatusOrder']);
 Route::patch('/cancelorder/{order}', [OrderController::class, 'cancelOrder']);
+
+// Controle de Pragas: toda a área abaixo exige o módulo ativo para o tenant.
+// A permissão fina de cada usuário é checada dentro de cada controller
+// (PestControlPermissions), já que resource routes não separam view/manage
+// por verbo. Relatórios/dashboard chegam na Etapa 6.
+Route::middleware('module:'.TenantModule::KEY_PEST_CONTROL)
+    ->prefix('pest-control')
+    ->name('pest-control.')
+    ->group(function () {
+        Route::get('/', fn () => redirect()->route('app.pest-control.establishments.index'))->name('index');
+        Route::resource('/establishments', PestControlEstablishmentController::class);
+        Route::resource('/points', PestControlControlPointController::class);
+        Route::get('/catalog', [PestControlCatalogController::class, 'index'])->name('catalog.index');
+        Route::post('/catalog/products', [PestControlProductController::class, 'store'])->name('catalog.products.store');
+        Route::patch('/catalog/products/{product}', [PestControlProductController::class, 'update'])->name('catalog.products.update');
+        Route::delete('/catalog/products/{product}', [PestControlProductController::class, 'destroy'])->name('catalog.products.destroy');
+        Route::post('/catalog/species', [PestControlPestSpeciesController::class, 'store'])->name('catalog.species.store');
+        Route::patch('/catalog/species/{species}', [PestControlPestSpeciesController::class, 'update'])->name('catalog.species.update');
+        Route::delete('/catalog/species/{species}', [PestControlPestSpeciesController::class, 'destroy'])->name('catalog.species.destroy');
+        Route::post('/catalog/lookups/{group}', [PestControlLookupController::class, 'store'])->name('catalog.lookups.store');
+        Route::patch('/catalog/lookups/{lookup}', [PestControlLookupController::class, 'update'])->name('catalog.lookups.update');
+        Route::delete('/catalog/lookups/{lookup}', [PestControlLookupController::class, 'destroy'])->name('catalog.lookups.destroy');
+        Route::get('/operators', [PestControlOperatorController::class, 'index'])->name('operators.index');
+        Route::patch('/operators/{user}', [PestControlOperatorController::class, 'update'])->name('operators.update');
+
+        // Visitas técnicas (Etapa 4): agenda, execução (check-in/check-out),
+        // inspeção por ponto, evidências e assinatura/aceite.
+        Route::resource('/visits', PestControlVisitController::class);
+        Route::patch('/visits/{visit}/check-in', [PestControlVisitController::class, 'checkIn'])->name('visits.check-in');
+        Route::patch('/visits/{visit}/check-out', [PestControlVisitController::class, 'checkOut'])->name('visits.check-out');
+        Route::patch('/visits/{visit}/approve', [PestControlVisitController::class, 'approve'])->name('visits.approve');
+        Route::patch('/visits/{visit}/cancel', [PestControlVisitController::class, 'cancel'])->name('visits.cancel');
+        Route::post('/visits/{visit}/points/{point}/inspection', [PestControlVisitInspectionController::class, 'store'])->name('visits.inspections.store');
+        Route::post('/visits/{visit}/signature', [PestControlVisitSignatureController::class, 'store'])->name('visits.signature.store');
+        Route::post('/visits/{visit}/media', [PestControlVisitMediaController::class, 'store'])->name('visits.media.store');
+        Route::delete('/visits/{visit}/media/{media}', [PestControlVisitMediaController::class, 'destroy'])->name('visits.media.destroy');
+    });

@@ -58,8 +58,21 @@ class TenantController extends Controller
     public function show(Tenant $tenant)
     {
         $plans = Plan::with('periods')->where('is_public', true)->get();
+        $tenant->load(['modules' => fn ($query) => $query->with('logs.performer')]);
 
-        return Inertia::render('admin/tenants/edit-tenant', ['tenant' => $tenant, 'plans' => $plans]);
+        $availableModules = collect(config('tenant_modules'))
+            ->map(fn (array $module, string $key) => [
+                'key' => $key,
+                'label' => $module['label'],
+                'prices' => $module['prices'],
+            ])
+            ->values();
+
+        return Inertia::render('admin/tenants/edit-tenant', [
+            'tenant' => $tenant,
+            'plans' => $plans,
+            'availableModules' => $availableModules,
+        ]);
     }
 
     /**

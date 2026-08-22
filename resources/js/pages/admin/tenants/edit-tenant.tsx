@@ -2,7 +2,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbItem, Tenant } from "@/types";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
 import { ArrowLeft, Building, Save } from "lucide-react";
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label";
@@ -29,7 +29,133 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function EditTenant({ plans, tenant }: any) {
+const moduleStatusLabels: Record<string, string> = {
+    active: 'Ativo',
+    suspended: 'Suspenso',
+    canceled: 'Cancelado',
+};
+
+const actionLabels: Record<string, string> = {
+    activated: 'Ativado',
+    suspended: 'Suspenso',
+    canceled: 'Cancelado',
+    reactivated: 'Reativado',
+};
+
+function formatDate(value?: string | null) {
+    if (!value) return '-';
+    return new Date(value).toLocaleString('pt-BR');
+}
+
+function TenantModulesPanel({ tenant, availableModules }: any) {
+    const modulesByKey = Object.fromEntries((tenant?.modules ?? []).map((module: any) => [module.module_key, module]));
+
+    const runAction = (method: 'post' | 'patch', routeName: string, moduleKey: string, confirmMessage?: string) => {
+        if (confirmMessage && !window.confirm(confirmMessage)) return;
+
+        router[method](
+            route(routeName, { tenant: tenant.id, module: moduleKey }),
+            {},
+            { preserveScroll: true },
+        );
+    };
+
+    return (
+        <div className="border rounded-lg p-4 mt-6 space-y-4">
+            <h3 className="text-base font-semibold">Módulos adicionais</h3>
+
+            {(availableModules ?? []).map((moduleDef: any) => {
+                const current = modulesByKey[moduleDef.key];
+                const status: string = current?.status ?? 'not_contracted';
+
+                return (
+                    <div key={moduleDef.key} className="border rounded-md p-3 space-y-2">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                            <div>
+                                <div className="font-medium">{moduleDef.label}</div>
+                                <div className="text-xs text-muted-foreground">
+                                    Mensal R$ {Number(moduleDef.prices[1]).toFixed(2).replace('.', ',')} · Semestral R${' '}
+                                    {Number(moduleDef.prices[6]).toFixed(2).replace('.', ',')} · Anual R${' '}
+                                    {Number(moduleDef.prices[12]).toFixed(2).replace('.', ',')}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                    Status: {status === 'not_contracted' ? 'Não contratado' : moduleStatusLabels[status]}
+                                    {current?.activated_at && status === 'active' && ` · ativo desde ${formatDate(current.activated_at)}`}
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                                {status !== 'active' && (
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        onClick={() =>
+                                            runAction(
+                                                'post',
+                                                'admin.tenants.modules.activate',
+                                                moduleDef.key,
+                                                status === 'not_contracted' ? undefined : 'Reativar este módulo para a empresa?',
+                                            )
+                                        }
+                                    >
+                                        {status === 'not_contracted' ? 'Contratar/ativar' : 'Reativar'}
+                                    </Button>
+                                )}
+
+                                {status === 'active' && (
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() =>
+                                            runAction('patch', 'admin.tenants.modules.suspend', moduleDef.key, 'Suspender este módulo para a empresa?')
+                                        }
+                                    >
+                                        Suspender
+                                    </Button>
+                                )}
+
+                                {status !== 'canceled' && status !== 'not_contracted' && (
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() =>
+                                            runAction(
+                                                'patch',
+                                                'admin.tenants.modules.cancel',
+                                                moduleDef.key,
+                                                'Cancelar este módulo para a empresa? Os dados não são apagados.',
+                                            )
+                                        }
+                                    >
+                                        Cancelar
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
+                        {current?.logs?.length > 0 && (
+                            <details className="text-xs text-muted-foreground">
+                                <summary className="cursor-pointer">Histórico</summary>
+                                <ul className="mt-1 space-y-0.5">
+                                    {current.logs.map((log: any) => (
+                                        <li key={log.id}>
+                                            {actionLabels[log.action] ?? log.action} em {formatDate(log.created_at)}
+                                            {log.performer?.name && ` por ${log.performer.name}`}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </details>
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+export default function EditTenant({ plans, tenant, availableModules }: any) {
     const allPlans = plans.map((plan: any) => ({
         value: plan.id,
         label: plan.name,
@@ -396,6 +522,8 @@ export default function EditTenant({ plans, tenant }: any) {
                             </Button>
                         </div>
                     </form>
+
+                    <TenantModulesPanel tenant={tenant} availableModules={availableModules} />
                 </div>
             </div>
         </AdminSidebarLayout>

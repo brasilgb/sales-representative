@@ -105,7 +105,16 @@ export default function Subscription({ tenant, plans, accountType, blockedReason
                             </div>
                             <div className="rounded-md border bg-muted/30 p-3 text-left text-sm">
                                 <div className="font-medium">{pixData.plan} · {pixData.period}</div>
-                                <div className="text-muted-foreground">Valor: R$ {maskMoney(pixData.amount)}</div>
+                                {pixData.addons?.length > 0 && (
+                                    <ul className="mt-1 space-y-0.5 text-muted-foreground">
+                                        {pixData.addons.map((addon: any) => (
+                                            <li key={addon.module_key}>
+                                                + {addon.label}: R$ {maskMoney(addon.amount)}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                <div className="mt-1 font-medium">Valor total: R$ {maskMoney(pixData.amount)}</div>
                             </div>
                             <img
                                 src={`data:image/png;base64,${pixData.qr_code}`}

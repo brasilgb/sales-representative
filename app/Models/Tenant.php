@@ -71,6 +71,19 @@ class Tenant extends Model
         return $this->hasMany(Region::class);
     }
 
+    public function modules(): HasMany
+    {
+        return $this->hasMany(TenantModule::class);
+    }
+
+    public function hasActiveModule(string $moduleKey): bool
+    {
+        return $this->modules()
+            ->where('module_key', $moduleKey)
+            ->where('status', TenantModule::STATUS_ACTIVE)
+            ->exists();
+    }
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_user_id');

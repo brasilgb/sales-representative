@@ -21,6 +21,7 @@ class Payment extends Model
         'expires_at',
         'approved_at',
         'raw_response',
+        'addons',
     ];
 
     protected function casts(): array
@@ -30,6 +31,7 @@ class Payment extends Model
             'expires_at' => 'datetime',
             'approved_at' => 'datetime',
             'raw_response' => 'array',
+            'addons' => 'array',
         ];
     }
 

@@ -7,6 +7,7 @@ use App\Models\Admin\Plan;
 use App\Models\Payment;
 use App\Models\Tenant;
 use App\Services\MercadoPagoService;
+use App\Services\TenantModuleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +16,10 @@ use MercadoPago\Exceptions\MPApiException;
 
 class PaymentController extends Controller
 {
-    public function __construct(private readonly MercadoPagoService $mercadoPagoService) {}
+    public function __construct(
+        private readonly MercadoPagoService $mercadoPagoService,
+        private readonly TenantModuleService $tenantModules,
+    ) {}
 
     public function generatePix(Request $request): JsonResponse
     {
@@ -47,11 +51,22 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Mercado Pago não configurado.'], 503);
         }
 
+        // Soma os módulos adicionais ativos (ex: Controle de Pragas) ao valor
+        // do plano vigente, mantendo uma única assinatura e um único
+        // vencimento, com o adicional discriminado na cobrança.
+        $addons = $this->tenantModules->activeAddonsFor($tenant, $period->interval_count);
+        $addonsTotal = array_sum(array_column($addons, 'amount'));
+        $totalAmount = (float) $period->price + $addonsTotal;
+        $description = "Assinatura {$plan->name} - {$period->name}";
+        if ($addons) {
+            $description .= ' + '.implode(' + ', array_column($addons, 'label'));
+        }
+
         $idempotencyKey = Str::uuid()->toString();
         $document = preg_replace('/\D/', '', (string) $tenant->cnpj);
         $paymentRequest = [
-            'transaction_amount' => (float) $period->price,
-            'description' => "Assinatura {$plan->name} - {$period->name}",
+            'transaction_amount' => $totalAmount,
+            'description' => $description,
             'payment_method_id' => 'pix',
             'payer' => [
                 'email' => $tenant->email,
@@ -79,11 +94,12 @@ class PaymentController extends Controller
                     'plan_id' => $plan->id,
                     'period_id' => $period->id,
                     'gateway' => 'mercadopago',
-                    'amount' => (float) ($gatewayPayment->transaction_amount ?? $period->price),
+                    'amount' => (float) ($gatewayPayment->transaction_amount ?? $totalAmount),
                     'status' => (string) ($gatewayPayment->status ?? 'pending'),
                     'idempotency_key' => $idempotencyKey,
                     'expires_at' => $gatewayPayment->date_of_expiration ?? null,
                     'raw_response' => json_decode(json_encode($gatewayPayment), true),
+                    'addons' => $addons,
                 ]
             );
 
@@ -94,7 +110,8 @@ class PaymentController extends Controller
                 'status' => (string) ($gatewayPayment->status ?? 'pending'),
                 'plan' => $plan->name,
                 'period' => $period->name,
-                'amount' => (float) $period->price,
+                'amount' => $totalAmount,
+                'addons' => $addons,
             ]);
         } catch (MPApiException $exception) {
             Log::error('Falha ao gerar cobrança Pix no Mercado Pago.', [

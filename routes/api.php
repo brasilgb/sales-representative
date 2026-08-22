@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ApiProductController;
 use App\Http\Controllers\Api\ApiVisitController;
 use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Middleware\AppApiAccessMiddleware;
+use App\Models\TenantModule;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -38,4 +39,13 @@ Route::middleware(['auth:sanctum', AppApiAccessMiddleware::class])->group(functi
     Route::post('/dateorders', [ApiOrderController::class, 'getDateOrders']);
     Route::patch('/statusorderapp/{order}', [ApiOrderController::class, 'setValueStatusOrderApp']);
     Route::patch('/cancelorderapp/{order}', [ApiOrderController::class, 'cancelOrderApp']);
+
+    // Controle de Pragas: endpoint versionado, ainda um placeholder técnico
+    // (Etapa 2). Os endpoints reais do app móvel chegam na Etapa 5.
+    Route::middleware('module:'.TenantModule::KEY_PEST_CONTROL)
+        ->prefix('pest-control/v1')
+        ->name('pest-control.v1.')
+        ->group(function () {
+            Route::get('/status', fn () => response()->json(['module' => 'pest_control', 'status' => 'active']));
+        });
 });

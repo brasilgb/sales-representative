@@ -10,6 +10,8 @@ export interface Auth {
     companyLogo?: string | null;
     companyName?: string | null;
     planFeatures: string[];
+    activeModules: string[];
+    pestControlPermissions: string[];
     subscriptionBlockedReason?: string | null;
     subscriptionInGracePeriod: boolean;
     subscriptionGraceDaysRemaining: number;

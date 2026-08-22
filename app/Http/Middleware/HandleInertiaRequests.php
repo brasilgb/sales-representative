@@ -3,6 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Models\Admin\Setting;
+use App\Models\TenantModule;
+use App\Services\PestControl\PestControlPermissions;
 use App\Support\PlanLimits;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -41,6 +43,11 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
         $planLimits = $request->user()?->tenant_id ? PlanLimits::forTenant($request->user()->tenant) : null;
+        $activeModules = $request->user()?->tenant_id
+            ? TenantModule::where('tenant_id', $request->user()->tenant_id)
+                ->where('status', TenantModule::STATUS_ACTIVE)
+                ->pluck('module_key')
+            : collect();
 
         return [
             ...parent::share($request),
@@ -60,6 +67,10 @@ class HandleInertiaRequests extends Middleware
                 'companyLogo' => $request->user()?->tenant?->logo_url,
                 'companyName' => $request->user()?->tenant?->company,
                 'planFeatures' => $planLimits?->plan()?->features ?? [],
+                'activeModules' => $activeModules,
+                'pestControlPermissions' => ($request->user() && $activeModules->contains(TenantModule::KEY_PEST_CONTROL))
+                    ? app(PestControlPermissions::class)->effectivePermissions($request->user())
+                    : [],
                 'subscriptionBlockedReason' => $planLimits?->subscriptionBlockedReason(),
                 'subscriptionInGracePeriod' => $planLimits?->isInGracePeriod() ?? false,
                 'subscriptionGraceDaysRemaining' => $planLimits?->graceDaysRemaining() ?? 0,
