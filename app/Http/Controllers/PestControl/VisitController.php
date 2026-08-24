@@ -10,6 +10,7 @@ use App\Models\PestControl\Establishment;
 use App\Models\PestControl\Lookup;
 use App\Models\PestControl\PestSpecies;
 use App\Models\PestControl\Product;
+use App\Models\PestControl\Technician;
 use App\Models\PestControl\Visit;
 use App\Models\User;
 use App\Services\PestControl\PestControlAuditLogger;
@@ -175,11 +176,20 @@ class VisitController extends Controller
         return back()->with('success', 'Visita cancelada.');
     }
 
+    /**
+     * Só técnicos/operadores cadastrados no módulo (App\Models\PestControl\Technician)
+     * entram nesta lista — vendedores e o administrador do painel não fazem
+     * visita de campo, então não aparecem para seleção aqui.
+     */
     private function technicians()
     {
-        return User::where('status', true)->orderBy('name')->get(['id', 'name'])
-            ->filter(fn (User $user) => $this->permissions->has($user, 'pest_control.visits.create') || $this->permissions->has($user, 'pest_control.visits.edit'))
-            ->values();
+        return Technician::with('user:id,name,status')
+            ->get()
+            ->pluck('user')
+            ->filter(fn (?User $user) => $user && $user->status)
+            ->sortBy('name')
+            ->values()
+            ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name]);
     }
 
     private function statuses(): array

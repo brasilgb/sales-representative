@@ -93,7 +93,8 @@ Route::middleware('module:'.TenantModule::KEY_PEST_CONTROL)
         Route::patch('/catalog/lookups/{lookup}', [PestControlLookupController::class, 'update'])->name('catalog.lookups.update');
         Route::delete('/catalog/lookups/{lookup}', [PestControlLookupController::class, 'destroy'])->name('catalog.lookups.destroy');
         Route::get('/operators', [PestControlOperatorController::class, 'index'])->name('operators.index');
-        Route::patch('/operators/{user}', [PestControlOperatorController::class, 'update'])->name('operators.update');
+        Route::get('/operators/create', [PestControlOperatorController::class, 'create'])->name('operators.create');
+        Route::post('/operators', [PestControlOperatorController::class, 'store'])->name('operators.store');
 
         // Visitas técnicas (Etapa 4): agenda, execução (check-in/check-out),
         // inspeção por ponto, evidências e assinatura/aceite.

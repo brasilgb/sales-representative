@@ -1,19 +1,21 @@
 import { API_URL } from './config';
 
 /**
- * Erro de API tipado: preserva o status HTTP e, quando o backend Laravel
- * responde 422, o dicionário `errors` (campo -> mensagens) para exibir nos
- * formulários.
+ * Erro de API tipado: preserva o status HTTP, o dicionário `errors` de uma
+ * resposta 422 do Laravel, e o corpo bruto (`data`) — usado pela detecção
+ * de conflito da Etapa 7 para ler `conflict`/`server_inspection` de um 409.
  */
 export class ApiError extends Error {
   status: number;
   errors?: Record<string, string[]>;
+  data?: unknown;
 
-  constructor(message: string, status: number, errors?: Record<string, string[]>) {
+  constructor(message: string, status: number, errors?: Record<string, string[]>, data?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.errors = errors;
+    this.data = data;
   }
 }
 
@@ -38,6 +40,22 @@ type RequestOptions = {
   headers?: Record<string, string>;
   signal?: AbortSignal;
 };
+
+async function handleResponse<T>(response: Response): Promise<T> {
+  const contentType = response.headers.get('content-type') ?? '';
+  const payload = contentType.includes('application/json') ? await response.json().catch(() => null) : null;
+
+  if (response.status === 401) {
+    onUnauthorized?.();
+    throw new ApiError('Sessão expirada. Faça login novamente.', 401);
+  }
+
+  if (!response.ok) {
+    throw new ApiError(payload?.message ?? 'Não foi possível completar a operação.', response.status, payload?.errors, payload);
+  }
+
+  return payload as T;
+}
 
 /**
  * Cliente HTTP fino sobre `fetch`. Sem dependência de terceiros: a base do
@@ -66,17 +84,29 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     throw new ApiError('Não foi possível conectar ao servidor.', 0);
   }
 
-  const contentType = response.headers.get('content-type') ?? '';
-  const payload = contentType.includes('application/json') ? await response.json().catch(() => null) : null;
+  return handleResponse<T>(response);
+}
 
-  if (response.status === 401) {
-    onUnauthorized?.();
-    throw new ApiError('Sessão expirada. Faça login novamente.', 401);
+/**
+ * Envio multipart (upload de foto/evidência — Etapa 5). Sem `Content-Type`
+ * manual: o `fetch` define o boundary do multipart sozinho a partir do
+ * `FormData`, coisa que não dá para fazer declarando o header na mão.
+ */
+export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body: formData,
+    });
+  } catch {
+    throw new ApiError('Não foi possível conectar ao servidor.', 0);
   }
 
-  if (!response.ok) {
-    throw new ApiError(payload?.message ?? 'Não foi possível completar a operação.', response.status, payload?.errors);
-  }
-
-  return payload as T;
+  return handleResponse<T>(response);
 }

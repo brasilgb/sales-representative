@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\PestControl\Technician as PestControlTechnician;
 use App\Traits\Tenantable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -88,6 +90,24 @@ class User extends Authenticatable
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Marcação do módulo Controle de Pragas (ver App\Models\PestControl\Technician):
+     * só existe quando o usuário foi cadastrado como técnico/operador de campo.
+     */
+    public function pestControlTechnician(): HasOne
+    {
+        return $this->hasOne(PestControlTechnician::class);
+    }
+
+    /**
+     * Técnico/operador de campo do Controle de Pragas: acesso apenas pelo
+     * aplicativo, nunca pelo painel web (ver LoginRequest::authenticate).
+     */
+    public function isPestControlTechnician(): bool
+    {
+        return $this->pestControlTechnician()->exists();
     }
 
     public function isSuperAdmin(): bool

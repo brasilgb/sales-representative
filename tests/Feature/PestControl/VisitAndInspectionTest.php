@@ -5,6 +5,7 @@ use App\Models\PestControl\ControlPoint;
 use App\Models\PestControl\Establishment;
 use App\Models\PestControl\PestSpecies;
 use App\Models\PestControl\Product;
+use App\Models\PestControl\Technician;
 use App\Models\PestControl\Visit;
 use App\Models\PestControl\VisitInspection;
 use App\Models\PestControl\VisitSignature;
@@ -51,6 +52,22 @@ function vtSeller(Tenant $tenant, string $suffix): User
     ]);
 }
 
+function vtTechnician(Tenant $tenant, string $suffix): User
+{
+    $user = User::withoutGlobalScopes()->create([
+        'tenant_id' => $tenant->id,
+        'name' => "Técnico VT {$suffix}",
+        'email' => "tech-vt-{$suffix}@example.com",
+        'password' => 'password',
+        'roles' => User::ROLE_SELLER,
+        'status' => 1,
+    ]);
+
+    Technician::create(['tenant_id' => $tenant->id, 'user_id' => $user->id]);
+
+    return $user;
+}
+
 function vtRoot(string $suffix): User
 {
     return User::withoutGlobalScopes()->create([
@@ -83,18 +100,57 @@ test('a user with visits.create can schedule a visit, and it is audited', functi
     $owner = vtOwner($tenant, '1');
     vtActivateModule($tenant, vtRoot('1'));
     $establishment = vtEstablishment($tenant);
+    $technician = vtTechnician($tenant, '1');
 
     $this->actingAs($owner)->post(route('app.pest-control.visits.store'), [
         'establishment_id' => $establishment->id,
-        'technician_id' => $owner->id,
+        'technician_id' => $technician->id,
         'scheduled_at' => now()->addDay()->toDateTimeString(),
         'service_type' => 'Manutenção',
     ])->assertRedirect();
 
     $visit = Visit::where('tenant_id', $tenant->id)->firstOrFail();
     expect($visit->status)->toBe(Visit::STATUS_SCHEDULED)
+        ->and($visit->technician_id)->toBe($technician->id)
         ->and($visit->uuid)->not->toBeEmpty()
         ->and(AuditLog::where('action', 'visit.scheduled')->where('subject_id', $visit->id)->exists())->toBeTrue();
+});
+
+test('scheduling a visit rejects a technician_id that is not a registered technician (seller or admin)', function () {
+    $tenant = vtTenant('1b');
+    $owner = vtOwner($tenant, '1b');
+    $seller = vtSeller($tenant, '1b');
+    vtActivateModule($tenant, vtRoot('1b'));
+    $establishment = vtEstablishment($tenant);
+
+    $this->actingAs($owner)->post(route('app.pest-control.visits.store'), [
+        'establishment_id' => $establishment->id,
+        'technician_id' => $seller->id,
+        'scheduled_at' => now()->addDay()->toDateTimeString(),
+    ])->assertSessionHasErrors('technician_id');
+
+    $this->actingAs($owner)->post(route('app.pest-control.visits.store'), [
+        'establishment_id' => $establishment->id,
+        'technician_id' => $owner->id,
+        'scheduled_at' => now()->addDay()->toDateTimeString(),
+    ])->assertSessionHasErrors('technician_id');
+
+    expect(Visit::where('tenant_id', $tenant->id)->count())->toBe(0);
+});
+
+test('the technician dropdown for scheduling only lists registered technicians, never sellers or the owner', function () {
+    $tenant = vtTenant('1c');
+    $owner = vtOwner($tenant, '1c');
+    vtSeller($tenant, '1c'); // vendedor comum: não deve aparecer
+    vtActivateModule($tenant, vtRoot('1c'));
+    $technician = vtTechnician($tenant, '1c');
+
+    $this->actingAs($owner)
+        ->get(route('app.pest-control.visits.create'))
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('app/pest-control/visits/create-visit')
+            ->has('technicians', 1)
+            ->where('technicians.0.id', $technician->id));
 });
 
 test('check-in within the establishment radius does not raise an out-of-range occurrence, and check-out computes duration', function () {

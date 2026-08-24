@@ -8,7 +8,8 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.andersonbrodrigues.vpapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,12 +18,30 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.andersonbrodrigues.vpapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "expo-status-bar", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-secure-store",
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "O VetorPet usa sua localização para registrar o check-in e o check-out das visitas técnicas."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "O VetorPet usa a câmera para fotografar evidências das visitas técnicas."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     }

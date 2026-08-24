@@ -22,9 +22,12 @@ class VisitRequest extends FormRequest
                 'required',
                 Rule::exists('pest_control_establishments', 'id')->where('tenant_id', $tenantId),
             ],
+            // Só um usuário cadastrado como técnico/operador do módulo pode
+            // ser designado (ver App\Models\PestControl\Technician) —
+            // vendedores e o administrador do painel não entram aqui.
             'technician_id' => [
                 'required',
-                Rule::exists('users', 'id')->where('tenant_id', $tenantId),
+                Rule::exists('pest_control_technicians', 'user_id')->where('tenant_id', $tenantId),
             ],
             'scheduled_at' => ['required', 'date'],
             'service_type' => ['nullable', 'string', 'max:100'],

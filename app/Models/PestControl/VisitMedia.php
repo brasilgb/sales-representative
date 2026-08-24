@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class VisitMedia extends Model
 {
@@ -17,12 +18,31 @@ class VisitMedia extends Model
 
     public const TYPE_ATTACHMENT = 'attachment';
 
+    // Categorias de evidência do app do técnico (ver app-tecnico.md, seção
+    // EVIDÊNCIAS). Opcional: evidências antigas do painel web não têm uma.
+    public const CATEGORY_INFESTATION = 'infestacao';
+
+    public const CATEGORY_PRODUCT = 'produto';
+
+    public const CATEGORY_DEVICE = 'dispositivo';
+
+    public const CATEGORY_DAMAGE = 'dano';
+
+    public const CATEGORY_INACCESSIBLE_POINT = 'ponto_inacessivel';
+
+    public const CATEGORY_SITE_CONDITION = 'situacao_local';
+
+    public const CATEGORY_SERVICE_COMPLETED = 'servico_concluido';
+
     protected $fillable = [
         'tenant_id',
+        'uuid',
         'visit_id',
         'inspection_id',
         'type',
+        'category',
         'path',
+        'content_hash',
         'caption',
         'taken_at',
         'latitude',
@@ -37,6 +57,13 @@ class VisitMedia extends Model
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (VisitMedia $media) {
+            $media->uuid ??= (string) Str::uuid();
+        });
     }
 
     public function visit(): BelongsTo

@@ -7,6 +7,12 @@ use App\Http\Controllers\Api\ApiHomeController;
 use App\Http\Controllers\Api\ApiOrderController;
 use App\Http\Controllers\Api\ApiProductController;
 use App\Http\Controllers\Api\ApiVisitController;
+use App\Http\Controllers\Api\PestControl\AgendaController as PestControlAgendaController;
+use App\Http\Controllers\Api\PestControl\VisitCheckinController as PestControlVisitCheckinController;
+use App\Http\Controllers\Api\PestControl\VisitCheckoutController as PestControlVisitCheckoutController;
+use App\Http\Controllers\Api\PestControl\VisitInspectionController as PestControlVisitInspectionController;
+use App\Http\Controllers\Api\PestControl\VisitMediaController as PestControlVisitMediaController;
+use App\Http\Controllers\Api\PestControl\VisitSignatureController as PestControlVisitSignatureController;
 use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Middleware\AppApiAccessMiddleware;
 use App\Models\TenantModule;
@@ -40,12 +46,21 @@ Route::middleware(['auth:sanctum', AppApiAccessMiddleware::class])->group(functi
     Route::patch('/statusorderapp/{order}', [ApiOrderController::class, 'setValueStatusOrderApp']);
     Route::patch('/cancelorderapp/{order}', [ApiOrderController::class, 'cancelOrderApp']);
 
-    // Controle de Pragas: endpoint versionado, ainda um placeholder técnico
-    // (Etapa 2). Os endpoints reais do app móvel chegam na Etapa 5.
+    // Controle de Pragas: endpoints do app móvel do técnico (Etapa 2 do
+    // app-tecnico.md / fatia inicial da Etapa 5 do pest-control.md). Cada
+    // rota aqui é escopada ao próprio técnico dentro do AgendaController,
+    // além do isolamento por tenant já garantido pela trait Tenantable.
     Route::middleware('module:'.TenantModule::KEY_PEST_CONTROL)
         ->prefix('pest-control/v1')
         ->name('pest-control.v1.')
         ->group(function () {
             Route::get('/status', fn () => response()->json(['module' => 'pest_control', 'status' => 'active']));
+            Route::get('/agenda', [PestControlAgendaController::class, 'index'])->name('agenda.index');
+            Route::get('/agenda/{visit:uuid}', [PestControlAgendaController::class, 'show'])->name('agenda.show');
+            Route::patch('/visits/{visit:uuid}/check-in', [PestControlVisitCheckinController::class, 'store'])->name('visits.check-in');
+            Route::post('/visits/{visit:uuid}/points/{point}/inspection', [PestControlVisitInspectionController::class, 'store'])->name('visits.inspections.store');
+            Route::post('/visits/{visit:uuid}/media', [PestControlVisitMediaController::class, 'store'])->name('visits.media.store');
+            Route::post('/visits/{visit:uuid}/signature', [PestControlVisitSignatureController::class, 'store'])->name('visits.signature.store');
+            Route::patch('/visits/{visit:uuid}/check-out', [PestControlVisitCheckoutController::class, 'store'])->name('visits.check-out');
         });
 });

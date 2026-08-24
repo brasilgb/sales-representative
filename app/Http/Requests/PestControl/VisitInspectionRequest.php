@@ -51,6 +51,8 @@ class VisitInspectionRequest extends FormRequest
             ],
             'species.*.live_count' => ['nullable', 'integer', 'min:0'],
             'species.*.dead_count' => ['nullable', 'integer', 'min:0'],
+            // Detecção de conflito do app móvel (Etapa 7 do app-tecnico.md) — ver VisitInspectionController.
+            'client_known_updated_at' => ['nullable', 'date'],
         ];
     }
 

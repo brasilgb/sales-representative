@@ -5,10 +5,10 @@ use App\Models\PestControl\Establishment;
 use App\Models\PestControl\Lookup;
 use App\Models\PestControl\PestSpecies;
 use App\Models\PestControl\Product;
+use App\Models\PestControl\Technician;
 use App\Models\Tenant;
 use App\Models\TenantModule;
 use App\Models\User;
-use App\Services\PestControl\PestControlPermissions;
 use App\Services\TenantModuleService;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -145,12 +145,14 @@ test('deleting a product used as a control point default is blocked', function (
     expect(Product::find($product->id))->not->toBeNull();
 });
 
-test('operators index lists non-owner tenant users with their effective permissions', function () {
+test('operators index lists only technicians registered in the module, not every seller', function () {
     $tenant = catTenant('6');
     $owner = catOwner($tenant, '6');
-    $seller = catSeller($tenant, '6');
+    catSeller($tenant, '6'); // vendedor comum, não cadastrado como técnico: não deve aparecer
     catActivateModule($tenant, catRoot('6'));
-    app(PestControlPermissions::class)->grant($seller, 'pest_control.visits.create', $owner);
+
+    $technicianUser = catSeller($tenant, '6-tech');
+    Technician::create(['tenant_id' => $tenant->id, 'user_id' => $technicianUser->id]);
 
     $this->actingAs($owner)
         ->get(route('app.pest-control.operators.index'))
@@ -158,41 +160,45 @@ test('operators index lists non-owner tenant users with their effective permissi
         ->assertInertia(fn (Assert $page) => $page
             ->component('app/pest-control/operators/index')
             ->has('users', 1)
-            ->where('users.0.id', $seller->id)
-            ->where('users.0.permissions', ['pest_control.visits.create']));
+            ->where('users.0.id', $technicianUser->id));
 });
 
-test('operators.manage grants and revokes a permission for a seller, and the owner cannot be targeted', function () {
-    $tenant = catTenant('7');
-    $owner = catOwner($tenant, '7');
-    $seller = catSeller($tenant, '7');
-    catActivateModule($tenant, catRoot('7'));
+test('owner creates a technician/operator from within the module, reusing the users table, without any permission grant', function () {
+    $tenant = catTenant('9');
+    $owner = catOwner($tenant, '9');
+    catActivateModule($tenant, catRoot('9'));
 
-    $this->actingAs($owner)->patch(route('app.pest-control.operators.update', $seller), [
-        'permissions' => ['pest_control.visits.view', 'pest_control.visits.create'],
-    ])->assertRedirect();
+    $this->actingAs($owner)->post(route('app.pest-control.operators.store'), [
+        'name' => 'Técnico Novo',
+        'email' => 'tecnico-cat-9@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertRedirect(route('app.pest-control.operators.index'));
 
-    expect(app(PestControlPermissions::class)->effectivePermissions($seller))
-        ->toEqualCanonicalizing(['pest_control.visits.view', 'pest_control.visits.create']);
+    $technician = User::where('email', 'tecnico-cat-9@example.com')->firstOrFail();
+    expect($technician->tenant_id)->toBe($tenant->id);
+    expect($technician->roles)->toEqual(User::ROLE_SELLER);
+    expect($technician->isPestControlTechnician())->toBeTrue();
 
-    $this->actingAs($owner)->patch(route('app.pest-control.operators.update', $seller), [
-        'permissions' => [],
-    ])->assertRedirect();
-
-    expect(app(PestControlPermissions::class)->effectivePermissions($seller))->toBe([]);
-
+    // O cadastro é feito dentro do módulo, na tela de técnicos/operadores.
     $this->actingAs($owner)
-        ->patch(route('app.pest-control.operators.update', $owner), ['permissions' => ['pest_control.visits.view']])
-        ->assertStatus(422);
+        ->get(route('app.pest-control.operators.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('users.0.id', $technician->id));
 });
 
-test('a seller without operators.manage cannot change other users permissions', function () {
-    $tenant = catTenant('8');
-    $sellerA = catSeller($tenant, '8-a');
-    $sellerB = catSeller($tenant, '8-b');
-    catActivateModule($tenant, catRoot('8'));
+test('a seller without operators.manage cannot create technicians/operators', function () {
+    $tenant = catTenant('10');
+    $seller = catSeller($tenant, '10');
+    catActivateModule($tenant, catRoot('10'));
 
-    $this->actingAs($sellerA)
-        ->patch(route('app.pest-control.operators.update', $sellerB), ['permissions' => ['pest_control.visits.view']])
-        ->assertForbidden();
+    $this->actingAs($seller)->get(route('app.pest-control.operators.create'))->assertForbidden();
+
+    $this->actingAs($seller)->post(route('app.pest-control.operators.store'), [
+        'name' => 'Bloqueado',
+        'email' => 'bloqueado-cat-10@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertForbidden();
+
+    expect(User::where('email', 'bloqueado-cat-10@example.com')->exists())->toBeFalse();
 });

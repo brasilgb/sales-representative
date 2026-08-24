@@ -6,9 +6,10 @@ import { tokenStorage } from './storage';
 
 /**
  * Espelha o que `GET /api/user` retorna hoje (ver ApiAuthController::getUser).
- * `active_modules` e `pest_control_permissions` ainda não existem nessa
- * resposta — são um item pendente do contrato de API (Etapa 1) a resolver
- * no backend antes da Etapa 2 (checagem de disponibilidade do módulo).
+ * `pest_control_permissions` só vem preenchido quando o módulo está ativo
+ * para o tenant e o usuário é um técnico cadastrado (ver
+ * App\Models\PestControl\Technician) — nos demais casos fica ausente, nunca
+ * um indício de que o módulo existe.
  */
 export type AuthUser = {
   id: number;
@@ -18,7 +19,15 @@ export type AuthUser = {
   account_type?: string | null;
   can_manage_catalog?: boolean;
   can_manage_team?: boolean;
+  active_modules?: string[];
+  is_pest_control_technician?: boolean;
+  pest_control_permissions?: string[];
 };
+
+/** Regra de visibilidade do módulo (ver app-tecnico.md): só existe acesso quando ambos são verdadeiros. */
+export function hasPestControlAccess(user: AuthUser | null): boolean {
+  return !!user?.is_pest_control_technician && !!user?.active_modules?.includes('pest_control');
+}
 
 type AuthState = {
   user: AuthUser | null;

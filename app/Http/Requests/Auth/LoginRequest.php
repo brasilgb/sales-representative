@@ -50,6 +50,17 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        // Técnico/operador do Controle de Pragas: cadastro válido, mas o
+        // painel web é exclusivo do administrador. Esse usuário só acessa
+        // pelo aplicativo (ver App\Models\PestControl\Technician).
+        if (Auth::user()?->isPestControlTechnician()) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Somente administradores estão autorizados a acessar o painel de controle. Este usuário deve acessar pelo aplicativo do técnico.',
+            ]);
+        }
     }
 
     /**

@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\ApiBaseController as BaseController;
 use App\Models\Admin\Period;
 use App\Models\Admin\Plan;
 use App\Models\Tenant;
+use App\Models\TenantModule;
 use App\Models\User;
+use App\Services\PestControl\PestControlPermissions;
 use App\Support\PlanLimits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -190,11 +192,27 @@ class ApiAuthController extends BaseController
             'v' => $user->tenant->updated_at?->timestamp,
         ]);
 
+        // Módulos adicionais ativos do tenant e, quando o Controle de Pragas
+        // estiver entre eles, o que o app do técnico precisa para decidir o
+        // que mostrar (ver App\Models\PestControl\Technician e
+        // App\Services\PestControl\PestControlPermissions). Nunca indica a
+        // existência do módulo para quem não o tem contratado.
+        $activeModules = $user->tenant_id
+            ? TenantModule::where('tenant_id', $user->tenant_id)->where('status', TenantModule::STATUS_ACTIVE)->pluck('module_key')->all()
+            : [];
+        $isPestControlTechnician = $user->isPestControlTechnician();
+
         $user->unsetRelation('tenant');
         $user->setAttribute('account_type', $accountType);
         $user->setAttribute('can_manage_catalog', $canManageCatalog);
         $user->setAttribute('can_manage_team', $canManageTeam);
         $user->setAttribute('public_catalog_url', $publicCatalogUrl);
+        $user->setAttribute('active_modules', $activeModules);
+        $user->setAttribute('is_pest_control_technician', $isPestControlTechnician);
+
+        if (in_array(TenantModule::KEY_PEST_CONTROL, $activeModules, true) && $isPestControlTechnician) {
+            $user->setAttribute('pest_control_permissions', app(PestControlPermissions::class)->effectivePermissions($user));
+        }
 
         return response()->json($user);
     }
