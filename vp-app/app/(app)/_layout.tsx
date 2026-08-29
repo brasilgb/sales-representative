@@ -1,8 +1,10 @@
 import { Redirect, Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { hasPestControlAccess, useAuth } from '@/lib/auth';
+import { startAgendaWatch, stopAgendaWatch } from '@/lib/pest-control/agenda-watch';
 import { startAutoSync, stopAutoSync } from '@/lib/pest-control/sync';
 
 /**
@@ -16,14 +18,19 @@ export default function AppLayout() {
   const { user, isLoading, isAuthenticated, logout } = useAuth();
   const hasAccess = hasPestControlAccess(user);
 
-  // Sincronização automática (Etapa 7): liga assim que o técnico está numa
-  // sessão válida com acesso ao módulo, desliga ao sair — nunca roda em segundo plano sem sessão.
+  // Sincronização automática (Etapa 7) e escuta da agenda: ligam assim que o
+  // técnico está numa sessão válida com acesso ao módulo, desligam ao sair —
+  // nunca rodam em segundo plano sem sessão.
   useEffect(() => {
     if (!hasAccess) return;
 
     startAutoSync();
+    void startAgendaWatch();
 
-    return () => stopAutoSync();
+    return () => {
+      stopAutoSync();
+      stopAgendaWatch();
+    };
   }, [hasAccess]);
 
   if (isLoading) {
@@ -44,12 +51,17 @@ export default function AppLayout() {
         <Text className="text-center text-base text-neutral-700">
           Este usuário não tem acesso ao módulo de Controle de Pragas no momento.
         </Text>
-        <Pressable onPress={() => logout()} className="items-center rounded-lg border border-neutral-300 px-6 py-3">
-          <Text className="text-base font-medium text-neutral-900">Sair</Text>
+        <Pressable onPress={() => logout()} className="items-center rounded-xl border border-neutral-300 px-6 py-3">
+          <Text className="text-base font-medium text-green-950">Sair</Text>
         </Pressable>
       </View>
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <>
+      <StatusBar style="dark" backgroundColor="#f0fdf4" />
+      <Stack screenOptions={{ headerShown: false }} />
+    </>
+  );
 }

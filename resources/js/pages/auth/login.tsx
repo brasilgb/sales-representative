@@ -39,7 +39,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     return (
-        <AuthLayout title="Bem vindo de volta" description="Entre com suas credenciais para acessar o sistema">
+        <AuthLayout title="Bem-vindo de volta" description="Acesse sua conta e continue cuidando dos seus negócios com praticidade.">
             <Head title="Conecte-se" />
             <form className="flex min-w-0 flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">
@@ -56,8 +56,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 autoComplete="email"
                                 value={data.email}
                                 onChange={(e) => setData('email', e.target.value)}
-                                placeholder="email@examplo.com"
-                                className="pl-10"
+                                placeholder="seuemail@exemplo.com"
+                                className="h-12 rounded-xl border-green-100 bg-green-50 pl-10 text-green-950 placeholder:text-green-800/45 focus-visible:border-green-500 focus-visible:ring-green-500/20"
                             />
                         </div>
                         <InputError message={errors.email} />
@@ -83,11 +83,11 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
                                 placeholder="Senha"
-                                className="pr-10 pl-10"
+                                className="h-12 rounded-xl border-green-100 bg-green-50 pr-10 pl-10 text-green-950 placeholder:text-green-800/45 focus-visible:border-green-500 focus-visible:ring-green-500/20"
                             />
                             <Button
                                 type="button"
-                                className="absolute top-0 right-1"
+                                className="absolute top-1.5 right-1 text-green-800 hover:bg-green-100 hover:text-green-950"
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setShowPassword(!showPassword)}
@@ -112,9 +112,15 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         </Label>
                     </div>
 
-                    <Button type="submit" size="lg" className="mt-4 w-full" tabIndex={4} disabled={processing}>
+                    <Button
+                        type="submit"
+                        size="lg"
+                        className="mt-2 h-12 w-full rounded-xl bg-green-600 font-bold text-white shadow-lg shadow-green-900/15 hover:bg-green-700"
+                        tabIndex={4}
+                        disabled={processing}
+                    >
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        {processing ? 'Entrando...' : 'Entrar'}
+                        {processing ? 'Entrando...' : 'Entrar no sistema'}
                     </Button>
                 </div>
 

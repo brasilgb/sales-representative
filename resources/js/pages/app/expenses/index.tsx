@@ -74,7 +74,7 @@ export default function Expenses({ expenses, summary, filters, users, canManageT
                     {canManageTeam && <div className="grid gap-2"><Label htmlFor="user_id">Vendedor</Label><select id="user_id" className="flex h-9 rounded-md border border-input bg-transparent px-3 text-sm" value={userId} onChange={(event) => setUserId(event.target.value)}><option value="">Todos</option>{users.map((user: any) => <option key={user.id} value={user.id}>{user.name}</option>)}</select></div>}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    <Button type="submit" className="bg-sky-600 text-white hover:bg-sky-700"><Search className="h-4 w-4" /> Filtrar</Button>
+                    <Button type="submit" className="bg-green-600 text-white hover:bg-green-700"><Search className="h-4 w-4" /> Filtrar</Button>
                     <Button asChild variant="outline"><Link href={route('app.reports.expenses.pdf', pdfFilters)}><FileOutput className="h-4 w-4" /> Gerar PDF</Link></Button>
                     <Button asChild><Link href={route('app.expenses.create')}><Plus className="h-4 w-4" /> Nova despesa</Link></Button>
                 </div>

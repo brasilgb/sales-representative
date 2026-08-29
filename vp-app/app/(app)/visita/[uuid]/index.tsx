@@ -1,6 +1,7 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PhotoEvidenceSection } from '@/components/pest-control/PhotoEvidenceSection';
 import { fetchVisitDetail } from '@/lib/pest-control/api';
@@ -42,6 +43,7 @@ function pointStatusLabel(local: LocalInspection | undefined): { label: string; 
     className: 'text-green-700',
   };
 }
+
 
 /** Detalhes da visita (Etapa 2) e progresso da inspeção dos pontos (Etapa 4). */
 export default function VisitDetailScreen() {
@@ -109,8 +111,8 @@ export default function VisitDetailScreen() {
           Esta visita ainda não foi baixada e não há internet disponível agora. Volte para a agenda com internet para baixar os
           dados.
         </Text>
-        <Pressable onPress={() => router.back()} className="rounded-lg border border-neutral-300 px-6 py-3">
-          <Text className="text-base font-medium text-neutral-900">Voltar</Text>
+        <Pressable onPress={() => router.back()} className="rounded-xl border border-neutral-300 px-6 py-3">
+          <Text className="text-base font-medium text-green-950">Voltar</Text>
         </Pressable>
       </View>
     );
@@ -125,14 +127,14 @@ export default function VisitDetailScreen() {
   const pending = points.length - reviewed;
 
   return (
-    <View className="flex-1 bg-white pt-16">
-      <View className="gap-1 px-6 pb-4">
-        <Pressable onPress={() => router.back()}>
-          <Text className="text-sm text-blue-600">‹ Agenda</Text>
+    <SafeAreaView className="flex-1 bg-green-50" edges={['top', 'bottom']}>
+      <View className="mx-5 mb-4 gap-2 rounded-2xl border border-green-100 bg-white p-4">
+        <Pressable onPress={() => router.back()} hitSlop={8} className="min-h-10 self-start justify-center pr-4">
+          <Text className="text-sm text-green-700">‹ Agenda</Text>
         </Pressable>
-        <Text className="text-xl font-semibold text-neutral-900">{visit.establishment.name}</Text>
+        <Text className="text-xl font-semibold text-green-950">{visit.establishment.name}</Text>
         <Pressable onPress={() => openInMaps(visit.establishment)}>
-          <Text className="text-sm text-blue-600 underline">{addressLine(visit.establishment)}</Text>
+          <Text className="text-sm text-green-700 underline">{addressLine(visit.establishment)}</Text>
         </Pressable>
         <Text className="text-sm text-neutral-600">{formatScheduledAt(visit.scheduled_at)}</Text>
         <Text className="text-sm text-neutral-600">{visit.service_type}</Text>
@@ -144,7 +146,7 @@ export default function VisitDetailScreen() {
         ) : (
           <Pressable
             onPress={() => router.push(`/visita/${uuid}/check-in`)}
-            className="mt-2 items-center rounded-lg bg-neutral-900 py-3"
+            className="mt-2 min-h-12 items-center justify-center rounded-xl bg-green-600 px-4"
           >
             <Text className="text-base font-medium text-white">Fazer check-in</Text>
           </Pressable>
@@ -161,11 +163,11 @@ export default function VisitDetailScreen() {
         ) : null}
       </View>
 
-      <View className="border-t border-neutral-200 px-6 pt-4">
+      <View className="border-t border-green-100 px-5 pt-4">
         <PhotoEvidenceSection visitUuid={uuid} pointId={null} categories={VISIT_PHOTO_CATEGORIES} />
       </View>
 
-      <View className="gap-2 border-t border-neutral-200 px-6 pt-4">
+      <View className="gap-2 border-t border-green-100 px-5 pt-4">
         <Text className="text-sm font-semibold uppercase text-neutral-500">
           Pontos de controle: {reviewed} de {points.length} revisados
         </Text>
@@ -174,29 +176,38 @@ export default function VisitDetailScreen() {
           <Text className="text-xs text-red-600">Ocorrências: {occurrences}</Text>
           <Text className="text-xs text-amber-700">Substituições: {replacements}</Text>
         </View>
+        <Text className="text-xs text-neutral-500">Toque em um ponto abaixo para abrir e preencher a inspeção.</Text>
       </View>
 
       <FlatList
         data={points}
         keyExtractor={(point: ControlPoint) => String(point.id)}
-        contentContainerClassName="gap-2 px-6 pb-8 pt-3"
+        contentContainerClassName="gap-3 px-5 pb-8 pt-3"
         renderItem={({ item }) => {
           const local = localInspections.get(item.id);
           const status = pointStatusLabel(local);
+          const needsAttention = item.required && !local;
 
           return (
             <Pressable
               onPress={() => router.push(`/visita/${uuid}/ponto/${item.id}`)}
-              className="gap-1 rounded-xl border border-neutral-200 p-4"
+              className={`gap-1 rounded-2xl border p-4 ${needsAttention ? 'border-amber-300 bg-amber-50' : 'border-green-100 bg-white'}`}
             >
               <View className="flex-row items-center justify-between">
-                <Text className="text-base font-medium text-neutral-900">{item.code ?? item.label}</Text>
-                {item.required ? <Text className="text-xs font-medium uppercase text-amber-700">Obrigatório</Text> : null}
+                <Text className="text-base font-medium text-green-950">{item.code ?? item.label}</Text>
+                {item.required ? (
+                  <View className="rounded-full bg-amber-100 px-2 py-0.5">
+                    <Text className="text-[10px] font-bold uppercase text-amber-800">Obrigatório</Text>
+                  </View>
+                ) : null}
               </View>
               <Text className="text-sm text-neutral-600">{item.label}</Text>
               <Text className="text-xs text-neutral-500">{CATEGORY_LABELS[item.category_key] ?? item.category_key}</Text>
               {item.instructions ? <Text className="text-sm text-neutral-600">{item.instructions}</Text> : null}
-              <Text className={`text-xs font-medium uppercase ${status.className}`}>{status.label}</Text>
+              <View className="mt-1 flex-row items-center justify-between">
+                <Text className={`text-xs font-medium uppercase ${status.className}`}>{status.label}</Text>
+                <Text className="text-xl font-bold leading-none text-green-700">›</Text>
+              </View>
             </Pressable>
           );
         }}
@@ -207,13 +218,13 @@ export default function VisitDetailScreen() {
           visit.checkin_at && !visit.checkout_at ? (
             <Pressable
               onPress={() => router.push(`/visita/${uuid}/resumo`)}
-              className="mt-2 items-center rounded-lg bg-neutral-900 py-3"
+              className="mt-2 min-h-14 items-center justify-center rounded-2xl bg-green-600 px-4"
             >
               <Text className="text-base font-medium text-white">Resumo e encerramento da visita</Text>
             </Pressable>
           ) : null
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }

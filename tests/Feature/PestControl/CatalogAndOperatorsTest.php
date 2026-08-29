@@ -10,6 +10,7 @@ use App\Models\Tenant;
 use App\Models\TenantModule;
 use App\Models\User;
 use App\Services\TenantModuleService;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
 
 function catTenant(string $suffix): Tenant
@@ -201,4 +202,84 @@ test('a seller without operators.manage cannot create technicians/operators', fu
     ])->assertForbidden();
 
     expect(User::where('email', 'bloqueado-cat-10@example.com')->exists())->toBeFalse();
+});
+
+test('owner edits technician information and changes their app password', function () {
+    $tenant = catTenant('12');
+    $owner = catOwner($tenant, '12');
+    catActivateModule($tenant, catRoot('12'));
+
+    $technician = catSeller($tenant, '12-tech');
+    Technician::create(['tenant_id' => $tenant->id, 'user_id' => $technician->id]);
+
+    $this->actingAs($owner)
+        ->get(route('app.pest-control.operators.edit', $technician))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('app/pest-control/operators/edit-operator')
+            ->where('operator.id', $technician->id)
+            ->where('operator.email', $technician->email));
+
+    $this->actingAs($owner)
+        ->put(route('app.pest-control.operators.update', $technician), [
+            'name' => 'Técnico Atualizado',
+            'email' => 'tecnico-atualizado@example.com',
+            'telephone' => '11999998888',
+            'whatsapp' => '11988887777',
+            'status' => false,
+            'password' => 'nova-senha-123',
+            'password_confirmation' => 'nova-senha-123',
+        ])
+        ->assertRedirect(route('app.pest-control.operators.index'))
+        ->assertSessionHas('success');
+
+    $technician->refresh();
+
+    expect($technician->name)->toBe('Técnico Atualizado')
+        ->and($technician->email)->toBe('tecnico-atualizado@example.com')
+        ->and($technician->telephone)->toBe('11999998888')
+        ->and($technician->whatsapp)->toBe('11988887777')
+        ->and((bool) $technician->status)->toBeFalse()
+        ->and(Hash::check('nova-senha-123', $technician->password))->toBeTrue();
+});
+
+test('updating a technician without a new password keeps the current password', function () {
+    $tenant = catTenant('13');
+    $owner = catOwner($tenant, '13');
+    catActivateModule($tenant, catRoot('13'));
+
+    $technician = catSeller($tenant, '13-tech');
+    Technician::create(['tenant_id' => $tenant->id, 'user_id' => $technician->id]);
+    $currentPassword = $technician->password;
+
+    $this->actingAs($owner)
+        ->put(route('app.pest-control.operators.update', $technician), [
+            'name' => 'Somente Nome',
+            'email' => $technician->email,
+            'telephone' => '',
+            'whatsapp' => '',
+            'status' => true,
+            'password' => '',
+            'password_confirmation' => '',
+        ])
+        ->assertRedirect(route('app.pest-control.operators.index'));
+
+    expect($technician->fresh()->password)->toBe($currentPassword);
+});
+
+test('seller cannot edit technicians and a regular seller cannot be edited through operator routes', function () {
+    $tenant = catTenant('14');
+    $owner = catOwner($tenant, '14');
+    $seller = catSeller($tenant, '14');
+    $technician = catSeller($tenant, '14-tech');
+    Technician::create(['tenant_id' => $tenant->id, 'user_id' => $technician->id]);
+    catActivateModule($tenant, catRoot('14'));
+
+    $this->actingAs($seller)
+        ->get(route('app.pest-control.operators.edit', $technician))
+        ->assertForbidden();
+
+    $this->actingAs($owner)
+        ->get(route('app.pest-control.operators.edit', $seller))
+        ->assertNotFound();
 });

@@ -69,7 +69,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
         <section id="precos" className="border-b border-slate-200 bg-white py-24 text-slate-900 sm:py-32">
             <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
                 <div className="mx-auto mb-10 max-w-3xl text-center">
-                    <p className="text-sm font-bold text-blue-700">Planos transparentes</p>
+                    <p className="text-sm font-bold text-green-700">Planos transparentes</p>
                     <h2 className="mt-3 text-4xl font-bold tracking-[-0.04em] text-balance text-slate-950 sm:text-5xl">
                         Escolha pelo tamanho da sua equipe
                     </h2>
@@ -87,7 +87,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
                             onClick={() => setSelectedMonths(months)}
                             className={
                                 selectedMonths === months
-                                    ? 'bg-blue-700 text-white hover:bg-blue-800'
+                                    ? 'bg-green-700 text-white hover:bg-green-800'
                                     : 'bg-transparent text-slate-600 shadow-none hover:bg-slate-50 hover:text-slate-900'
                             }
                         >
@@ -109,15 +109,15 @@ export function PricingSection({ plans }: { plans: any[] }) {
                         return (
                             <Card
                                 key={plan.id}
-                                className={`relative flex flex-col border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-900/5 ${
-                                    isTeam ? 'border-2 border-blue-700 shadow-xl shadow-blue-700/10 md:scale-105' : ''
+                                className={`relative flex flex-col border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-green-200 hover:shadow-xl hover:shadow-slate-900/5 ${
+                                    isTeam ? 'border-2 border-green-700 shadow-xl shadow-green-700/10 md:scale-105' : ''
                                 }`}
                             >
                                 {isTeam && (
-                                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-700 text-white">Para equipes</Badge>
+                                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-700 text-white">Para equipes</Badge>
                                 )}
                                 <CardHeader>
-                                    <div className="mb-2 text-sm font-medium text-blue-700">{isTeam ? 'Plano para empresas' : 'Plano individual'}</div>
+                                    <div className="mb-2 text-sm font-medium text-green-700">{isTeam ? 'Plano para empresas' : 'Plano individual'}</div>
                                     <CardTitle className="text-2xl text-slate-950">{accountTypeLabels[plan.account_type] ?? plan.name}</CardTitle>
                                     <CardDescription className="leading-relaxed text-slate-500">
                                         {accountTypeDescriptions[plan.account_type] ?? plan.description}
@@ -147,7 +147,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
                                 <CardContent className="flex-1">
                                     <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
                                         <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-900">
-                                            <Users className="h-5 w-5 text-blue-700" />
+                                            <Users className="h-5 w-5 text-green-700" />
                                             {sellerCapacityLabels[plan.account_type] ?? 'Vendedores'}
                                         </div>
                                         <p className="text-sm leading-6 text-slate-600">
@@ -156,7 +156,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
                                         {isTeam && (
                                             <a
                                                 href="https://wa.me/5551998931325?text=Tenho%20uma%20equipe%20com%20mais%20de%208%20vendedores%20e%20quero%20consultar%20uma%20condição%20personalizada"
-                                                className="mt-3 inline-flex text-sm font-medium text-blue-700 underline-offset-4 hover:underline"
+                                                className="mt-3 inline-flex text-sm font-medium text-green-700 underline-offset-4 hover:underline"
                                             >
                                                 Mais de 8 vendedores? Consulte-nos
                                             </a>
@@ -164,13 +164,13 @@ export function PricingSection({ plans }: { plans: any[] }) {
                                     </div>
                                     <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                                         <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-900">
-                                            <Check className="h-5 w-5 text-blue-700" />
+                                            <Check className="h-5 w-5 text-green-700" />
                                             Incluído neste plano
                                         </div>
                                         <ul className="space-y-2 pt-1">
                                             {(plan.features ?? []).map((feature: string) => (
                                                 <li key={feature} className="flex items-start gap-2 text-sm text-slate-600">
-                                                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-blue-700" />
+                                                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-700" />
                                                     {formatFeature(feature)}
                                                 </li>
                                             ))}
@@ -178,7 +178,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button asChild size="lg" className="w-full rounded-lg bg-blue-700 font-bold text-white hover:bg-blue-800">
+                                    <Button asChild size="lg" className="w-full rounded-lg bg-green-700 font-bold text-white hover:bg-green-800">
                                         <Link href={route('register')}>Começar teste grátis</Link>
                                     </Button>
                                 </CardFooter>
@@ -189,15 +189,15 @@ export function PricingSection({ plans }: { plans: any[] }) {
 
                 <div className="mx-auto mt-8 grid max-w-5xl gap-3 rounded-xl border border-slate-200 bg-slate-50 p-5 sm:grid-cols-3">
                     <div className="flex items-center gap-3">
-                        <ShieldCheck className="h-5 w-5 text-blue-700" />
+                        <ShieldCheck className="h-5 w-5 text-green-700" />
                         <span className="text-sm font-medium text-slate-700">{trialDays} dias para testar</span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <CreditCard className="h-5 w-5 text-blue-700" />
+                        <CreditCard className="h-5 w-5 text-green-700" />
                         <span className="text-sm font-medium text-slate-700">Sem cartão no cadastro</span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Check className="h-5 w-5 text-blue-700" />
+                        <Check className="h-5 w-5 text-green-700" />
                         <span className="text-sm font-medium text-slate-700">Cancele quando quiser</span>
                     </div>
                 </div>

@@ -145,7 +145,7 @@ export default function Customers({ customers, regions, filters }: any) {
                                                         <Edit className="h-4 w-4" />
                                                     </Link>
                                                 </Button>
-                                                <Button asChild size="icon" className="bg-sky-500 text-white hover:bg-sky-600" title="Novo pedido">
+                                                <Button asChild size="icon" className="bg-green-500 text-white hover:bg-green-600" title="Novo pedido">
                                                     <Link
                                                         href={route('app.orders.create', { customer_id: customer.id })}
                                                         aria-label={`Criar pedido para ${customer.name}`}

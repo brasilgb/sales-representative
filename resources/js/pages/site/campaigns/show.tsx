@@ -22,18 +22,18 @@ export default function CampaignCatalog({ campaign }: any) {
                                 <img src={company.logo_url} alt={`Logo ${companyName}`} className="h-full w-full object-contain" />
                             </div>
                         ) : (
-                            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300 ring-1 ring-cyan-300/20">
+                            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-lime-500/15 text-lime-300 ring-1 ring-lime-300/20">
                                 <Store className="h-8 w-8" />
                             </div>
                         )}
                         <div>
-                            <div className="text-xs font-bold tracking-[0.18em] text-cyan-300 uppercase">Uma seleção de</div>
+                            <div className="text-xs font-bold tracking-[0.18em] text-lime-300 uppercase">Uma seleção de</div>
                             <div className="mt-1 text-xl font-bold">{companyName}</div>
                         </div>
                     </div>
 
                     <div className="mt-10 max-w-3xl">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm text-cyan-100 ring-1 ring-white/10">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm text-lime-100 ring-1 ring-white/10">
                             <Sparkles className="h-4 w-4" />
                             Produtos selecionados especialmente para você
                         </div>
@@ -45,7 +45,7 @@ export default function CampaignCatalog({ campaign }: any) {
 
             <main className="mx-auto max-w-6xl px-5 py-10 md:py-14">
                 <div className="mb-7">
-                    <div className="text-sm font-bold tracking-wider text-cyan-700 uppercase">Nossa recomendação</div>
+                    <div className="text-sm font-bold tracking-wider text-lime-700 uppercase">Nossa recomendação</div>
                     <h2 className="mt-1 text-2xl font-black md:text-3xl">Confira os produtos escolhidos para você</h2>
                     <p className="mt-2 text-slate-600">Fale com nossa equipe para consultar condições e disponibilidade.</p>
                     {campaign.commercial_rule && (
@@ -74,7 +74,7 @@ export default function CampaignCatalog({ campaign }: any) {
                                     )}
                                 </div>
                                 <div className="p-5">
-                                    {product.reference && <div className="text-xs font-bold tracking-wide text-cyan-700 uppercase">Ref. {product.reference}</div>}
+                                    {product.reference && <div className="text-xs font-bold tracking-wide text-lime-700 uppercase">Ref. {product.reference}</div>}
                                     <h3 className="mt-2 text-lg font-bold">{product.name}</h3>
                                     {product.description && <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{product.description}</p>}
                                     <div className="mt-5">

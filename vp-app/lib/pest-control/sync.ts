@@ -2,7 +2,21 @@ import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
 
 import { flushPendingCheckins } from './checkin';
 import { flushPendingCheckouts } from './checkout';
-import { listPendingCheckins, listPendingCheckouts, listPendingMedia, listPendingSignatures, listPendingInspections } from './db';
+import {
+  getCachedVisitDetail,
+  getPendingSignature,
+  hasPendingCheckin,
+  hasPendingCheckout,
+  listCachedAgenda,
+  listLocalInspections,
+  listMediaForVisit,
+  listPendingCheckins,
+  listPendingCheckouts,
+  listPendingMedia,
+  listPendingSignatures,
+  listPendingInspections,
+  purgeVisitData,
+} from './db';
 import { flushPendingInspections } from './inspections';
 import { flushPendingMedia } from './media';
 import { flushPendingSignatures } from './signature';
@@ -59,6 +73,47 @@ export async function countPending(): Promise<number> {
   return checkins.length + inspections.length + checkouts.length + signatures.length + media.length;
 }
 
+/**
+ * Uma visita só está pronta pra limpeza quando nada dela ainda depende de
+ * rede — checa as cinco filas locais (ver db.ts). Chamada só depois do
+ * check-out já ter sincronizado (é o sinal de "atendimento encerrado");
+ * antes disso nunca purga, mesmo com tudo mais em dia.
+ */
+async function isVisitFullySynced(visitUuid: string): Promise<boolean> {
+  const [pendingCheckin, pendingCheckout, pendingSignature, inspections, media] = await Promise.all([
+    hasPendingCheckin(visitUuid),
+    hasPendingCheckout(visitUuid),
+    getPendingSignature(visitUuid),
+    listLocalInspections(visitUuid),
+    listMediaForVisit(visitUuid),
+  ]);
+
+  if (pendingCheckin || pendingCheckout || pendingSignature !== null) return false;
+  if ([...inspections.values()].some((inspection) => inspection.syncStatus !== 'synced')) return false;
+  if (media.some((item) => item.syncStatus !== 'uploaded')) return false;
+
+  return true;
+}
+
+/**
+ * Roda ao fim de cada ciclo (Etapa 7 + limpeza local): descarta o detalhe
+ * baixado das visitas já com check-out confirmado e nada mais pendente —
+ * é o que evita o banco local (`pest_control.db`) crescer sem limite
+ * conforme o técnico acumula atendimentos concluídos.
+ */
+async function purgeFullySyncedVisits(): Promise<void> {
+  const checkedOut = (await listCachedAgenda()).filter((visit) => visit.checkout_at != null);
+
+  for (const visit of checkedOut) {
+    // Já purgada num ciclo anterior — nada de detalhe local pra checar de novo.
+    if ((await getCachedVisitDetail(visit.uuid)) === null) continue;
+
+    if (await isVisitFullySynced(visit.uuid)) {
+      await purgeVisitData(visit.uuid);
+    }
+  }
+}
+
 /** Um ciclo completo, na ordem sugerida em SINCRONIZAÇÃO: check-in, inspeções, check-out, assinatura, fotos. */
 async function runSyncCycle(): Promise<{ syncedTotal: number; pendingAfter: number }> {
   if (running) return { syncedTotal: 0, pendingAfter: await countPending() };
@@ -73,6 +128,7 @@ async function runSyncCycle(): Promise<{ syncedTotal: number; pendingAfter: numb
       flushPendingMedia(),
     ]);
     const syncedTotal = results.reduce((sum, count) => sum + count, 0);
+    await purgeFullySyncedVisits();
     const pendingAfter = await countPending();
 
     status = { ...status, lastRunAt: new Date().toISOString(), lastSyncedCount: syncedTotal, pendingCount: pendingAfter };

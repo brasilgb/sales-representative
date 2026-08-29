@@ -56,7 +56,7 @@ export function ProductSelector({ products, onAddProduct }: Props) {
                             value={selectedProduct}
                             placeholder="Pesquise por referência ou nome"
                             noOptionsMessage={() => 'Nenhum produto encontrado'}
-                            className="rounded-md border border-gray-300 p-0 text-gray-700 shadow-xs focus-within:ring-2 focus-within:ring-blue-500"
+                            className="rounded-md border border-gray-300 p-0 text-gray-700 shadow-xs focus-within:ring-2 focus-within:ring-green-500"
                             styles={reactSelectThemeStyles}
                         />
                     </div>

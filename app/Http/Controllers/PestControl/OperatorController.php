@@ -4,6 +4,7 @@ namespace App\Http\Controllers\PestControl;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AppUserRequest;
+use App\Http\Requests\PestControl\OperatorUpdateRequest;
 use App\Models\PestControl\Technician;
 use App\Models\User;
 use App\Services\PestControl\PestControlAuditLogger;
@@ -80,5 +81,59 @@ class OperatorController extends Controller
 
         return redirect()->route('app.pest-control.operators.index')
             ->with('success', 'Técnico/operador cadastrado com sucesso! O acesso dele é somente pelo aplicativo.');
+    }
+
+    public function edit(User $user): Response
+    {
+        abort_unless($this->permissions->has(auth()->user(), 'pest_control.operators.manage'), 403);
+        $this->ensureTechnician($user);
+
+        return Inertia::render('app/pest-control/operators/edit-operator', [
+            'operator' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'telephone' => $user->telephone,
+                'whatsapp' => $user->whatsapp,
+                'status' => (bool) $user->status,
+            ],
+        ]);
+    }
+
+    public function update(OperatorUpdateRequest $request, User $user): RedirectResponse
+    {
+        abort_unless($this->permissions->has($request->user(), 'pest_control.operators.manage'), 403);
+        $this->ensureTechnician($user);
+
+        $data = $request->validated();
+        unset($data['password_confirmation']);
+
+        if (blank($data['password'] ?? null)) {
+            unset($data['password']);
+        } else {
+            $data['password'] = Hash::make($data['password']);
+        }
+
+        $before = $user->only(['name', 'email', 'telephone', 'whatsapp', 'status']);
+        $user->update($data);
+
+        $this->auditLogger->log(
+            $request->user()->tenant,
+            $request->user(),
+            'operator.updated',
+            $user,
+            ['before' => $before, 'after' => $user->only(['name', 'email', 'telephone', 'whatsapp', 'status'])],
+        );
+
+        return redirect()->route('app.pest-control.operators.index')
+            ->with('success', 'Dados do técnico/operador atualizados com sucesso!');
+    }
+
+    private function ensureTechnician(User $user): void
+    {
+        abort_unless(
+            Technician::where('user_id', $user->id)->exists(),
+            404,
+        );
     }
 }

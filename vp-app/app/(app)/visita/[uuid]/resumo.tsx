@@ -1,6 +1,7 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getCachedVisitDetail, type LocalInspection, listLocalInspections, listMediaForVisit } from '@/lib/pest-control/db';
 import type { Product, VisitDetail } from '@/lib/pest-control/types';
@@ -8,7 +9,7 @@ import type { Product, VisitDetail } from '@/lib/pest-control/types';
 function StatRow({
   label,
   value,
-  className = 'text-neutral-900',
+  className = 'text-green-950',
 }: {
   label: string;
   value: number | string;
@@ -81,14 +82,18 @@ export default function VisitSummaryScreen() {
   const alreadySigned = visit.signatures.some((signature) => !signature.superseded);
 
   return (
-    <ScrollView className="flex-1 bg-white pt-16" contentContainerClassName="gap-4 px-6 pb-12">
-      <Pressable onPress={() => router.back()}>
-        <Text className="text-sm text-blue-600">‹ Visita</Text>
+    <SafeAreaView className="flex-1 bg-green-50" edges={['top', 'bottom']}>
+    <ScrollView
+      contentContainerClassName="gap-4 px-5 pb-8 pt-2"
+      showsVerticalScrollIndicator={false}
+    >
+      <Pressable onPress={() => router.back()} hitSlop={8} className="min-h-10 self-start justify-center pr-4">
+        <Text className="text-sm text-green-700">‹ Visita</Text>
       </Pressable>
-      <Text className="text-xl font-semibold text-neutral-900">Resumo da visita</Text>
+      <Text className="text-xl font-semibold text-green-950">Resumo da visita</Text>
       <Text className="text-sm text-neutral-600">{visit.establishment.name}</Text>
 
-      <View className="rounded-xl border border-neutral-200 p-4">
+      <View className="rounded-2xl border border-green-100 bg-white p-4">
         <StatRow label="Total de pontos" value={points.length} />
         <StatRow label="Pontos revisados" value={reviewed.length} />
         <StatRow label="Pontos pendentes" value={points.length - reviewed.length} />
@@ -109,7 +114,7 @@ export default function VisitSummaryScreen() {
       ) : null}
 
       {pendingRequired.length > 0 ? (
-        <View className="gap-1 rounded-lg bg-amber-50 p-3">
+        <View className="gap-1 rounded-xl bg-amber-50 p-3">
           <Text className="text-sm font-medium text-amber-800">
             {pendingRequired.length} ponto(s) obrigatório(s) ainda não revisado(s):
           </Text>
@@ -126,18 +131,22 @@ export default function VisitSummaryScreen() {
 
       <Pressable
         onPress={() => router.push(`/visita/${uuid}/assinatura`)}
-        className="items-center rounded-lg border border-neutral-900 py-3"
+        className="min-h-14 items-center justify-center rounded-2xl border border-green-600 bg-white px-4"
       >
-        <Text className="text-base font-medium text-neutral-900">
+        <Text className="text-base font-medium text-green-950">
           {alreadySigned ? 'Assinar novamente' : 'Coletar assinatura e aceite'}
         </Text>
       </Pressable>
 
       {alreadySigned ? <Text className="text-center text-xs text-green-700">Assinatura já registrada.</Text> : null}
 
-      <Pressable onPress={() => router.push(`/visita/${uuid}/check-out`)} className="items-center rounded-lg bg-neutral-900 py-3">
+      <Pressable
+        onPress={() => router.push(`/visita/${uuid}/check-out`)}
+        className="min-h-14 items-center justify-center rounded-2xl bg-green-600 px-4"
+      >
         <Text className="text-base font-semibold text-white">Fazer check-out</Text>
       </Pressable>
     </ScrollView>
+    </SafeAreaView>
   );
 }

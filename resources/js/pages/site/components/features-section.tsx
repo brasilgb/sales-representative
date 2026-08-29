@@ -57,7 +57,7 @@ export function FeaturesSection() {
         <section id="recursos" className="bg-white py-24 text-slate-900 sm:py-32">
             <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
                 <div className="mx-auto mb-16 max-w-3xl text-center">
-                    <p className="text-sm font-bold text-blue-700">O que você consegue fazer</p>
+                    <p className="text-sm font-bold text-green-700">O que você consegue fazer</p>
                     <h2 className="mt-3 text-4xl font-bold tracking-[-0.04em] text-balance text-slate-950 sm:text-5xl">
                         Tudo o que sustenta a venda, sem espalhar a rotina em várias ferramentas
                     </h2>
@@ -71,8 +71,8 @@ export function FeaturesSection() {
                     {platformHighlights.map((highlight) => (
                         <Card key={highlight.title} className="border-slate-800 bg-slate-950 text-white shadow-xl shadow-slate-900/10">
                             <CardHeader>
-                                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/15">
-                                    <highlight.icon className="h-6 w-6 text-blue-300" />
+                                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/15">
+                                    <highlight.icon className="h-6 w-6 text-green-300" />
                                 </div>
                                 <CardTitle className="text-lg text-white">{highlight.title}</CardTitle>
                             </CardHeader>
@@ -87,11 +87,11 @@ export function FeaturesSection() {
                     {features.map((feature) => (
                         <Card
                             key={feature.title}
-                            className="border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-900/5"
+                            className="border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-green-200 hover:shadow-xl hover:shadow-slate-900/5"
                         >
                             <CardHeader>
-                                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
-                                    <feature.icon className="h-6 w-6 text-blue-700" />
+                                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-green-50">
+                                    <feature.icon className="h-6 w-6 text-green-700" />
                                 </div>
                                 <CardTitle className="text-lg text-slate-950">{feature.title}</CardTitle>
                             </CardHeader>

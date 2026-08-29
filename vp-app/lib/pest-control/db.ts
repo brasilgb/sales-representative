@@ -604,6 +604,26 @@ export async function hasPendingCheckout(uuid: string): Promise<boolean> {
   return row !== null;
 }
 
+/**
+ * Descarta o que foi baixado de uma visita já concluída (detalhe, inspeções
+ * por ponto e as linhas de fotos já enviadas) — chamado só depois de
+ * confirmar que não sobrou nada pendente dela (ver `isVisitFullySynced` em
+ * sync.ts). Mantém a linha em `agenda_visits` (com o `summary_json`) para a
+ * lista continuar mostrando o histórico; o próximo `replaceAgenda` a remove
+ * de vez quando ela sair da janela consultada no servidor — mesma regra que
+ * já vale para uma visita nunca baixada. Evita o banco local crescer sem
+ * limite conforme o técnico acumula atendimentos.
+ */
+export async function purgeVisitData(visitUuid: string): Promise<void> {
+  const db = await getDb();
+
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM point_inspections WHERE visit_uuid = ?', visitUuid);
+    await db.runAsync('DELETE FROM pending_media WHERE visit_uuid = ?', visitUuid);
+    await db.runAsync('UPDATE agenda_visits SET detail_json = NULL, downloaded_at = NULL WHERE uuid = ?', visitUuid);
+  });
+}
+
 export type PendingReviewKind = 'checkin' | 'inspection' | 'conflict' | 'checkout' | 'signature' | 'media';
 
 export type PendingReviewItem = {

@@ -23,17 +23,28 @@ export const SIGNATURE_PAD_HTML = `<!doctype html>
       let hasDrawn = false;
 
       function resize() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        // Dentro de uma ScrollView o layout nativo às vezes só termina depois deste
+        // script rodar — nesse instante innerWidth/innerHeight ainda vêm 0, o canvas
+        // fica com tamanho 0x0 e todo traço desenhado cai fora dele (nada aparece).
+        // Só redimensiona de verdade quando o layout já tem tamanho; 'load'/'resize'
+        // abaixo tentam de novo assim que ele estiver pronto.
+        if (width === 0 || height === 0) return;
+
         const ratio = window.devicePixelRatio || 1;
-        canvas.width = window.innerWidth * ratio;
-        canvas.height = window.innerHeight * ratio;
-        canvas.style.width = window.innerWidth + 'px';
-        canvas.style.height = window.innerHeight + 'px';
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
         ctx.scale(ratio, ratio);
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#111827';
       }
       resize();
+      window.addEventListener('load', resize);
+      window.addEventListener('resize', resize);
 
       function post(message) {
         window.ReactNativeWebView.postMessage(JSON.stringify(message));
@@ -68,6 +79,7 @@ export const SIGNATURE_PAD_HTML = `<!doctype html>
       }
 
       function stop() {
+        if (drawing) post({ type: 'drawing_stopped' });
         drawing = false;
       }
 

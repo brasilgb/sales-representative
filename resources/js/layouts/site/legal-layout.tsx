@@ -5,7 +5,7 @@ import { WhatsAppFloat } from '@/pages/site/components/whatsapp-float';
 export default function LegalLayout({ children }: { children: ReactNode }) {
     return (
         <div className="flex min-h-screen min-w-0 flex-col overflow-x-hidden bg-background">
-            <header className="border-b border-white/10 bg-[#0B1220] text-white">
+            <header className="border-b border-white/10 bg-[#052e16] text-white">
                 <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
                     <Link href={route('home')} className="flex items-center gap-3" aria-label="Voltar para a página inicial do VetorPet">
                         <img src="/images/logo_pet.png" alt="" className="h-9 w-9 object-contain" />

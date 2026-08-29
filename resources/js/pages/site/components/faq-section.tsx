@@ -39,7 +39,7 @@ export function FAQSection({ trialDays }: { trialDays: number }) {
         <section id="faq" className="bg-slate-50 py-24 text-slate-900 sm:py-32">
             <div className="mx-auto max-w-3xl px-5 sm:px-8 lg:px-12">
                 <div className="text-center">
-                    <p className="text-sm font-bold text-blue-700">Perguntas frequentes</p>
+                    <p className="text-sm font-bold text-green-700">Perguntas frequentes</p>
                     <h2 className="mt-3 text-4xl font-bold tracking-[-0.04em] text-balance text-slate-950 sm:text-5xl">
                         Ainda com dúvidas antes de testar?
                     </h2>

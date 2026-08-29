@@ -40,7 +40,7 @@ export default function Dashboard({ summary, attentionCompanies, recentCompanies
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <KpiDashboard link={route('admin.tenants.index')} title="Empresas cadastradas" value={summary.total} icon={<Building className="h-9 w-9" />} description={`${summary.new_this_month} novas neste mês`} />
                     <KpiDashboard link={route('admin.tenants.index')} title="Licenças ativas" value={summary.active} icon={<CheckCircle2 className="h-9 w-9 text-emerald-600" />} description="Empresas com acesso disponível" />
-                    <KpiDashboard link={route('admin.tenants.index')} title="Em período de teste" value={summary.on_trial} icon={<CalendarClock className="h-9 w-9 text-sky-600" />} description="Avaliações em andamento" />
+                    <KpiDashboard link={route('admin.tenants.index')} title="Em período de teste" value={summary.on_trial} icon={<CalendarClock className="h-9 w-9 text-green-600" />} description="Avaliações em andamento" />
                     <KpiDashboard link={route('admin.tenants.index')} title="Precisam de atenção" value={summary.attention} icon={<AlertTriangle className="h-9 w-9 text-amber-600" />} description="Vencimentos ou acessos inativos" />
                 </div>
 

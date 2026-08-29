@@ -100,7 +100,7 @@ export default function TenantsIndex({  tenants }: any) {
                     <TableCell>{tenant.license_ends_at ? moment(tenant.license_ends_at).format("DD/MM/YYYY") : '—'}</TableCell>
                     <TableCell className='flex justify-end gap-2'>
 
-                      {/* <Button asChild size="icon" className="bg-sky-500 hover:bg-sky-600 text-white">
+                      {/* <Button asChild size="icon" className="bg-green-500 hover:bg-green-600 text-white">
                         <Link href={route('admin.branches.index', { tn: tenant.id })}>
                           <Building2 className="h-4 w-4" />
                         </Link>

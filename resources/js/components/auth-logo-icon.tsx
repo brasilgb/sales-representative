@@ -3,13 +3,13 @@ import { HTMLAttributes } from 'react';
 
 export default function AuthLogoIcon({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     return (
-        <div className={cn('flex size-20 items-center justify-center', className)} {...props}>
+        <div className={cn('flex size-16 items-center justify-center', className)} {...props}>
             <img
-                className="size-20 object-contain"
+                className="size-16 rounded-xl object-cover"
                 src="/images/logo_pet.png"
                 alt="VetorPet — sistema de vendas para representantes"
-                width={80}
-                height={80}
+                width={64}
+                height={64}
             />
         </div>
     );

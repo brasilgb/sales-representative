@@ -78,10 +78,11 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
       },
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
     });
-  } catch {
+  } catch (error) {
     // Falha de rede (offline, DNS, timeout do fetch). Etapas seguintes
     // decidem, por endpoint, se isso vira fila local ou erro visível.
-    throw new ApiError('Não foi possível conectar ao servidor.', 0);
+    const detail = error instanceof Error && error.message ? ` (${error.message})` : '';
+    throw new ApiError(`Não foi possível conectar ao servidor em ${API_URL}${detail}.`, 0);
   }
 
   return handleResponse<T>(response);
@@ -104,8 +105,9 @@ export async function apiUpload<T>(path: string, formData: FormData): Promise<T>
       },
       body: formData,
     });
-  } catch {
-    throw new ApiError('Não foi possível conectar ao servidor.', 0);
+  } catch (error) {
+    const detail = error instanceof Error && error.message ? ` (${error.message})` : '';
+    throw new ApiError(`Não foi possível conectar ao servidor em ${API_URL}${detail}.`, 0);
   }
 
   return handleResponse<T>(response);

@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PhotoEvidenceSection } from '@/components/pest-control/PhotoEvidenceSection';
 import { getCachedVisitDetail, getLocalInspection } from '@/lib/pest-control/db';
@@ -40,14 +41,14 @@ function Stepper({ label, value, onChange }: { label: string; value: number; onC
           onPress={() => onChange(Math.max(0, value - 1))}
           className="h-8 w-8 items-center justify-center rounded-full border border-neutral-300"
         >
-          <Text className="text-base text-neutral-900">−</Text>
+          <Text className="text-base text-green-950">−</Text>
         </Pressable>
-        <Text className="w-6 text-center text-base font-medium text-neutral-900">{value}</Text>
+        <Text className="w-6 text-center text-base font-medium text-green-950">{value}</Text>
         <Pressable
           onPress={() => onChange(value + 1)}
           className="h-8 w-8 items-center justify-center rounded-full border border-neutral-300"
         >
-          <Text className="text-base text-neutral-900">+</Text>
+          <Text className="text-base text-green-950">+</Text>
         </Pressable>
       </View>
     </View>
@@ -226,12 +227,17 @@ export default function PointInspectionScreen() {
   const speciesToShow = relevantSpecies.length > 0 ? relevantSpecies : species;
 
   return (
-    <ScrollView className="flex-1 bg-white pt-16" contentContainerClassName="gap-4 px-6 pb-12">
-      <Pressable onPress={() => router.back()}>
-        <Text className="text-sm text-blue-600">‹ Pontos de controle</Text>
+    <SafeAreaView className="flex-1 bg-green-50" edges={['top', 'bottom']}>
+    <ScrollView
+      contentContainerClassName="gap-4 px-5 pb-8 pt-2"
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      <Pressable onPress={() => router.back()} hitSlop={8} className="min-h-10 self-start justify-center pr-4">
+        <Text className="text-sm text-green-700">‹ Pontos de controle</Text>
       </Pressable>
       <View>
-        <Text className="text-xl font-semibold text-neutral-900">{point.code ?? point.label}</Text>
+        <Text className="text-xl font-semibold text-green-950">{point.code ?? point.label}</Text>
         <Text className="text-sm text-neutral-600">{point.label}</Text>
       </View>
 
@@ -253,14 +259,14 @@ export default function PointInspectionScreen() {
             <Pressable
               onPress={handleUseServer}
               disabled={resolvingConflict}
-              className="flex-1 items-center rounded-lg border border-red-400 py-2 disabled:opacity-50"
+              className="flex-1 items-center rounded-xl border border-red-400 py-2 disabled:opacity-50"
             >
               <Text className="text-sm font-medium text-red-800">Usar dados do servidor</Text>
             </Pressable>
             <Pressable
               onPress={handleKeepLocal}
               disabled={resolvingConflict}
-              className="flex-1 items-center rounded-lg bg-red-700 py-2 disabled:opacity-50"
+              className="flex-1 items-center rounded-xl bg-red-700 py-2 disabled:opacity-50"
             >
               <Text className="text-sm font-medium text-white">Manter dados do aparelho</Text>
             </Pressable>
@@ -268,8 +274,8 @@ export default function PointInspectionScreen() {
         </View>
       ) : null}
 
-      <View className="flex-row items-center justify-between rounded-xl border border-neutral-200 p-4">
-        <Text className="text-base font-medium text-neutral-900">Ponto não acessível</Text>
+      <View className="flex-row items-center justify-between rounded-2xl border border-green-100 bg-white p-4">
+        <Text className="text-base font-medium text-green-950">Ponto não acessível</Text>
         <Switch value={draft.not_inspected} onValueChange={(value) => persist({ not_inspected: value })} />
       </View>
 
@@ -283,7 +289,7 @@ export default function PointInspectionScreen() {
             multiline
             numberOfLines={3}
             placeholder="Explique por que o ponto não pôde ser inspecionado…"
-            className="rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-900"
+            className="rounded-xl border border-neutral-300 px-3 py-2 text-base text-green-950"
           />
         </View>
       ) : (
@@ -296,9 +302,9 @@ export default function PointInspectionScreen() {
                   <Pressable
                     key={code}
                     onPress={() => setConsumptionCode(code)}
-                    className={`flex-1 items-center rounded-lg border py-2 ${draft.consumption_code === code ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300'}`}
+                    className={`flex-1 items-center rounded-xl border py-2 ${draft.consumption_code === code ? 'border-green-700 bg-green-600' : 'border-neutral-300'}`}
                   >
-                    <Text className={draft.consumption_code === code ? 'font-medium text-white' : 'text-neutral-900'}>
+                    <Text className={draft.consumption_code === code ? 'font-medium text-white' : 'text-green-950'}>
                       {CONSUMPTION_LABELS[code]}
                     </Text>
                   </Pressable>
@@ -316,10 +322,10 @@ export default function PointInspectionScreen() {
                     <Pressable
                       key={type.key}
                       onPress={() => persist({ consumption_type: type.key })}
-                      className={`rounded-full border px-3 py-1 ${draft.consumption_type === type.key ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300'}`}
+                      className={`rounded-full border px-3 py-1 ${draft.consumption_type === type.key ? 'border-green-700 bg-green-600' : 'border-neutral-300'}`}
                     >
                       <Text
-                        className={`text-xs ${draft.consumption_type === type.key ? 'font-medium text-white' : 'text-neutral-900'}`}
+                        className={`text-xs ${draft.consumption_type === type.key ? 'font-medium text-white' : 'text-green-950'}`}
                       >
                         {type.name}
                       </Text>
@@ -336,10 +342,10 @@ export default function PointInspectionScreen() {
                       <Pressable
                         key={product.id}
                         onPress={() => persist({ product_id: product.id })}
-                        className={`rounded-full border px-3 py-1 ${draft.product_id === product.id ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300'}`}
+                        className={`rounded-full border px-3 py-1 ${draft.product_id === product.id ? 'border-green-700 bg-green-600' : 'border-neutral-300'}`}
                       >
                         <Text
-                          className={`text-xs ${draft.product_id === product.id ? 'font-medium text-white' : 'text-neutral-900'}`}
+                          className={`text-xs ${draft.product_id === product.id ? 'font-medium text-white' : 'text-green-950'}`}
                         >
                           {product.name}
                         </Text>
@@ -351,8 +357,8 @@ export default function PointInspectionScreen() {
             </View>
           ) : null}
 
-          <View className="flex-row items-center justify-between rounded-xl border border-neutral-200 p-4">
-            <Text className="text-base font-medium text-neutral-900">Troca do dispositivo/isca</Text>
+          <View className="flex-row items-center justify-between rounded-2xl border border-green-100 bg-white p-4">
+            <Text className="text-base font-medium text-green-950">Troca do dispositivo/isca</Text>
             <Switch value={draft.replaced} onValueChange={(value) => persist({ replaced: value })} />
           </View>
 
@@ -364,10 +370,10 @@ export default function PointInspectionScreen() {
                   <Pressable
                     key={condition}
                     onPress={() => persist({ device_condition: condition })}
-                    className={`rounded-full border px-3 py-1 ${draft.device_condition === condition ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300'}`}
+                    className={`rounded-full border px-3 py-1 ${draft.device_condition === condition ? 'border-green-700 bg-green-600' : 'border-neutral-300'}`}
                   >
                     <Text
-                      className={`text-xs ${draft.device_condition === condition ? 'font-medium text-white' : 'text-neutral-900'}`}
+                      className={`text-xs ${draft.device_condition === condition ? 'font-medium text-white' : 'text-green-950'}`}
                     >
                       {condition}
                     </Text>
@@ -377,7 +383,7 @@ export default function PointInspectionScreen() {
             </View>
           ) : null}
 
-          <View className="flex-row gap-4 rounded-xl border border-neutral-200 p-4">
+          <View className="flex-row gap-4 rounded-2xl border border-green-100 bg-white p-4">
             <Stepper label="Vivos" value={draft.live_count} onChange={(value) => persist({ live_count: value })} />
             <Stepper label="Mortos" value={draft.dead_count} onChange={(value) => persist({ dead_count: value })} />
           </View>
@@ -388,8 +394,8 @@ export default function PointInspectionScreen() {
               {speciesToShow.map((item) => {
                 const current = draft.species.find((entry) => entry.species_id === item.id);
                 return (
-                  <View key={item.id} className="flex-row items-center justify-between rounded-xl border border-neutral-200 p-3">
-                    <Text className="flex-1 text-sm text-neutral-900">{item.name}</Text>
+                  <View key={item.id} className="flex-row items-center justify-between rounded-xl border border-green-100 bg-white p-3">
+                    <Text className="flex-1 text-sm text-green-950">{item.name}</Text>
                     <Stepper
                       label="Vivos"
                       value={current?.live_count ?? 0}
@@ -415,14 +421,14 @@ export default function PointInspectionScreen() {
               multiline
               numberOfLines={3}
               placeholder="Observações sobre o ponto…"
-              className="rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-900"
+              className="rounded-xl border border-neutral-300 px-3 py-2 text-base text-green-950"
             />
           </View>
         </>
       )}
 
-      <View className="gap-1 rounded-xl border border-neutral-200 p-4">
-        <Text className="text-sm font-medium text-neutral-900">Localização (opcional)</Text>
+      <View className="gap-1 rounded-2xl border border-green-100 bg-white p-4">
+        <Text className="text-sm font-medium text-green-950">Localização (opcional)</Text>
         {draft.latitude != null && draft.longitude != null ? (
           <View className="flex-row items-center justify-between">
             <Text className="text-xs text-neutral-500">Capturada</Text>
@@ -434,9 +440,9 @@ export default function PointInspectionScreen() {
           <Pressable
             onPress={captureOptionalLocation}
             disabled={capturingLocation}
-            className="items-center rounded-lg border border-neutral-300 py-2"
+            className="min-h-11 items-center justify-center rounded-xl border border-green-200 px-4"
           >
-            <Text className="text-sm font-medium text-neutral-900">
+            <Text className="text-sm font-medium text-green-950">
               {capturingLocation ? 'Capturando…' : 'Capturar localização'}
             </Text>
           </Pressable>
@@ -456,7 +462,7 @@ export default function PointInspectionScreen() {
       <Pressable
         onPress={handleFinish}
         disabled={submitting || !!conflictServer}
-        className="items-center rounded-lg bg-neutral-900 py-3 disabled:opacity-50"
+        className="min-h-14 items-center justify-center rounded-2xl bg-green-600 px-5 disabled:opacity-50"
       >
         {submitting ? (
           <ActivityIndicator color="#fff" />
@@ -467,5 +473,6 @@ export default function PointInspectionScreen() {
         )}
       </Pressable>
     </ScrollView>
+    </SafeAreaView>
   );
 }

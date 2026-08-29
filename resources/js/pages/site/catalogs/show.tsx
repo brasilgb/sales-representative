@@ -37,12 +37,12 @@ export default function ProductCatalog({ company, products }: any) {
                                 <img src={company.logo_url} alt={`Logo ${companyName}`} className="h-full w-full object-contain" />
                             </div>
                         ) : (
-                            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300 ring-1 ring-cyan-300/20">
+                            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-lime-500/15 text-lime-300 ring-1 ring-lime-300/20">
                                 <Store className="h-8 w-8" />
                             </div>
                         )}
                         <div>
-                            <div className="text-xs font-bold tracking-[0.18em] text-cyan-300 uppercase">Catálogo de produtos</div>
+                            <div className="text-xs font-bold tracking-[0.18em] text-lime-300 uppercase">Catálogo de produtos</div>
                             <div className="mt-1 text-xl font-bold">{companyName}</div>
                         </div>
                     </div>
@@ -59,7 +59,7 @@ export default function ProductCatalog({ company, products }: any) {
             <main className="mx-auto max-w-6xl px-5 py-10 md:py-14">
                 <div className="mb-7 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
                     <div>
-                        <div className="text-sm font-bold tracking-wider text-cyan-700 uppercase">Nosso catálogo</div>
+                        <div className="text-sm font-bold tracking-wider text-lime-700 uppercase">Nosso catálogo</div>
                         <h2 className="mt-1 text-2xl font-black md:text-3xl">Encontre o produto ideal</h2>
                     </div>
                     <label className="flex h-11 w-full items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 md:max-w-sm">
@@ -90,7 +90,7 @@ export default function ProductCatalog({ company, products }: any) {
                                     )}
                                 </div>
                                 <div className="p-5">
-                                    {product.reference && <div className="text-xs font-bold tracking-wide text-cyan-700 uppercase">Ref. {product.reference}</div>}
+                                    {product.reference && <div className="text-xs font-bold tracking-wide text-lime-700 uppercase">Ref. {product.reference}</div>}
                                     <h3 className="mt-2 text-lg font-bold">{product.name}</h3>
                                     {product.description && <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{product.description}</p>}
                                     <div className="mt-5 text-2xl font-black text-emerald-700">

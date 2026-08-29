@@ -1,6 +1,7 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { listAllPendingForReview, listCachedAgenda, type PendingReviewItem, type PendingReviewKind } from '@/lib/pest-control/db';
 import { onSyncStatusChange, syncNow, type SyncStatus } from '@/lib/pest-control/sync';
@@ -32,6 +33,7 @@ export default function SyncScreen() {
   const [establishmentNames, setEstablishmentNames] = useState<Map<string, string>>(new Map());
   const [syncing, setSyncing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const [pending, agenda] = await Promise.all([listAllPendingForReview(), listCachedAgenda()]);
@@ -54,9 +56,16 @@ export default function SyncScreen() {
 
   const handleSyncNow = async () => {
     setSyncing(true);
-    await syncNow();
-    await load();
-    setSyncing(false);
+    setSyncError(null);
+
+    try {
+      await syncNow();
+      await load();
+    } catch (error) {
+      setSyncError(error instanceof Error ? error.message : 'Não foi possível sincronizar agora.');
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const goToItem = (item: PendingReviewItem) => {
@@ -70,15 +79,15 @@ export default function SyncScreen() {
   const conflictCount = items.filter((item) => item.kind === 'conflict').length;
 
   return (
-    <View className="flex-1 bg-white pt-16">
-      <View className="gap-1 px-6 pb-4">
-        <Pressable onPress={() => router.back()}>
-          <Text className="text-sm text-blue-600">‹ Agenda</Text>
+    <SafeAreaView className="flex-1 bg-green-50" edges={['top', 'bottom']}>
+      <View className="gap-1 px-5 pb-4 pt-2">
+        <Pressable onPress={() => router.back()} hitSlop={8} className="min-h-10 self-start justify-center pr-4">
+          <Text className="text-sm text-green-700">‹ Agenda</Text>
         </Pressable>
-        <Text className="text-xl font-semibold text-neutral-900">Sincronização</Text>
+        <Text className="text-xl font-semibold text-green-950">Sincronização</Text>
       </View>
 
-      <View className="gap-2 px-6 pb-4">
+      <View className="mx-5 mb-4 gap-2 rounded-2xl border border-green-100 bg-white p-4">
         <View className="flex-row items-center gap-2">
           <View className={`h-2.5 w-2.5 rounded-full ${status.isOnline ? 'bg-green-600' : 'bg-red-600'}`} />
           <Text className="text-sm text-neutral-700">{status.isOnline ? 'Conectado' : 'Sem conexão'}</Text>
@@ -94,11 +103,16 @@ export default function SyncScreen() {
             {conflictCount} conflito(s) esperando sua decisão — não são reenviados sozinhos.
           </Text>
         ) : null}
+        {syncError ? (
+          <View className="rounded-xl border border-red-100 bg-red-50 p-3">
+            <Text className="text-xs leading-5 text-red-700">{syncError}</Text>
+          </View>
+        ) : null}
 
         <Pressable
           onPress={handleSyncNow}
           disabled={syncing}
-          className="items-center rounded-lg bg-neutral-900 py-3 disabled:opacity-50"
+          className="mt-2 min-h-12 items-center justify-center rounded-xl bg-green-600 px-4 disabled:opacity-50"
         >
           {syncing ? (
             <ActivityIndicator color="#fff" />
@@ -111,27 +125,27 @@ export default function SyncScreen() {
       <FlatList
         data={items}
         keyExtractor={(item, index) => `${item.kind}-${item.visitUuid}-${item.pointId ?? 'x'}-${index}`}
-        contentContainerClassName="gap-2 px-6 pb-8"
+        contentContainerClassName="gap-2 px-5 pb-8"
         ListEmptyComponent={
           !loading ? <Text className="mt-8 text-center text-neutral-500">Tudo sincronizado. Nenhuma pendência.</Text> : null
         }
         renderItem={({ item }) => (
           <Pressable
             onPress={() => goToItem(item)}
-            className={`gap-1 rounded-xl border p-4 ${item.kind === 'conflict' ? 'border-red-300 bg-red-50' : 'border-neutral-200'}`}
+            className={`gap-2 rounded-2xl border bg-white p-4 ${item.kind === 'conflict' ? 'border-red-300 bg-red-50' : 'border-green-100'}`}
           >
             <View className="flex-row items-center justify-between">
-              <Text className={`text-sm font-semibold ${item.kind === 'conflict' ? 'text-red-800' : 'text-neutral-900'}`}>
+              <Text className={`text-sm font-semibold ${item.kind === 'conflict' ? 'text-red-800' : 'text-green-950'}`}>
                 {KIND_LABELS[item.kind]}
               </Text>
               <Text className="text-xs text-neutral-500">{formatDateTime(item.updatedAt)}</Text>
             </View>
             <Text className="text-sm text-neutral-600">{establishmentNames.get(item.visitUuid) ?? 'Visita'}</Text>
             {item.lastError ? <Text className="text-xs text-amber-700">Erro: {item.lastError}</Text> : null}
-            <Text className="text-xs text-blue-600">Ver e resolver ›</Text>
+            <Text className="text-xs text-green-700">Ver e resolver ›</Text>
           </Pressable>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }

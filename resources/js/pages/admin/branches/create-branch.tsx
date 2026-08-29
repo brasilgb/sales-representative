@@ -122,7 +122,7 @@ const allTenants = tenants.map((tenant: any) => ({
                                     options={allTenants}
                                     onChange={changeTenant}
                                     placeholder="Selecione a empresa"
-                                    className="shadow-xs p-0 border text-gray-700 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-9"
+                                    className="shadow-xs p-0 border text-gray-700 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 h-9"
                                     styles={{
                                         control: (baseStyles, state) => ({
                                             ...baseStyles,
@@ -313,7 +313,7 @@ const allTenants = tenants.map((tenant: any) => ({
                                     options={statusSaas}
                                     onChange={changeStatus}
                                     placeholder="Selecione o status"
-                                    className="shadow-xs p-0 border text-gray-700 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-9"
+                                    className="shadow-xs p-0 border text-gray-700 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 h-9"
                                     styles={{
                                         control: (baseStyles, state) => ({
                                             ...baseStyles,

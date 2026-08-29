@@ -19,7 +19,7 @@ export function Header() {
     };
 
     return (
-        <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-white/10 bg-[#08111f]/90 text-white backdrop-blur-xl">
+        <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-white/10 bg-[#052e16]/90 text-white backdrop-blur-xl">
             <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-12">
                 <Link href={route('home')} aria-label="VetorPet — página inicial">
                     <BrandHorizontalLogo inverted />
@@ -46,7 +46,7 @@ export function Header() {
                             <span className="max-w-40 truncate text-sm font-medium text-white" title={auth.user.name}>
                                 {auth.user.name}
                             </span>
-                            <Button asChild className="rounded-full bg-cyan-300 font-extrabold text-slate-950 hover:bg-cyan-200">
+                            <Button asChild className="rounded-full bg-lime-300 font-extrabold text-slate-950 hover:bg-lime-200">
                                 <Link href={route(dashboardRoute)}>Acessar painel</Link>
                             </Button>
                         </div>
@@ -59,7 +59,7 @@ export function Header() {
                             >
                                 <Link href={route('login')}>Entrar</Link>
                             </Button>
-                            <Button asChild className="rounded-full bg-cyan-300 font-extrabold text-slate-950 hover:bg-cyan-200">
+                            <Button asChild className="rounded-full bg-lime-300 font-extrabold text-slate-950 hover:bg-lime-200">
                                 <Link href={route('register')}>Começar Grátis</Link>
                             </Button>
                         </>
@@ -77,7 +77,7 @@ export function Header() {
             </div>
 
             {isMenuOpen && (
-                <div className="border-t border-white/10 bg-[#08111f] px-5 py-5 md:hidden">
+                <div className="border-t border-white/10 bg-[#052e16] px-5 py-5 md:hidden">
                     <nav className="flex flex-col gap-3">
                         <a
                             href="#recursos"
@@ -105,7 +105,7 @@ export function Header() {
                                 <span className="truncate px-2 text-sm font-medium text-white" title={auth.user.name}>
                                     {auth.user.name}
                                 </span>
-                                <Button asChild className="justify-center rounded-full bg-cyan-300 font-extrabold text-slate-950 hover:bg-cyan-200">
+                                <Button asChild className="justify-center rounded-full bg-lime-300 font-extrabold text-slate-950 hover:bg-lime-200">
                                     <Link href={route(dashboardRoute)} onClick={handleLinkClick}>
                                         Acessar painel
                                     </Link>

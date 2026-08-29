@@ -194,6 +194,11 @@ export function AppSidebar() {
         ...(pestControlPermissions.includes('pest_control.visits.view') ||
         pestControlPermissions.includes('pest_control.visits.create') ||
         pestControlPermissions.includes('pest_control.visits.edit')
+            ? [{ title: 'Dashboard', url: route('app.pest-control.dashboard'), active: 'app.pest-control.dashboard|app.pest-control.index' }]
+            : []),
+        ...(pestControlPermissions.includes('pest_control.visits.view') ||
+        pestControlPermissions.includes('pest_control.visits.create') ||
+        pestControlPermissions.includes('pest_control.visits.edit')
             ? [{ title: 'Agenda de visitas', url: route('app.pest-control.visits.index'), active: 'app.pest-control.visits.*' }]
             : []),
         ...(pestControlPermissions.includes('pest_control.units.view') || pestControlPermissions.includes('pest_control.units.manage')

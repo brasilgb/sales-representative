@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/lib/auth';
+import { onAgendaChange } from '@/lib/pest-control/agenda-watch';
 import { fetchAgenda, fetchVisitDetail } from '@/lib/pest-control/api';
 import {
   getCachedVisitDetail,
@@ -33,6 +35,13 @@ function formatScheduledAt(iso: string): string {
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso));
 }
 
+/** Rótulo do botão principal do card, de acordo com o andamento do atendimento (ver visita/[uuid]/index.tsx). */
+function visitActionLabel(visit: AgendaVisit): string {
+  if (visit.checkout_at) return 'Ver atendimento';
+  if (visit.checkin_at) return 'Continuar atendimento';
+  return 'Iniciar atendimento';
+}
+
 /** Agenda de visitas do técnico (Etapa 2 do app-tecnico.md): lista offline-first e download por visita. */
 export default function AgendaScreen() {
   const { user, logout } = useAuth();
@@ -44,6 +53,7 @@ export default function AgendaScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [downloadingUuid, setDownloadingUuid] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [newVisitsCount, setNewVisitsCount] = useState(0);
 
   const loadDownloadedFlags = useCallback(async (list: AgendaVisit[]) => {
     const flags = await Promise.all(
@@ -101,6 +111,20 @@ export default function AgendaScreen() {
     void refresh();
   }, [refresh]);
 
+  // Escuta em segundo plano (agenda-watch.ts): quando o poller encontra visita
+  // nova, só acende o indicador no botão "Atualizar" — não mexe na lista
+  // sozinho, pra tela não pular enquanto o técnico está usando.
+  useEffect(() => {
+    return onAgendaChange((_updatedVisits, newVisits) => {
+      setNewVisitsCount((prev) => prev + newVisits.length);
+    });
+  }, []);
+
+  const handleUpdate = useCallback(async () => {
+    await refresh();
+    setNewVisitsCount(0);
+  }, [refresh]);
+
   const downloadDetail = useCallback(async (visit: AgendaVisit) => {
     setDownloadingUuid(visit.uuid);
 
@@ -117,24 +141,45 @@ export default function AgendaScreen() {
   }, []);
 
   return (
-    <View className="flex-1 bg-white pt-16">
-      <View className="flex-row items-center justify-between px-6 pb-4">
+    <SafeAreaView className="flex-1 bg-green-50" edges={['top', 'bottom']}>
+      <View className="mx-5 mb-4 rounded-3xl bg-green-950 p-5">
         <View>
-          <Text className="text-xl font-semibold text-neutral-900">Olá, {user?.name}</Text>
-          <Text className="text-neutral-500">Agenda de visitas</Text>
+          <Text className="text-sm font-medium text-green-300">Olá, {user?.name}</Text>
+          <Text className="mt-1 text-2xl font-bold text-white">Sua agenda</Text>
+          <Text className="mt-1 text-sm text-green-100/70">Visitas técnicas e dados disponíveis offline.</Text>
         </View>
-        <View className="flex-row gap-2">
-          <Pressable onPress={() => router.push('/sincronizacao')} className="rounded-lg border border-neutral-300 px-4 py-2">
-            <Text className="text-sm font-medium text-neutral-900">Sincronização</Text>
+        <View className="mt-4 flex-row gap-2">
+          <Pressable
+            onPress={handleUpdate}
+            disabled={refreshing}
+            className="min-h-11 flex-1 flex-row items-center justify-center gap-1.5 rounded-xl bg-green-600 px-3 disabled:opacity-50"
+          >
+            {refreshing ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Text className="text-sm font-semibold text-white">Atualizar</Text>
+                {newVisitsCount > 0 ? <View className="h-2 w-2 rounded-full bg-amber-400" /> : null}
+              </>
+            )}
           </Pressable>
-          <Pressable onPress={() => logout()} className="rounded-lg border border-neutral-300 px-4 py-2">
-            <Text className="text-sm font-medium text-neutral-900">Sair</Text>
+          <Pressable
+            onPress={() => router.push('/sincronizacao')}
+            className="min-h-11 flex-1 items-center justify-center rounded-xl bg-green-600 px-3"
+          >
+            <Text className="text-sm font-semibold text-white">Sincronizar</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => logout()}
+            className="min-h-11 items-center justify-center rounded-xl border border-white/20 px-5"
+          >
+            <Text className="text-sm font-medium text-white">Sair</Text>
           </Pressable>
         </View>
       </View>
 
       {error ? (
-        <View className="mx-6 mb-3 rounded-lg bg-amber-50 p-3">
+        <View className="mx-5 mb-3 rounded-2xl border border-amber-100 bg-amber-50 p-4">
           <Text className="text-sm text-amber-800">{error}</Text>
         </View>
       ) : null}
@@ -142,8 +187,8 @@ export default function AgendaScreen() {
       <FlatList
         data={visits}
         keyExtractor={(visit) => visit.uuid}
-        contentContainerClassName="gap-3 px-6 pb-8"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
+        contentContainerClassName="gap-3 px-5 pb-8"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} colors={['#16a34a']} tintColor="#16a34a" />}
         ListEmptyComponent={
           !refreshing ? <Text className="mt-8 text-center text-neutral-500">Nenhuma visita agendada.</Text> : null
         }
@@ -153,19 +198,16 @@ export default function AgendaScreen() {
           const pendingSync = pendingSyncUuids.has(item.uuid);
 
           return (
-            <Pressable
-              onPress={() => router.push(`/visita/${item.uuid}`)}
-              className="gap-2 rounded-xl border border-neutral-200 p-4"
-            >
+            <View className="gap-3 rounded-2xl border border-green-100 bg-white p-4 shadow-sm shadow-green-950/5">
               <View className="flex-row items-center justify-between">
-                <Text className="text-base font-semibold text-neutral-900">{item.establishment.name}</Text>
+                <Text className="text-base font-semibold text-green-950">{item.establishment.name}</Text>
                 <Text className="text-xs font-medium uppercase text-neutral-500">
                   {STATUS_LABELS[item.status] ?? item.status}
                 </Text>
               </View>
 
               <Pressable onPress={() => openInMaps(item.establishment)}>
-                <Text className="text-sm text-blue-600 underline">{addressLine(item.establishment)}</Text>
+                <Text className="text-sm text-green-700 underline">{addressLine(item.establishment)}</Text>
               </Pressable>
 
               <View className="flex-row items-center justify-between">
@@ -183,15 +225,22 @@ export default function AgendaScreen() {
                 <Pressable
                   onPress={() => downloadDetail(item)}
                   disabled={downloading}
-                  className="items-center rounded-lg bg-neutral-900 py-2 disabled:opacity-50"
+                  className="min-h-12 items-center justify-center rounded-xl bg-green-600 px-4 disabled:opacity-50"
                 >
                   <Text className="text-sm font-medium text-white">{downloading ? 'Baixando…' : 'Baixar para uso offline'}</Text>
                 </Pressable>
-              ) : null}
-            </Pressable>
+              ) : (
+                <Pressable
+                  onPress={() => router.push(`/visita/${item.uuid}`)}
+                  className="min-h-12 items-center justify-center rounded-xl bg-green-600 px-4"
+                >
+                  <Text className="text-sm font-semibold text-white">{visitActionLabel(item)}</Text>
+                </Pressable>
+              )}
+            </View>
           );
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }

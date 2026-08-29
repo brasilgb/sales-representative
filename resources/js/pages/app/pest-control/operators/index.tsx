@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { UserCog, UserPlus } from 'lucide-react';
+import { Pencil, UserCog, UserPlus } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('app.dashboard') },
@@ -51,6 +51,7 @@ export default function PestControlOperators({ users }: { users: Operator[] }) {
                                 <TableHead>E-mail</TableHead>
                                 <TableHead>Telefone</TableHead>
                                 <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Ações</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -60,12 +61,30 @@ export default function PestControlOperators({ users }: { users: Operator[] }) {
                                         <TableCell className="font-medium">{user.name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>{user.telephone ?? '—'}</TableCell>
-                                        <TableCell>{user.status ? 'Ativo' : 'Inativo'}</TableCell>
+                                        <TableCell>
+                                            <span
+                                                className={
+                                                    user.status
+                                                        ? 'rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800'
+                                                        : 'rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground'
+                                                }
+                                            >
+                                                {user.status ? 'Ativo' : 'Inativo'}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={route('app.pest-control.operators.edit', user.id)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                    Editar
+                                                </Link>
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-16 text-center">
+                                    <TableCell colSpan={5} className="h-16 text-center">
                                         Nenhum técnico/operador cadastrado.
                                     </TableCell>
                                 </TableRow>

@@ -15,7 +15,7 @@ export default function Home({ plans }: { plans: any[] }) {
         plans.find((plan) => plan.account_type === accountType)?.periods?.find((period: any) => Number(period.interval_count) === 1)?.price;
 
     return (
-        <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-950">
+        <div className="min-h-screen bg-white text-slate-900 selection:bg-green-100 selection:text-green-950">
             <Head title="VetorPet — Gestão comercial para representantes">
                 <meta name="description" content="Organize clientes, catálogo, visitas, pedidos e vendedores com o VetorPet." />
                 <meta name="theme-color" content="#ffffff" />

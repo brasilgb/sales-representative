@@ -54,16 +54,19 @@ export function PhotoEvidenceSection({ visitUuid, pointId, categories, latitude 
 
   return (
     <View className="gap-2">
-      <Text className="text-sm font-medium text-neutral-700">Fotos</Text>
+      <View>
+        <Text className="text-sm font-semibold text-green-950">Evidências fotográficas</Text>
+        <Text className="text-xs text-neutral-500">Registre imagens importantes da visita.</Text>
+      </View>
       <View className="flex-row flex-wrap gap-2">
         {categories.map((category) => (
           <Pressable
             key={category.value}
             onPress={() => handleCapture(category.value)}
             disabled={capturingCategory !== null}
-            className="rounded-full border border-neutral-300 px-3 py-1 disabled:opacity-50"
+            className="min-h-10 justify-center rounded-xl border border-green-200 bg-white px-3 disabled:opacity-50"
           >
-            <Text className="text-xs text-neutral-900">
+            <Text className="text-xs text-green-950">
               {capturingCategory === category.value ? 'Abrindo câmera…' : `📷 ${category.label}`}
             </Text>
           </Pressable>
@@ -78,7 +81,7 @@ export function PhotoEvidenceSection({ visitUuid, pointId, categories, latitude 
             <View key={item.uuid} className="items-center gap-1">
               <Image
                 source={{ uri: item.syncStatus === 'uploaded' && item.serverUrl ? item.serverUrl : item.localUri }}
-                className="h-20 w-20 rounded-lg bg-neutral-100"
+                className="h-20 w-20 rounded-xl bg-green-50"
               />
               <Text className={`text-[10px] ${item.syncStatus === 'uploaded' ? 'text-green-700' : 'text-amber-700'}`}>
                 {item.syncStatus === 'uploaded' ? 'Enviada' : 'Aguardando envio'}

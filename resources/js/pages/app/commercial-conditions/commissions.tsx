@@ -122,7 +122,7 @@ export default function Commissions({ orders, summary, sellerPerformance, seller
                     />
                 </div>
                 <div className="flex items-end gap-2">
-                    <Button type="submit" className="flex-1 bg-sky-600 text-white hover:bg-sky-700">
+                    <Button type="submit" className="flex-1 bg-green-600 text-white hover:bg-green-700">
                         <Search className="h-4 w-4" />
                         Filtrar
                     </Button>

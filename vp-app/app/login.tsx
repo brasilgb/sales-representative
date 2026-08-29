@@ -1,6 +1,8 @@
 import { Redirect } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ApiError, useAuth } from '@/lib/auth';
 
@@ -35,48 +37,92 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 bg-white">
-      <View className="flex-1 justify-center gap-4 px-6">
-        <View className="mb-6">
-          <Text className="text-2xl font-semibold text-neutral-900">VetorPet</Text>
-          <Text className="text-base text-neutral-500">Controle de Pragas — acesso do técnico</Text>
-        </View>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 bg-green-950">
+      <StatusBar style="light" backgroundColor="#052e16" />
+      <View className="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-green-800" />
+      <View className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-green-900" />
 
-        <View className="gap-1">
-          <Text className="text-sm font-medium text-neutral-700">E-mail</Text>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-            editable={!submitting}
-            className="rounded-lg border border-neutral-300 px-3 py-3 text-base text-neutral-900"
-          />
-        </View>
-
-        <View className="gap-1">
-          <Text className="text-sm font-medium text-neutral-700">Senha</Text>
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete="password"
-            editable={!submitting}
-            className="rounded-lg border border-neutral-300 px-3 py-3 text-base text-neutral-900"
-          />
-        </View>
-
-        {error ? <Text className="text-sm text-red-600">{error}</Text> : null}
-
-        <Pressable
-          onPress={handleSubmit}
-          disabled={submitting || !email || !password}
-          className="mt-2 items-center rounded-lg bg-neutral-900 py-3 disabled:opacity-50"
+      <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
+        <ScrollView
+          contentContainerClassName="grow justify-center px-5 py-8"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {submitting ? <ActivityIndicator color="#fff" /> : <Text className="text-base font-semibold text-white">Entrar</Text>}
-        </Pressable>
-      </View>
+        <View className="rounded-3xl bg-white px-6 py-8 shadow-2xl shadow-green-950/40">
+          <View className="mb-8 items-center">
+            <View className="mb-5 rounded-2xl border border-green-200 bg-white p-2 shadow-md shadow-green-950/15">
+              <Image
+                source={require('../assets/logo_pet.png')}
+                accessibilityLabel="Logotipo VetorPet"
+                resizeMode="cover"
+                className="h-16 w-16 rounded-xl"
+              />
+            </View>
+
+            <Text className="text-center text-3xl font-bold tracking-tight text-green-950">Bem-vindo de volta</Text>
+            <Text className="mt-2 max-w-72 text-center text-sm leading-5 text-neutral-500">
+              Acesse sua agenda e gerencie suas visitas com praticidade.
+            </Text>
+          </View>
+
+          <View className="gap-5">
+            <View className="gap-2">
+              <Text className="text-sm font-semibold text-green-950">E-mail</Text>
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+                editable={!submitting}
+                placeholder="seuemail@exemplo.com"
+                placeholderTextColor="#86a18e"
+                selectionColor="#16a34a"
+                className="rounded-2xl border border-green-100 bg-green-50 px-4 py-4 text-base text-green-950"
+              />
+            </View>
+
+            <View className="gap-2">
+              <Text className="text-sm font-semibold text-green-950">Senha</Text>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoComplete="password"
+                editable={!submitting}
+                placeholder="Digite sua senha"
+                placeholderTextColor="#86a18e"
+                selectionColor="#16a34a"
+                className="rounded-2xl border border-green-100 bg-green-50 px-4 py-4 text-base text-green-950"
+              />
+            </View>
+
+            {error ? (
+              <View className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
+                <Text className="text-sm leading-5 text-red-700">{error}</Text>
+              </View>
+            ) : null}
+
+            <Pressable
+              onPress={handleSubmit}
+              disabled={submitting || !email || !password}
+              className="mt-1 min-h-14 items-center justify-center rounded-2xl bg-green-600 px-5 shadow-lg shadow-green-900/20 active:bg-green-700 disabled:opacity-50"
+            >
+              {submitting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-base font-bold text-white">Entrar no aplicativo</Text>
+              )}
+            </Pressable>
+          </View>
+
+          <View className="mt-7 flex-row items-center justify-center gap-2">
+            <View className="h-2 w-2 rounded-full bg-green-400" />
+            <Text className="text-xs font-medium text-neutral-400">VetorPet · Controle de Pragas</Text>
+          </View>
+        </View>
+        </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }

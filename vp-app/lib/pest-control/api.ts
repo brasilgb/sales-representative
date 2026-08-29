@@ -1,3 +1,5 @@
+import { File } from 'expo-file-system';
+
 import { apiFetch, apiUpload } from '../api';
 import type {
   AgendaPage,
@@ -65,8 +67,10 @@ export type MediaUploadPayload = {
 export function uploadMedia(visitUuid: string, payload: MediaUploadPayload): Promise<{ media: ServerMedia }> {
   const form = new FormData();
   form.append('uuid', payload.uuid);
-  // RN/Expo aceita esse objeto {uri,name,type} como parte multipart do arquivo — não é um File/Blob de verdade.
-  form.append('file', { uri: payload.localUri, name: `${payload.uuid}.jpg`, type: payload.mimeType } as unknown as Blob);
+  // O `File` do expo-file-system implementa `Blob` de verdade — é o que o FormData
+  // da nova arquitetura do RN aceita. O objeto antigo {uri,name,type} não é mais
+  // reconhecido e falha em runtime com "Unsupported FormDataPart implementation".
+  form.append('file', new File(payload.localUri), `${payload.uuid}.jpg`);
   form.append('category', payload.category);
   if (payload.pointId != null) form.append('point_id', String(payload.pointId));
   if (payload.caption) form.append('caption', payload.caption);

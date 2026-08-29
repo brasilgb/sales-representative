@@ -53,13 +53,13 @@ test('web route stays blocked while the module is suspended or canceled', functi
     $service = app(TenantModuleService::class);
 
     $service->activate($tenant, TenantModule::KEY_PEST_CONTROL, $root);
-    $this->actingAs($owner)->get('/app/pest-control')->assertRedirect(route('app.pest-control.establishments.index'));
+    $this->actingAs($owner)->get('/app/pest-control')->assertOk();
 
     $service->suspend($tenant, TenantModule::KEY_PEST_CONTROL, $root);
     $this->actingAs($owner)->get('/app/pest-control')->assertNotFound();
 
     $service->reactivate($tenant, TenantModule::KEY_PEST_CONTROL, $root);
-    $this->actingAs($owner)->get('/app/pest-control')->assertRedirect(route('app.pest-control.establishments.index'));
+    $this->actingAs($owner)->get('/app/pest-control')->assertOk();
 
     $service->cancel($tenant, TenantModule::KEY_PEST_CONTROL, $root);
     $this->actingAs($owner)->get('/app/pest-control')->assertNotFound();

@@ -23,7 +23,8 @@ class VisitMediaUploadRequest extends FormRequest
     {
         return [
             'uuid' => ['required', 'uuid'],
-            'file' => ['required', 'file', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+            // Mantém a validação coerente com upload_max_filesize=2M do PHP.
+            'file' => ['required', 'file', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
             'category' => ['required', Rule::in([
                 VisitMedia::CATEGORY_INFESTATION,
                 VisitMedia::CATEGORY_PRODUCT,

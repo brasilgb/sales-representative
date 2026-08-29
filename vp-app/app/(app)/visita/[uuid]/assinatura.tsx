@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
 import { getLastKnownLocation } from '@/lib/pest-control/location';
@@ -8,7 +9,7 @@ import { SIGNATURE_PAD_HTML } from '@/lib/pest-control/signature-pad-html';
 import { performSignature } from '@/lib/pest-control/signature';
 import type { SignaturePayload } from '@/lib/pest-control/types';
 
-type PadMessage = { type: 'drawing_started' } | { type: 'export'; dataUrl: string };
+type PadMessage = { type: 'drawing_started' } | { type: 'drawing_stopped' } | { type: 'export'; dataUrl: string };
 
 /**
  * Assinatura e aceite (Etapa 6 do app-tecnico.md). Canvas HTML5 dentro de
@@ -29,6 +30,9 @@ export default function SignatureScreen() {
   const [complianceText, setComplianceText] = useState('Declaro que acompanhei o serviço e aceito o resultado apresentado.');
   const [notes, setNotes] = useState('');
   const [hasDrawn, setHasDrawn] = useState(false);
+  // Enquanto o dedo está sobre o quadro, trava o scroll da tela — senão a ScrollView
+  // pode "roubar" o gesto no meio do traço assim que sente um movimento vertical.
+  const [canvasActive, setCanvasActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -82,6 +86,12 @@ export default function SignatureScreen() {
 
       if (message.type === 'drawing_started') {
         setHasDrawn(true);
+        setCanvasActive(true);
+        return;
+      }
+
+      if (message.type === 'drawing_stopped') {
+        setCanvasActive(false);
         return;
       }
 
@@ -111,22 +121,23 @@ export default function SignatureScreen() {
   };
 
   return (
+    <SafeAreaView className="flex-1 bg-green-50" edges={['top', 'bottom']}>
     <ScrollView
-      className="flex-1 bg-white pt-16"
-      contentContainerClassName="gap-4 px-6 pb-12"
+      contentContainerClassName="gap-4 px-5 pb-8 pt-2"
       keyboardShouldPersistTaps="handled"
+      scrollEnabled={!canvasActive}
     >
-      <Pressable onPress={() => router.back()}>
-        <Text className="text-sm text-blue-600">‹ Resumo</Text>
+      <Pressable onPress={() => router.back()} hitSlop={8} className="min-h-10 self-start justify-center pr-4">
+        <Text className="text-sm text-green-700">‹ Resumo</Text>
       </Pressable>
-      <Text className="text-xl font-semibold text-neutral-900">Assinatura e aceite</Text>
+      <Text className="text-xl font-semibold text-green-950">Assinatura e aceite</Text>
 
       <View className="gap-1">
         <Text className="text-sm font-medium text-neutral-700">Nome do responsável *</Text>
         <TextInput
           value={responsibleName}
           onChangeText={setResponsibleName}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-900"
+          className="rounded-xl border border-green-100 bg-white px-4 py-3 text-base text-green-950"
         />
       </View>
 
@@ -135,7 +146,7 @@ export default function SignatureScreen() {
         <TextInput
           value={responsibleRole}
           onChangeText={setResponsibleRole}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-900"
+          className="rounded-xl border border-green-100 bg-white px-4 py-3 text-base text-green-950"
         />
       </View>
 
@@ -144,7 +155,7 @@ export default function SignatureScreen() {
         <TextInput
           value={responsibleDocument}
           onChangeText={setResponsibleDocument}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-900"
+          className="rounded-xl border border-green-100 bg-white px-4 py-3 text-base text-green-950"
         />
       </View>
 
@@ -155,7 +166,7 @@ export default function SignatureScreen() {
           onChangeText={setComplianceText}
           multiline
           numberOfLines={2}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-900"
+          className="rounded-xl border border-green-100 bg-white px-4 py-3 text-base text-green-950"
         />
       </View>
 
@@ -167,13 +178,13 @@ export default function SignatureScreen() {
           multiline
           numberOfLines={2}
           placeholder="Alguma ressalva sobre o serviço?"
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-900"
+          className="rounded-xl border border-green-100 bg-white px-4 py-3 text-base text-green-950"
         />
       </View>
 
       <View className="gap-2">
         <Text className="text-sm font-medium text-neutral-700">Assinatura</Text>
-        <View className="h-56 overflow-hidden rounded-lg border border-neutral-300">
+        <View className="h-56 overflow-hidden rounded-2xl border border-green-100 bg-white">
           <WebView
             ref={webViewRef}
             originWhitelist={['*']}
@@ -183,8 +194,8 @@ export default function SignatureScreen() {
             style={{ flex: 1 }}
           />
         </View>
-        <Pressable onPress={handleClear} className="items-center rounded-lg border border-neutral-300 py-2">
-          <Text className="text-sm font-medium text-neutral-900">Limpar e refazer</Text>
+        <Pressable onPress={handleClear} className="min-h-11 items-center justify-center rounded-xl border border-green-200 bg-white px-4">
+          <Text className="text-sm font-medium text-green-950">Limpar e refazer</Text>
         </Pressable>
       </View>
 
@@ -193,7 +204,7 @@ export default function SignatureScreen() {
       <Pressable
         onPress={handleConfirm}
         disabled={submitting}
-        className="items-center rounded-lg bg-neutral-900 py-3 disabled:opacity-50"
+        className="min-h-14 items-center justify-center rounded-2xl bg-green-600 px-5 disabled:opacity-50"
       >
         {submitting ? (
           <ActivityIndicator color="#fff" />
@@ -202,5 +213,6 @@ export default function SignatureScreen() {
         )}
       </Pressable>
     </ScrollView>
+    </SafeAreaView>
   );
 }

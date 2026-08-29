@@ -13,6 +13,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PerformanceReportController;
 use App\Http\Controllers\PestControl\CatalogController as PestControlCatalogController;
 use App\Http\Controllers\PestControl\ControlPointController as PestControlControlPointController;
+use App\Http\Controllers\PestControl\DashboardController as PestControlDashboardController;
 use App\Http\Controllers\PestControl\EstablishmentController as PestControlEstablishmentController;
 use App\Http\Controllers\PestControl\LookupController as PestControlLookupController;
 use App\Http\Controllers\PestControl\OperatorController as PestControlOperatorController;
@@ -79,7 +80,8 @@ Route::middleware('module:'.TenantModule::KEY_PEST_CONTROL)
     ->prefix('pest-control')
     ->name('pest-control.')
     ->group(function () {
-        Route::get('/', fn () => redirect()->route('app.pest-control.establishments.index'))->name('index');
+        Route::get('/', [PestControlDashboardController::class, 'index'])->name('index');
+        Route::get('/dashboard', [PestControlDashboardController::class, 'index'])->name('dashboard');
         Route::resource('/establishments', PestControlEstablishmentController::class);
         Route::resource('/points', PestControlControlPointController::class);
         Route::get('/catalog', [PestControlCatalogController::class, 'index'])->name('catalog.index');
@@ -95,6 +97,8 @@ Route::middleware('module:'.TenantModule::KEY_PEST_CONTROL)
         Route::get('/operators', [PestControlOperatorController::class, 'index'])->name('operators.index');
         Route::get('/operators/create', [PestControlOperatorController::class, 'create'])->name('operators.create');
         Route::post('/operators', [PestControlOperatorController::class, 'store'])->name('operators.store');
+        Route::get('/operators/{user}/edit', [PestControlOperatorController::class, 'edit'])->name('operators.edit');
+        Route::put('/operators/{user}', [PestControlOperatorController::class, 'update'])->name('operators.update');
 
         // Visitas técnicas (Etapa 4): agenda, execução (check-in/check-out),
         // inspeção por ponto, evidências e assinatura/aceite.

@@ -3,8 +3,10 @@ import { Directory, File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
-const MAX_DIMENSION = 1600;
-const JPEG_QUALITY = 0.7;
+// O servidor local aceita uploads de até 2 MB. A redução abaixo mantém boa
+// leitura da evidência e deixa margem para os metadados do multipart.
+const MAX_DIMENSION = 1440;
+const JPEG_QUALITY = 0.65;
 
 export type CapturedPhoto = {
   localUri: string;
