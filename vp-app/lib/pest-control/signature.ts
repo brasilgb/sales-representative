@@ -1,4 +1,5 @@
 import { submitSignature } from './api';
+import { mapWithConcurrency } from './concurrency';
 import { listPendingSignatures, markPendingSignatureError, removePendingSignature, savePendingSignature } from './db';
 import type { SignaturePayload } from './types';
 
@@ -31,14 +32,14 @@ async function trySyncSignature(visitUuid: string, payload: SignaturePayload): P
   }
 }
 
+// Payload leve (JSON com o traçado), um por visita — cabe um limite maior que o de fotos.
+const SIGNATURE_SYNC_CONCURRENCY = 5;
+
 export async function flushPendingSignatures(): Promise<number> {
   const pending = await listPendingSignatures();
-  let syncedCount = 0;
+  const results = await mapWithConcurrency(pending, SIGNATURE_SYNC_CONCURRENCY, ({ visitUuid, payload }) =>
+    trySyncSignature(visitUuid, payload),
+  );
 
-  for (const { visitUuid, payload } of pending) {
-    const result = await trySyncSignature(visitUuid, payload);
-    if (result.synced) syncedCount += 1;
-  }
-
-  return syncedCount;
+  return results.filter((result) => result.synced).length;
 }

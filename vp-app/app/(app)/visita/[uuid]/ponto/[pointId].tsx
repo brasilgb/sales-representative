@@ -73,6 +73,7 @@ export default function PointInspectionScreen() {
   const [deviceConditions, setDeviceConditions] = useState<string[]>([]);
   const [draft, setDraft] = useState<InspectionDraft>(emptyInspectionDraft());
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [capturingLocation, setCapturingLocation] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -102,23 +103,41 @@ export default function PointInspectionScreen() {
     [uuid, pointIdNumber],
   );
 
+  // Sem o try/finally, uma falha aqui (banco local ou dado inesperado)
+  // deixava `loading` travado em `true` para sempre — a tela só mostrava o
+  // spinner, sem nenhuma saída. E mesmo sem erro nenhum, se o ponto não
+  // estiver nos dados baixados desta visita (`foundPoint` nulo), o guard
+  // `loading || !point` do render sozinho já prendia a tela do mesmo jeito;
+  // agora esse caso vira uma mensagem explícita em vez de spinner infinito.
   useEffect(() => {
     (async () => {
-      const detail = await getCachedVisitDetail(uuid);
-      const foundPoint = detail?.visit.establishment.control_points.find((item) => item.id === pointIdNumber) ?? null;
-      const local = await getLocalInspection(uuid, pointIdNumber);
+      try {
+        const detail = await getCachedVisitDetail(uuid);
+        const foundPoint = detail?.visit.establishment.control_points.find((item) => item.id === pointIdNumber) ?? null;
+        const local = await getLocalInspection(uuid, pointIdNumber);
 
-      setPoint(foundPoint);
-      setProducts(detail?.products ?? []);
-      setSpecies(detail?.species ?? []);
-      setConsumptionTypes(detail?.consumption_types ?? []);
-      setDeviceConditions(detail?.device_conditions ?? []);
-      const loadedDraft = local?.draft ?? emptyInspectionDraft();
-      setDraft(loadedDraft);
-      setConflictServer(local?.syncStatus === 'conflict' ? local.conflictServer : null);
-      notesTextRef.current = loadedDraft.notes ?? '';
-      reasonTextRef.current = loadedDraft.not_inspected_reason ?? '';
-      setLoading(false);
+        if (!foundPoint) {
+          setLoadError(
+            'Este ponto não foi encontrado nos dados baixados desta visita. Volte à agenda, baixe a visita novamente e tente de novo.',
+          );
+          return;
+        }
+
+        setPoint(foundPoint);
+        setProducts(detail?.products ?? []);
+        setSpecies(detail?.species ?? []);
+        setConsumptionTypes(detail?.consumption_types ?? []);
+        setDeviceConditions(detail?.device_conditions ?? []);
+        const loadedDraft = local?.draft ?? emptyInspectionDraft();
+        setDraft(loadedDraft);
+        setConflictServer(local?.syncStatus === 'conflict' ? local.conflictServer : null);
+        notesTextRef.current = loadedDraft.notes ?? '';
+        reasonTextRef.current = loadedDraft.not_inspected_reason ?? '';
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : 'Não foi possível carregar este ponto agora.');
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [uuid, pointIdNumber]);
 
@@ -155,38 +174,54 @@ export default function PointInspectionScreen() {
     persist({ species: next });
   };
 
+  // `finally` garante que o botão nunca fique preso em "carregando": sem
+  // isso, uma falha inesperada (rede, ou o banco local — ver db.ts) deixava
+  // `resolvingConflict` travado em `true` para sempre, porque a linha que o
+  // zerava vinha depois do `await` que tinha acabado de lançar.
   const handleKeepLocal = async () => {
     setResolvingConflict(true);
-    const result = await resolveConflictKeepLocal(uuid, pointIdNumber);
-    setResolvingConflict(false);
 
-    if (result.synced) {
-      setConflictServer(null);
-      setFeedback(null);
-      return;
+    try {
+      const result = await resolveConflictKeepLocal(uuid, pointIdNumber);
+
+      if (result.synced) {
+        setConflictServer(null);
+        setFeedback(null);
+        return;
+      }
+
+      if (result.conflict) {
+        const local = await getLocalInspection(uuid, pointIdNumber);
+        setConflictServer(local?.conflictServer ?? null);
+        setFeedback('O servidor mudou de novo enquanto você decidia. Revise e tente de novo.');
+        return;
+      }
+
+      setFeedback(result.reason);
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : 'Não foi possível resolver o conflito agora. Tente novamente.');
+    } finally {
+      setResolvingConflict(false);
     }
-
-    if (result.conflict) {
-      const local = await getLocalInspection(uuid, pointIdNumber);
-      setConflictServer(local?.conflictServer ?? null);
-      setFeedback('O servidor mudou de novo enquanto você decidia. Revise e tente de novo.');
-      return;
-    }
-
-    setFeedback(result.reason);
   };
 
   const handleUseServer = async () => {
     setResolvingConflict(true);
-    await resolveConflictUseServer(uuid, pointIdNumber);
-    const local = await getLocalInspection(uuid, pointIdNumber);
-    setResolvingConflict(false);
-    setConflictServer(null);
 
-    if (local) {
-      setDraft(local.draft);
-      notesTextRef.current = local.draft.notes ?? '';
-      reasonTextRef.current = local.draft.not_inspected_reason ?? '';
+    try {
+      await resolveConflictUseServer(uuid, pointIdNumber);
+      const local = await getLocalInspection(uuid, pointIdNumber);
+      setConflictServer(null);
+
+      if (local) {
+        setDraft(local.draft);
+        notesTextRef.current = local.draft.notes ?? '';
+        reasonTextRef.current = local.draft.not_inspected_reason ?? '';
+      }
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : 'Não foi possível resolver o conflito agora. Tente novamente.');
+    } finally {
+      setResolvingConflict(false);
     }
   };
 
@@ -214,11 +249,24 @@ export default function PointInspectionScreen() {
     router.back();
   };
 
-  if (loading || !point) {
+  if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator />
       </View>
+    );
+  }
+
+  if (loadError || !point) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center gap-4 bg-white px-6" edges={['top', 'bottom']}>
+        <Text className="text-center text-base text-neutral-700">
+          {loadError ?? 'Não foi possível carregar este ponto agora.'}
+        </Text>
+        <Pressable onPress={() => router.back()} className="min-h-11 items-center justify-center rounded-xl border border-neutral-300 px-6 py-3">
+          <Text className="text-base font-medium text-green-950">Voltar</Text>
+        </Pressable>
+      </SafeAreaView>
     );
   }
 

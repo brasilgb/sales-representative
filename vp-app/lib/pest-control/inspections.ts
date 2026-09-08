@@ -1,5 +1,6 @@
 import { ApiError } from '../api';
 import { submitInspection } from './api';
+import { mapWithConcurrency } from './concurrency';
 import {
   adoptServerInspection,
   getLocalInspection,
@@ -82,17 +83,17 @@ export async function resolveConflictUseServer(visitUuid: string, pointId: numbe
   await adoptServerInspection(visitUuid, pointId, toDraft(local.conflictServer), local.conflictServer.updated_at);
 }
 
+// Payload leve (JSON), cada ponto independente dos demais — cabe um limite maior que o de fotos.
+const INSPECTION_SYNC_CONCURRENCY = 5;
+
 /** Reenvia todas as inspeções pendentes de qualquer visita (chamado no flush automático). Conflitos não entram aqui — esperam decisão do técnico. */
 export async function flushPendingInspections(): Promise<number> {
   const pending = await listPendingInspections();
-  let syncedCount = 0;
+  const results = await mapWithConcurrency(pending, INSPECTION_SYNC_CONCURRENCY, ({ visitUuid, pointId, draft, baseUpdatedAt }) =>
+    trySyncInspection(visitUuid, pointId, draft, baseUpdatedAt),
+  );
 
-  for (const { visitUuid, pointId, draft, baseUpdatedAt } of pending) {
-    const result = await trySyncInspection(visitUuid, pointId, draft, baseUpdatedAt);
-    if (result.synced) syncedCount += 1;
-  }
-
-  return syncedCount;
+  return results.filter((result) => result.synced).length;
 }
 
 function toDraft(inspection: ServerInspection): InspectionDraft {

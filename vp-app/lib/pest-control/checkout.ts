@@ -1,4 +1,5 @@
 import { submitCheckout } from './api';
+import { mapWithConcurrency } from './concurrency';
 import {
   listPendingCheckouts,
   markPendingCheckoutError,
@@ -36,14 +37,14 @@ async function trySyncCheckout(visitUuid: string, payload: CheckoutPayload): Pro
   }
 }
 
+// Payload leve (JSON), um por visita — cabe um limite maior que o de fotos.
+const CHECKOUT_SYNC_CONCURRENCY = 5;
+
 export async function flushPendingCheckouts(): Promise<number> {
   const pending = await listPendingCheckouts();
-  let syncedCount = 0;
+  const results = await mapWithConcurrency(pending, CHECKOUT_SYNC_CONCURRENCY, ({ visitUuid, payload }) =>
+    trySyncCheckout(visitUuid, payload),
+  );
 
-  for (const { visitUuid, payload } of pending) {
-    const result = await trySyncCheckout(visitUuid, payload);
-    if (result.synced) syncedCount += 1;
-  }
-
-  return syncedCount;
+  return results.filter((result) => result.synced).length;
 }

@@ -34,7 +34,7 @@ export function __resetDbConnectionForTests(): void {
   dbPromise = null;
 }
 
-function getDb(): Promise<SQLiteDatabase> {
+function openRawDb(): Promise<SQLiteDatabase> {
   dbPromise ??= openDatabaseAsync('pest_control.db').then(async (db) => {
     await db.execAsync(`
       PRAGMA journal_mode = WAL;
@@ -97,6 +97,58 @@ function getDb(): Promise<SQLiteDatabase> {
   });
 
   return dbPromise;
+}
+
+/**
+ * Reconhece o erro visto em produção quando o handle nativo do SQLite fica
+ * inválido no meio da sessão (Android: app volta de muito tempo em segundo
+ * plano e o processo nativo recicla o módulo, mas o objeto JS em cache ainda
+ * aponta pro handle antigo) — mensagem típica: "NativeDatabase.prepareAsync
+ * ... Cannot convert provided JavaScriptObject to the SharedObject, because
+ * it doesn't contain valid id". Sem essa detecção, toda chamada seguinte
+ * falhava do mesmo jeito e a tela ficava travada em "carregando" (ex.:
+ * resolver conflito, ver ponto/[pointId].tsx).
+ */
+function isStaleNativeDbError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes('NativeDatabase') || message.includes('SharedObject');
+}
+
+type AsyncMethod = (...args: unknown[]) => Promise<unknown>;
+
+/**
+ * Envolve a conexão numa Proxy que se autorrecupera: se qualquer chamada
+ * falhar com `isStaleNativeDbError`, descarta a conexão em cache, reabre do
+ * zero e tenta a mesma chamada mais uma vez — em vez de deixar toda
+ * operação seguinte (e a tela que esperava por ela) travada para sempre.
+ * Nenhum dos ~40 pontos de chamada de `getDb()` precisou mudar: eles só
+ * usam o que a Proxy devolve, exatamente como usariam a conexão real.
+ */
+async function getDb(): Promise<SQLiteDatabase> {
+  const db = await openRawDb();
+
+  return new Proxy(db, {
+    get(target, prop, receiver) {
+      const value = Reflect.get(target, prop, receiver);
+      if (typeof value !== 'function') return value;
+
+      const method = value as AsyncMethod;
+
+      return async (...args: unknown[]) => {
+        try {
+          return await method.apply(target, args);
+        } catch (error) {
+          if (!isStaleNativeDbError(error)) throw error;
+
+          dbPromise = null;
+          const freshDb = await openRawDb();
+          const freshMethod = Reflect.get(freshDb, prop) as AsyncMethod;
+
+          return await freshMethod.apply(freshDb, args);
+        }
+      };
+    },
+  }) as SQLiteDatabase;
 }
 
 /**

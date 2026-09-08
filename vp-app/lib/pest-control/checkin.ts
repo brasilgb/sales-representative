@@ -1,4 +1,5 @@
 import { submitCheckin } from './api';
+import { mapWithConcurrency } from './concurrency';
 import {
   listPendingCheckins,
   markPendingCheckinError,
@@ -41,15 +42,15 @@ async function trySyncCheckin(uuid: string, payload: CheckinPayload): Promise<Ch
   }
 }
 
+// Payload leve (JSON), um por visita — cabe um limite maior que o de fotos.
+const CHECKIN_SYNC_CONCURRENCY = 5;
+
 /** Reenvia todos os check-ins pendentes (chamado no refresh da agenda, quando a rede volta). */
 export async function flushPendingCheckins(): Promise<number> {
   const pending = await listPendingCheckins();
-  let syncedCount = 0;
+  const results = await mapWithConcurrency(pending, CHECKIN_SYNC_CONCURRENCY, ({ visitUuid, payload }) =>
+    trySyncCheckin(visitUuid, payload),
+  );
 
-  for (const { visitUuid, payload } of pending) {
-    const result = await trySyncCheckin(visitUuid, payload);
-    if (result.synced) syncedCount += 1;
-  }
-
-  return syncedCount;
+  return results.filter((result) => result.synced).length;
 }

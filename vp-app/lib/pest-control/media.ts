@@ -1,6 +1,7 @@
 import * as Crypto from 'expo-crypto';
 
 import { uploadMedia } from './api';
+import { mapWithConcurrency } from './concurrency';
 import {
   getLocalInspection,
   listMediaForVisit,
@@ -12,6 +13,12 @@ import {
 } from './db';
 import { capturePhoto, deleteLocalPhoto } from './photo';
 import type { MediaCategory } from './types';
+
+// Fotos são o item mais pesado da fila (upload multipart, até ~2 MB cada —
+// ver photo.ts). Um limite baixo evita travar uma conexão móvel fraca com
+// várias fotos simultâneas, mas ainda corta bastante o tempo total frente a
+// enviar uma de cada vez.
+const MEDIA_UPLOAD_CONCURRENCY = 3;
 
 export type CaptureAndQueueResult = { status: 'queued'; media: LocalMedia } | { status: 'denied' } | { status: 'canceled' };
 
@@ -87,16 +94,17 @@ async function trySyncMedia(media: LocalMedia): Promise<boolean> {
   }
 }
 
-/** Reenvia todas as fotos pendentes de qualquer visita (chamado no refresh da agenda). */
+/**
+ * Reenvia todas as fotos pendentes de qualquer visita (chamado no refresh da
+ * agenda), até `MEDIA_UPLOAD_CONCURRENCY` uploads em paralelo — cada foto só
+ * depende da própria inspeção (checada dentro de `trySyncMedia`), nunca de
+ * outra foto, então não há ordem a preservar entre elas.
+ */
 export async function flushPendingMedia(): Promise<number> {
   const pending = await listPendingMedia();
-  let syncedCount = 0;
+  const results = await mapWithConcurrency(pending, MEDIA_UPLOAD_CONCURRENCY, trySyncMedia);
 
-  for (const media of pending) {
-    if (await trySyncMedia(media)) syncedCount += 1;
-  }
-
-  return syncedCount;
+  return results.filter(Boolean).length;
 }
 
 export { listMediaForVisit };
