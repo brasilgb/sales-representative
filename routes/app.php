@@ -24,6 +24,7 @@ use App\Http\Controllers\PestControl\VisitInspectionController as PestControlVis
 use App\Http\Controllers\PestControl\VisitMediaController as PestControlVisitMediaController;
 use App\Http\Controllers\PestControl\VisitSignatureController as PestControlVisitSignatureController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductRegionPriceController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\SalesIntelligenceController;
 use App\Http\Controllers\SubscriptionController;
@@ -66,6 +67,9 @@ Route::resource('/orders', OrderController::class);
 Route::get('/report', [OrderController::class, 'orderReport'])->name('orders.report');
 Route::resource('/products', ProductController::class);
 Route::patch('/products/{product}/adjust-stock', [ProductController::class, 'adjustStock'])->name('products.adjust-stock');
+Route::post('/products/{product}/region-prices', [ProductRegionPriceController::class, 'store'])->name('products.region-prices.store');
+Route::patch('/products/{product}/region-prices/{regionPrice}', [ProductRegionPriceController::class, 'update'])->name('products.region-prices.update');
+Route::delete('/products/{product}/region-prices/{regionPrice}', [ProductRegionPriceController::class, 'destroy'])->name('products.region-prices.destroy');
 Route::get('/settings', fn () => redirect()->route('app.other-settings.index'))->name('settings.index');
 Route::resource('/users', UserController::class);
 Route::get('/refproducts/{reference}', [ProductController::class, 'getProductsReference']);

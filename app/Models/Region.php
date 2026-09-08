@@ -43,4 +43,9 @@ class Region extends Model
     {
         return $this->hasMany(Campaign::class);
     }
+
+    public function productPrices(): HasMany
+    {
+        return $this->hasMany(ProductRegionPrice::class);
+    }
 }

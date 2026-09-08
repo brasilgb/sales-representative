@@ -1,15 +1,29 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Icon } from '@/components/icon';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { maskMoney, maskMoneyDot } from '@/Utils/mask';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, BoxIcon, ImageIcon, Save } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { ArrowLeft, BoxIcon, ImageIcon, MapPinned, Pencil, Save, Trash2, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -51,7 +65,363 @@ const categoryOptions = [
     { value: 'outro', label: 'Outro' },
 ];
 
-export default function CreateProduct({ product }: any) {
+function formatMoney(value: number | null | undefined) {
+    if (value === null || value === undefined) return '—';
+    return `R$ ${maskMoney(value)}`;
+}
+
+function RegionPricesSection({ productId, regionPrices }: { productId: number; regionPrices: any[] }) {
+    const [editingRegionId, setEditingRegionId] = useState<number | null>(null);
+    const [rowData, setRowData] = useState({ special_price: '', is_active: true, valid_from: '', valid_until: '' });
+    const [rowNoExpiration, setRowNoExpiration] = useState(true);
+    const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
+    const [rowProcessing, setRowProcessing] = useState(false);
+
+    // Formulário de cadastro: checkbox "Aplicar preço especial" que revela região (select) +
+    // preço especial — só lista regiões que ainda não têm exceção, já que cada região só pode
+    // ter um preço especial por produto (para alterar uma já existente, usa-se o "Editar" da
+    // linha da tabela).
+    const availableRegions = regionPrices.filter((row) => !row.special);
+    // A tabela só deve listar regiões que já têm preço especial aplicado — as demais
+    // regiões ativas continuam disponíveis apenas no seletor "Aplicar preço especial" acima.
+    const appliedRegionPrices = regionPrices.filter((row) => row.special);
+    const [applySpecialPrice, setApplySpecialPrice] = useState(false);
+    const [addData, setAddData] = useState({ region_id: '', special_price: '', is_active: true, valid_from: '', valid_until: '' });
+    const [addNoExpiration, setAddNoExpiration] = useState(true);
+    const [addErrors, setAddErrors] = useState<Record<string, string>>({});
+    const [addProcessing, setAddProcessing] = useState(false);
+
+    // Máscara de moeda (mesmo padrão usado no campo "Preço" do produto): o valor digitado é
+    // normalizado com ponto decimal (ex.: "102.90") e exibido ao usuário com vírgula/milhar
+    // via maskMoney.
+    useEffect(() => {
+        setAddData((current) => ({ ...current, special_price: maskMoneyDot(current.special_price) ?? '' }));
+    }, [addData.special_price]);
+
+    useEffect(() => {
+        setRowData((current) => ({ ...current, special_price: maskMoneyDot(current.special_price) ?? '' }));
+    }, [rowData.special_price]);
+
+    const submitAdd = (event: any) => {
+        event.preventDefault();
+        if (!addData.region_id || !addData.special_price) return;
+
+        setAddProcessing(true);
+        router.post(
+            route('app.products.region-prices.store', productId),
+            {
+                region_id: addData.region_id,
+                special_price: addData.special_price,
+                is_active: addData.is_active,
+                valid_from: addData.valid_from || null,
+                valid_until: addData.valid_until || null,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setAddData({ region_id: '', special_price: '', is_active: true, valid_from: '', valid_until: '' });
+                    setAddNoExpiration(true);
+                    setAddErrors({});
+                    setAddProcessing(false);
+                    setApplySpecialPrice(false);
+                },
+                onError: (errors: Record<string, string>) => {
+                    setAddErrors(errors);
+                    setAddProcessing(false);
+                },
+            },
+        );
+    };
+
+    const startEdit = (row: any) => {
+        setEditingRegionId(row.region_id);
+        setRowErrors({});
+        setRowData({
+            special_price: (row.special ? row.special.special_price : (row.calculatedRegionalPrice ?? row.basePrice)).toFixed(2),
+            is_active: row.special ? row.special.is_active : true,
+            valid_from: row.special?.valid_from ?? '',
+            valid_until: row.special?.valid_until ?? '',
+        });
+        setRowNoExpiration(!row.special?.valid_from && !row.special?.valid_until);
+    };
+
+    const cancelEdit = () => {
+        setEditingRegionId(null);
+        setRowErrors({});
+    };
+
+    const submitRow = (row: any) => {
+        setRowProcessing(true);
+        const payload = {
+            region_id: row.region_id,
+            special_price: rowData.special_price,
+            is_active: rowData.is_active,
+            valid_from: rowData.valid_from || null,
+            valid_until: rowData.valid_until || null,
+        };
+        const options = {
+            preserveScroll: true,
+            onSuccess: () => {
+                setEditingRegionId(null);
+                setRowProcessing(false);
+            },
+            onError: (errors: Record<string, string>) => {
+                setRowErrors(errors);
+                setRowProcessing(false);
+            },
+        };
+
+        router.patch(route('app.products.region-prices.update', [productId, row.special.id]), payload, options);
+    };
+
+    const removeRow = (row: any) => {
+        router.delete(route('app.products.region-prices.destroy', [productId, row.special.id]), { preserveScroll: true });
+    };
+
+    return (
+        <div className="p-4">
+            <div className="rounded-lg border p-4">
+                <div className="mb-4 flex items-center gap-2">
+                    <MapPinned className="h-5 w-5" />
+                    <h3 className="text-lg font-semibold tracking-tight">Preços por região</h3>
+                </div>
+                <p className="mb-4 text-sm text-muted-foreground">
+                    O preço especial substitui, apenas na região escolhida, o preço original, o percentual da região e qualquer campanha ou
+                    regra comercial.
+                </p>
+
+                <form onSubmit={submitAdd} className="mb-6 rounded-lg border bg-muted/20 p-4">
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id="apply_special_price"
+                            checked={applySpecialPrice}
+                            onCheckedChange={(checked: boolean) => setApplySpecialPrice(checked)}
+                            disabled={availableRegions.length === 0}
+                        />
+                        <Label htmlFor="apply_special_price">Aplicar preço especial</Label>
+                    </div>
+                    {availableRegions.length === 0 && (
+                        <p className="mt-2 text-sm text-muted-foreground">Todas as regiões ativas já têm uma configuração de preço para este produto.</p>
+                    )}
+                    {applySpecialPrice && availableRegions.length > 0 && (
+                        <div className="mt-4 grid gap-3 md:grid-cols-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="add-region">Região</Label>
+                                <select
+                                    id="add-region"
+                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
+                                    value={addData.region_id}
+                                    onChange={(e) => setAddData((current) => ({ ...current, region_id: e.target.value }))}
+                                >
+                                    <option value="">Selecione</option>
+                                    {availableRegions.map((row) => (
+                                        <option key={row.region_id} value={row.region_id}>
+                                            {row.region_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {addErrors.region_id && <div className="text-xs text-red-500">{addErrors.region_id}</div>}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="add-special-price">Preço especial (R$)</Label>
+                                <Input
+                                    id="add-special-price"
+                                    value={maskMoney(addData.special_price)}
+                                    onChange={(e) => setAddData((current) => ({ ...current, special_price: e.target.value }))}
+                                    placeholder="0,00"
+                                />
+                                {addErrors.special_price && <div className="text-xs text-red-500">{addErrors.special_price}</div>}
+                            </div>
+                            <div className="grid gap-2 md:col-span-2">
+                                <div className="flex items-center gap-2">
+                                    <Checkbox
+                                        id="add-no-expiration"
+                                        checked={addNoExpiration}
+                                        onCheckedChange={(checked: boolean) => {
+                                            setAddNoExpiration(checked);
+                                            if (checked) {
+                                                setAddData((current) => ({ ...current, valid_from: '', valid_until: '' }));
+                                            }
+                                        }}
+                                    />
+                                    <Label htmlFor="add-no-expiration">Tempo indeterminado (sem data de expiração)</Label>
+                                </div>
+                            </div>
+                            {!addNoExpiration && (
+                                <>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="add-valid-from">Válido de</Label>
+                                        <Input
+                                            id="add-valid-from"
+                                            type="date"
+                                            value={addData.valid_from}
+                                            onChange={(e) => setAddData((current) => ({ ...current, valid_from: e.target.value }))}
+                                        />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="add-valid-until">Válido até</Label>
+                                        <Input
+                                            id="add-valid-until"
+                                            type="date"
+                                            value={addData.valid_until}
+                                            onChange={(e) => setAddData((current) => ({ ...current, valid_until: e.target.value }))}
+                                        />
+                                        {addErrors.valid_until && <div className="text-xs text-red-500">{addErrors.valid_until}</div>}
+                                    </div>
+                                </>
+                            )}
+                            <div className="flex items-end">
+                                <Button type="submit" disabled={addProcessing} className="gap-2">
+                                    <Save className="h-4 w-4" /> Adicionar
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </form>
+
+                <div className="overflow-x-auto rounded-lg border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Região</TableHead>
+                                <TableHead>Ajuste</TableHead>
+                                <TableHead>Calculado</TableHead>
+                                <TableHead>Preço especial</TableHead>
+                                <TableHead>Preço efetivo</TableHead>
+                                <TableHead className="min-w-[140px]"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {appliedRegionPrices.length > 0 ? (
+                                appliedRegionPrices.map((row: any) => (
+                                    <TableRow key={row.region_id}>
+                                        <TableCell>{row.region_name}</TableCell>
+                                        <TableCell>{row.regionPercentage !== null ? `${Number(row.regionPercentage) > 0 ? '+' : ''}${row.regionPercentage}%` : '—'}</TableCell>
+                                        <TableCell>{formatMoney(row.calculatedRegionalPrice)}</TableCell>
+                                        <TableCell>
+                                            {editingRegionId === row.region_id ? (
+                                                <div className="grid gap-1">
+                                                    <Input
+                                                        className="w-28"
+                                                        value={maskMoney(rowData.special_price)}
+                                                        onChange={(e) => setRowData((current) => ({ ...current, special_price: e.target.value }))}
+                                                        placeholder="0,00"
+                                                    />
+                                                    {rowErrors.special_price && <div className="text-xs text-red-500">{rowErrors.special_price}</div>}
+                                                    <div className="flex items-center gap-2">
+                                                        <Switch
+                                                            id={`active-${row.region_id}`}
+                                                            checked={rowData.is_active}
+                                                            onCheckedChange={(checked: boolean) => setRowData((current) => ({ ...current, is_active: checked }))}
+                                                        />
+                                                        <Label htmlFor={`active-${row.region_id}`} className="text-xs">Ativo</Label>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Checkbox
+                                                            id={`no-expiration-${row.region_id}`}
+                                                            checked={rowNoExpiration}
+                                                            onCheckedChange={(checked: boolean) => {
+                                                                setRowNoExpiration(checked);
+                                                                if (checked) {
+                                                                    setRowData((current) => ({ ...current, valid_from: '', valid_until: '' }));
+                                                                }
+                                                            }}
+                                                        />
+                                                        <Label htmlFor={`no-expiration-${row.region_id}`} className="text-xs">Tempo indeterminado</Label>
+                                                    </div>
+                                                    {!rowNoExpiration && (
+                                                        <div className="grid grid-cols-2 gap-1">
+                                                            <Input
+                                                                type="date"
+                                                                className="text-xs"
+                                                                value={rowData.valid_from}
+                                                                onChange={(e) => setRowData((current) => ({ ...current, valid_from: e.target.value }))}
+                                                            />
+                                                            <Input
+                                                                type="date"
+                                                                className="text-xs"
+                                                                value={rowData.valid_until}
+                                                                onChange={(e) => setRowData((current) => ({ ...current, valid_until: e.target.value }))}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    {rowErrors.valid_until && <div className="text-xs text-red-500">{rowErrors.valid_until}</div>}
+                                                    <div className="flex gap-2">
+                                                        <Button type="button" size="sm" disabled={rowProcessing} onClick={() => submitRow(row)}>
+                                                            <Save className="h-3 w-3" /> Salvar
+                                                        </Button>
+                                                        <Button type="button" size="sm" variant="outline" onClick={cancelEdit}>
+                                                            <X className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ) : row.special ? (
+                                                <div className="space-y-1">
+                                                    <div>{formatMoney(row.special.special_price)}</div>
+                                                    {!row.special.is_currently_valid && (
+                                                        <Badge variant="secondary">Inativo/expirado</Badge>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                '—'
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium">{formatMoney(row.effectivePrice)}</span>
+                                                {row.source === 'special_region_price' && <Badge>Preço especial</Badge>}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {editingRegionId !== row.region_id && row.special && (
+                                                <div className="flex justify-end gap-2">
+                                                    <Button type="button" size="icon" variant="outline" onClick={() => startEdit(row)} title="Editar preço especial">
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                    {row.special && (
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button type="button" size="icon" variant="destructive" title="Remover preço especial">
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Remover preço especial de {row.region_name}?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        O produto voltará a usar o ajuste percentual padrão desta região.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => removeRow(row)} className="bg-red-600 hover:bg-red-700">
+                                                                        Excluir
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="h-16 text-center">
+                                        Nenhum preço especial aplicado para este produto.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function CreateProduct({ product, regionPrices }: any) {
 
     const { data, setData, post, progress, processing, reset, errors } = useForm({
         name: product.name,
@@ -346,6 +716,8 @@ export default function CreateProduct({ product }: any) {
                     </form>
                 </div>
             </div>
+
+            <RegionPricesSection productId={product.id} regionPrices={regionPrices ?? []} />
         </AppLayout>
     );
 }

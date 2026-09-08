@@ -50,6 +50,15 @@ class ProductRequest extends FormRequest
             'observations' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
             'remove_image' => ['nullable', 'boolean'],
+            'apply_special_price' => ['nullable', 'boolean'],
+            'special_price_region_id' => [
+                Rule::requiredIf($this->boolean('apply_special_price')),
+                'nullable',
+                Rule::exists('regions', 'id')->where('tenant_id', $tenantId),
+            ],
+            'special_price_value' => [Rule::requiredIf($this->boolean('apply_special_price')), 'nullable', 'numeric', 'min:0'],
+            'special_price_valid_from' => ['nullable', 'date'],
+            'special_price_valid_until' => ['nullable', 'date', 'after_or_equal:special_price_valid_from'],
         ];
     }
 

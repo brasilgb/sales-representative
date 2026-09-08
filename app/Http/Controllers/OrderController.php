@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\OrderUpdateService;
+use App\Services\Pricing\RegionalPriceResolver;
 use App\Support\FlexBalance;
 use App\Support\PlanLimits;
 use Carbon\Carbon;
@@ -75,7 +76,7 @@ class OrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, RegionalPriceResolver $priceResolver)
     {
         PlanLimits::forTenant()->ensureCanCreate('orders_month');
 
@@ -130,7 +131,9 @@ class OrderController extends Controller
                 $itemCondition = $campaign && in_array($product->id, $campaignProductIds, true)
                     ? $campaign->commercialCondition
                     : $customerCondition;
-                $expectedPrice = $itemCondition ? $itemCondition->adjustedPrice((float) $product->price) : (float) $product->price;
+                // Um preço especial Produto x Região ativo substitui qualquer regra (cliente,
+                // região, tipo de estabelecimento, global ou campanha) para aquele item.
+                $expectedPrice = $priceResolver->effectivePriceForSale($product, $customer->region, $itemCondition);
 
                 if (abs((float) $item['price'] - $expectedPrice) > 0.01) {
                     throw new \Exception('Preço divergente da condição comercial para o produto: '.$product->name);

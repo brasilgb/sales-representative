@@ -1,5 +1,6 @@
 import { Icon } from '@/components/icon';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -52,8 +53,9 @@ const categoryOptions = [
     { value: 'outro', label: 'Outro' },
 ];
 
-export default function CreateProduct() {
+export default function CreateProduct({ regions }: any) {
     const [disableInput, setDisableInput] = useState<any>(false);
+    const [specialPriceNoExpiration, setSpecialPriceNoExpiration] = useState(true);
 
     const { data, setData, post, progress, processing, reset, errors } = useForm({
         name: '',
@@ -72,6 +74,11 @@ export default function CreateProduct() {
         enabled: false,
         observations: '',
         image: null as File | null,
+        apply_special_price: false as boolean,
+        special_price_region_id: '',
+        special_price_value: '',
+        special_price_valid_from: '',
+        special_price_valid_until: '',
     });
 
     const imagePreview = useMemo(() => (data.image ? URL.createObjectURL(data.image) : null), [data.image]);
@@ -90,6 +97,10 @@ export default function CreateProduct() {
     useEffect(() => {
         setData((data: any) => ({ ...data, price: maskMoneyDot(data?.price) }));
     }, [data.price]);
+
+    useEffect(() => {
+        setData((data: any) => ({ ...data, special_price_value: maskMoneyDot(data?.special_price_value) }));
+    }, [data.special_price_value]);
 
     const referenceDataSelected = async (e: any) => {
         e.preventDefault();
@@ -357,6 +368,94 @@ export default function CreateProduct() {
                                 <Input type="number" id="quantity" value={data.quantity} onChange={(e) => setData('quantity', e.target.value)} />
                                 {errors.quantity && <div className="text-sm text-red-500">{errors.quantity}</div>}
                             </div>
+                        </div>
+
+                        <div className="rounded-lg border p-4">
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="apply_special_price"
+                                    checked={data.apply_special_price}
+                                    onCheckedChange={(checked: boolean) => setData('apply_special_price', checked)}
+                                />
+                                <Label htmlFor="apply_special_price">Aplicar preço especial</Label>
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                O preço especial substitui, apenas na região escolhida, o preço original, o percentual da região e qualquer
+                                campanha ou regra comercial.
+                            </p>
+                            {data.apply_special_price && (
+                                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="special_price_region_id">Região</Label>
+                                        <select
+                                            id="special_price_region_id"
+                                            className="flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm"
+                                            value={data.special_price_region_id}
+                                            onChange={(e) => setData('special_price_region_id', e.target.value)}
+                                        >
+                                            <option value="">Selecione</option>
+                                            {(regions ?? []).map((region: any) => (
+                                                <option key={region.id} value={region.id}>
+                                                    {region.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.special_price_region_id && <div className="text-sm text-red-500">{errors.special_price_region_id}</div>}
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="special_price_value">Preço especial (R$)</Label>
+                                        <Input
+                                            id="special_price_value"
+                                            value={maskMoney(data.special_price_value)}
+                                            onChange={(e) => setData('special_price_value', e.target.value)}
+                                            placeholder="0,00"
+                                        />
+                                        {errors.special_price_value && <div className="text-sm text-red-500">{errors.special_price_value}</div>}
+                                    </div>
+                                    <div className="grid gap-2 md:col-span-2">
+                                        <div className="flex items-center gap-2">
+                                            <Checkbox
+                                                id="special_price_no_expiration"
+                                                checked={specialPriceNoExpiration}
+                                                onCheckedChange={(checked: boolean) => {
+                                                    setSpecialPriceNoExpiration(checked);
+                                                    if (checked) {
+                                                        setData((current: any) => ({
+                                                            ...current,
+                                                            special_price_valid_from: '',
+                                                            special_price_valid_until: '',
+                                                        }));
+                                                    }
+                                                }}
+                                            />
+                                            <Label htmlFor="special_price_no_expiration">Tempo indeterminado (sem data de expiração)</Label>
+                                        </div>
+                                    </div>
+                                    {!specialPriceNoExpiration && (
+                                        <>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="special_price_valid_from">Válido de</Label>
+                                                <Input
+                                                    id="special_price_valid_from"
+                                                    type="date"
+                                                    value={data.special_price_valid_from}
+                                                    onChange={(e) => setData('special_price_valid_from', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="special_price_valid_until">Válido até</Label>
+                                                <Input
+                                                    id="special_price_valid_until"
+                                                    type="date"
+                                                    value={data.special_price_valid_until}
+                                                    onChange={(e) => setData('special_price_valid_until', e.target.value)}
+                                                />
+                                                {errors.special_price_valid_until && <div className="text-sm text-red-500">{errors.special_price_valid_until}</div>}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div className="grid gap-2">

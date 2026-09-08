@@ -210,7 +210,23 @@ export default function Products({ products, publicCatalogUrl, filters, filterOp
                                                 {product.quantity} un.
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>R$ {maskMoney(product.price)}</TableCell>
+                                        <TableCell>
+                                            {product.special_prices?.length > 0 ? (
+                                                <div className="space-y-1">
+                                                    <div className="text-xs text-muted-foreground line-through">R$ {maskMoney(product.price)}</div>
+                                                    {product.special_prices.map((special: any) => (
+                                                        <div key={special.region_id} className="flex items-center gap-1.5">
+                                                            <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                                                                R$ {maskMoney(special.special_price)}
+                                                            </span>
+                                                            <Badge variant="secondary" className="text-[10px]">{special.region_name}</Badge>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <>R$ {maskMoney(product.price)}</>
+                                            )}
+                                        </TableCell>
                                         <TableCell>{moment(product.created_at).format('DD/MM/YYYY')}</TableCell>
                                         {!auth.isSeller && <TableCell className="min-w-[120px]">
                                             <div className="flex flex-wrap justify-end gap-2">

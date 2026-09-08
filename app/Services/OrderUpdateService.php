@@ -7,12 +7,15 @@ use App\Models\CommercialCondition;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\Pricing\RegionalPriceResolver;
 use App\Support\FlexBalance;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 final class OrderUpdateService
 {
+    public function __construct(private readonly RegionalPriceResolver $priceResolver) {}
+
     public function update(Order $order, array $data): Order
     {
         return DB::transaction(function () use ($order, $data) {
@@ -53,7 +56,9 @@ final class OrderUpdateService
                 $itemCondition = $campaign && in_array($product->id, $campaignProductIds, true)
                     ? $campaign->commercialCondition
                     : $customerCondition;
-                $price = $itemCondition ? $itemCondition->adjustedPrice((float) $product->price) : (float) $product->price;
+                // Um preço especial Produto x Região ativo substitui qualquer regra (cliente,
+                // região, tipo de estabelecimento, global ou campanha) para aquele item.
+                $price = $this->priceResolver->effectivePriceForSale($product, $customer->region, $itemCondition);
                 $grossItemTotal = round($price * $quantity, 2);
                 $itemAdjustment = array_key_exists('discount_amount', $item)
                     ? round((float) $item['discount_amount'], 2)

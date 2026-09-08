@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductRequest;
 use App\Models\Product;
+use App\Models\Region;
+use App\Services\Pricing\RegionalPriceResolver;
 use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +31,8 @@ class ProductController extends Controller
         ]);
         $search = trim($filters['q'] ?? '');
 
-        $query = Product::orderBy('id', 'DESC');
+        $query = Product::orderBy('id', 'DESC')
+            ->with(['regionPrices' => fn ($query) => $query->active()->with('region:id,name')]);
 
         if ($search) {
             $query->where(function ($query) use ($search) {
@@ -42,7 +46,17 @@ class ProductController extends Controller
             ->when($filters['brand'] ?? null, fn ($query, $brand) => $query->where('brand', $brand))
             ->when($filters['line'] ?? null, fn ($query, $line) => $query->where('line', $line));
 
-        $products = $query->paginate(12)->withQueryString();
+        // Preço efetivo por região: quando o produto tem preço especial ativo em alguma
+        // região, ele deve aparecer na listagem no lugar/junto do preço base (ver
+        // RegionalPriceResolver — aqui só é exibido, o cálculo já é feito lá).
+        $products = $query->paginate(12)->withQueryString()->through(fn (Product $product) => [
+            ...Arr::except($product->toArray(), ['region_prices']),
+            'special_prices' => $product->regionPrices->map(fn ($regionPrice) => [
+                'region_id' => $regionPrice->region_id,
+                'region_name' => $regionPrice->region->name,
+                'special_price' => (float) $regionPrice->special_price,
+            ])->values(),
+        ]);
 
         return Inertia::render('app/products/index', [
             'products' => $products,
@@ -89,7 +103,9 @@ class ProductController extends Controller
     {
         $this->authorizeProductManagement();
 
-        return Inertia::render('app/products/create-product');
+        return Inertia::render('app/products/create-product', [
+            'regions' => Region::where('status', true)->orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
     /**
@@ -100,7 +116,22 @@ class ProductController extends Controller
         $this->authorizeProductManagement();
         $data = $request->validated();
         $image = $request->file('image');
-        unset($data['image'], $data['remove_image']);
+        $applySpecialPrice = (bool) ($data['apply_special_price'] ?? false);
+        $specialPriceData = [
+            'region_id' => $data['special_price_region_id'] ?? null,
+            'special_price' => $data['special_price_value'] ?? null,
+            'valid_from' => $data['special_price_valid_from'] ?? null,
+            'valid_until' => $data['special_price_valid_until'] ?? null,
+        ];
+        unset(
+            $data['image'],
+            $data['remove_image'],
+            $data['apply_special_price'],
+            $data['special_price_region_id'],
+            $data['special_price_value'],
+            $data['special_price_valid_from'],
+            $data['special_price_valid_until'],
+        );
         $productExists = Product::where('reference', $data['reference'])->exists();
 
         if (! $productExists) {
@@ -156,17 +187,32 @@ class ProductController extends Controller
         }
         $product->save();
 
+        if ($applySpecialPrice) {
+            $product->regionPrices()->updateOrCreate(
+                ['region_id' => $specialPriceData['region_id']],
+                [
+                    'special_price' => $specialPriceData['special_price'],
+                    'is_active' => true,
+                    'valid_from' => $specialPriceData['valid_from'],
+                    'valid_until' => $specialPriceData['valid_until'],
+                ],
+            );
+        }
+
         return redirect()->route('app.products.index')->with('success', 'Produto cadastrado com sucesso!');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show(Product $product, RegionalPriceResolver $priceResolver)
     {
         $this->authorizeProductManagement();
 
-        return Inertia::render('app/products/edit-product', ['product' => $product]);
+        return Inertia::render('app/products/edit-product', [
+            'product' => $product,
+            'regionPrices' => $this->regionPricesFor($product, $priceResolver),
+        ]);
     }
 
     /**
@@ -262,5 +308,40 @@ class ProductController extends Controller
     private function authorizeProductManagement(): void
     {
         abort_unless(auth()->user()?->canManageTeam(), 403);
+    }
+
+    /**
+     * Monta a tabela "Preços por região" exibida no cadastro do produto: para cada região
+     * ativa, mostra o ajuste percentual da região, o preço calculado, o preço especial
+     * (quando cadastrado) e o preço efetivamente utilizado — sempre via RegionalPriceResolver,
+     * nunca recalculado na tela.
+     */
+    private function regionPricesFor(Product $product, RegionalPriceResolver $priceResolver): array
+    {
+        $specialPrices = $product->regionPrices()->get()->keyBy('region_id');
+
+        return Region::where('status', true)
+            ->orderBy('name')
+            ->get()
+            ->map(function (Region $region) use ($product, $priceResolver, $specialPrices) {
+                $resolved = $priceResolver->resolve($product, $region);
+                $record = $specialPrices->get($region->id);
+
+                return [
+                    'region_id' => $region->id,
+                    'region_name' => $region->name,
+                    ...$resolved,
+                    'special' => $record ? [
+                        'id' => $record->id,
+                        'special_price' => (float) $record->special_price,
+                        'is_active' => $record->is_active,
+                        'is_currently_valid' => $record->isCurrentlyValid(),
+                        'valid_from' => $record->valid_from?->toDateString(),
+                        'valid_until' => $record->valid_until?->toDateString(),
+                    ] : null,
+                ];
+            })
+            ->values()
+            ->toArray();
     }
 }

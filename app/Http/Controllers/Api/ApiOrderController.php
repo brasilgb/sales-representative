@@ -10,6 +10,7 @@ use App\Models\Flex;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\OrderUpdateService;
+use App\Services\Pricing\RegionalPriceResolver;
 use App\Support\FlexBalance;
 use App\Support\PlanLimits;
 use Carbon\Carbon;
@@ -54,7 +55,7 @@ class ApiOrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, RegionalPriceResolver $priceResolver)
     {
         PlanLimits::forTenant()->ensureCanCreate('orders_month');
 
@@ -117,9 +118,9 @@ class ApiOrderController extends Controller
                 $itemCondition = $campaign && in_array($product->id, $campaignProductIds, true)
                     ? $campaign->commercialCondition
                     : $customerCondition;
-                $price = $itemCondition
-                    ? $itemCondition->adjustedPrice((float) $product->price)
-                    : (float) $product->price;
+                // Um preço especial Produto x Região ativo substitui qualquer regra (cliente,
+                // região, tipo de estabelecimento, global ou campanha) para aquele item.
+                $price = $priceResolver->effectivePriceForSale($product, $customer->region, $itemCondition);
                 $grossItemTotal = round($price * (int) $item['quantity'], 2);
                 $itemAdjustment = array_key_exists('discount_amount', $item)
                     ? round((float) $item['discount_amount'], 2)

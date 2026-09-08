@@ -54,4 +54,9 @@ class Product extends Model
         return $this->belongsToMany(Order::class, 'order_items')
             ->withPivot('quantity', 'price');
     }
+
+    public function regionPrices(): HasMany
+    {
+        return $this->hasMany(ProductRegionPrice::class);
+    }
 }

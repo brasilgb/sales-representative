@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use App\Models\Region;
+use App\Services\Pricing\RegionalPriceResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -41,11 +43,31 @@ class RegionController extends Controller
         return redirect()->route('app.regions.index')->with('success', 'Região cadastrada com sucesso!');
     }
 
-    public function edit(Region $region): Response
+    public function edit(Request $request, Region $region, RegionalPriceResolver $priceResolver): Response
     {
         $this->authorizeRegionManagement();
 
-        return Inertia::render('app/regions/edit-region', ['region' => $region]);
+        $search = trim((string) $request->get('q', ''));
+
+        $products = Product::query()
+            ->when($search, fn ($query) => $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', '%'.$search.'%')->orWhere('reference', 'like', '%'.$search.'%');
+            }))
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn (Product $product) => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'reference' => $product->reference,
+                ...$priceResolver->resolve($product, $region),
+            ]);
+
+        return Inertia::render('app/regions/edit-region', [
+            'region' => $region,
+            'productPrices' => $products,
+            'filters' => ['q' => $search],
+        ]);
     }
 
     public function show(Region $region): RedirectResponse
